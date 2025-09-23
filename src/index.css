@@ -1,0 +1,122 @@
+:root {
+  font-family: 'Mona Sans', system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #ffffff;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@font-face {
+  font-family: 'Mona Sans';
+  src: url('/fonts/MonaSans.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+/* Forzar Mona Sans en todos los elementos pero permitir fontWeight */
+* {
+  font-family: 'Mona Sans', system-ui, Avenir, Helvetica, Arial, sans-serif !important;
+}
+
+/* Permitir fontWeight específico en todos los elementos */
+* {
+  font-weight: inherit !important;
+}
+
+/* Asegurar que MUI use Mona Sans pero respete fontWeight */
+.MuiTypography-root,
+.MuiButton-root,
+.MuiInputBase-root,
+.MuiSelect-root,
+.MuiChip-root {
+  font-family: 'Mona Sans' !important;
+}
+
+/* Permitir fontWeight específico en componentes styled */
+[class*="CatalogHeaderSection"],
+[class*="CatalogMainTitle"],
+[class*="CatalogMainDescription"] {
+  font-family: 'Mona Sans' !important;
+  font-weight: inherit !important;
+}
+
+/* Forzar fontWeight bold en elementos específicos del header */
+[class*="CatalogHeaderSection"] *,
+[class*="CatalogMainTitle"],
+[class*="CatalogMainDescription"] {
+  font-weight: 700 !important;
+}
+
+/* Clase específica para forzar bold */
+.force-bold {
+  font-weight: 700 !important;
+  font-family: 'Mona Sans' !important;
+}
+
+/* Selector más específico para MUI Typography */
+.MuiTypography-root.force-bold,
+.MuiTypography-root[style*="font-weight: 700"] {
+  font-weight: 700 !important;
+}
+
+a {
+  font-weight: 500;
+  color: #646cff;
+  text-decoration: inherit;
+}
+a:hover {
+  color: #535bf2;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  place-items: center;
+  min-width: 320px;
+  min-height: 100vh;
+  font-family: 'Mona Sans', system-ui, Avenir, Helvetica, Arial, sans-serif;
+}
+
+h1 {
+  font-size: 3.2em;
+  line-height: 1.1;
+}
+
+button {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: #1a1a1a;
+  cursor: pointer;
+  transition: border-color 0.25s;
+}
+button:hover {
+  border-color: #646cff;
+}
+button:focus,
+button:focus-visible {
+  outline: 4px auto -webkit-focus-ring-color;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color: #213547;
+    background-color: #ffffff;
+  }
+  a:hover {
+    color: #747bff;
+  }
+  button {
+    background-color: #f9f9f9;
+  }
+}
