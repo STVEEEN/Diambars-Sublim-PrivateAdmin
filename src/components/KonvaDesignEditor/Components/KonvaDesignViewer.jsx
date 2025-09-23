@@ -2,7 +2,7 @@
 import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { Stage, Layer, Rect, Circle, Text, Image, Line } from 'react-konva';
 import { CANVAS_CONFIG, scaleCustomizationArea, calculateScaledDimensions } from '../constants/canvasConfig';
-import { useUnifiedCanvasCentering } from '../hooks/useUnifiedCanvasCentering';
+import { useUnifiedCanvasCentering } from '../Hooks/useUnifiedCanvasCentering';
 import { 
   Dialog, 
   DialogTitle, 
