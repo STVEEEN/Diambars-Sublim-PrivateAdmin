@@ -16,7 +16,11 @@ export default defineConfig({
     },
     commonjsOptions: {
       include: [/konva/, /react-konva/, /node_modules/]
-    }
+    },
+    // Configuración específica para Vercel
+    target: 'esnext',
+    minify: 'esbuild',
+    sourcemap: false
   },
   optimizeDeps: {
     include: ['konva', 'react-konva'],
@@ -29,5 +33,9 @@ export default defineConfig({
   },
   define: {
     global: 'globalThis'
+  },
+  // Configuración específica para evitar problemas de Rollup en Vercel
+  esbuild: {
+    target: 'esnext'
   }
 })
