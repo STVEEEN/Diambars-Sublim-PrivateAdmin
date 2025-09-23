@@ -4,13 +4,6 @@
     "framework": "vite",
     "outputDirectory": "dist",
     "env": {
-      "NODE_ENV": "production",
-      "ROLLUP_NATIVE": "false"
-    },
-    "build": {
-      "env": {
-        "NODE_OPTIONS": "--max-old-space-size=4096",
-        "ROLLUP_NATIVE": "false"
-      }
+      "NODE_ENV": "production"
     }
   }
