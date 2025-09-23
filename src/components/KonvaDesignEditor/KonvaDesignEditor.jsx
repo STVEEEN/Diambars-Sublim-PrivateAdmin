@@ -23,7 +23,7 @@ import { EditorToolbar } from './components/Editor/EditorToolbar';
 import { ShapeCreatorModal } from './components/Shapes/ShapeCreatorModal';
 import { testImageFlow } from './utils/imageTestUtils';
 import UnifiedPanel from './components/UnifiedPanel/UnifiedPanel';
-import AdvancedShapeCreatorModal from './Components/ShapeCreator/ShapeCreatorModal';
+import AdvancedShapeCreatorModal from './components/ShapeCreator/ShapeCreatorModal';
 
 // ==================== TEMA Y ESTILOS RESPONSIVOS ====================
 import { responsiveTheme, GRADIENTS_3D, SHADOWS_3D, FIXED_COLORS, BORDERS, TRANSITIONS, Z_INDEX } from './styles/responsiveTheme';
