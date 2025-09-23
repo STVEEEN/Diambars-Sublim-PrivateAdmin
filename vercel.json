@@ -1,5 +1,5 @@
 {
-    "buildCommand": "npm ci --legacy-peer-deps && npm run build",
+    "buildCommand": "npm ci --legacy-peer-deps && npm run build:vercel",
     "installCommand": "npm ci --legacy-peer-deps",
     "framework": "vite",
     "outputDirectory": "dist",
@@ -9,11 +9,13 @@
       }
     },
     "env": {
-      "NODE_ENV": "production"
+      "NODE_ENV": "production",
+      "ROLLUP_NATIVE": "false"
     },
     "build": {
       "env": {
-        "NODE_OPTIONS": "--max-old-space-size=4096"
+        "NODE_OPTIONS": "--max-old-space-size=4096",
+        "ROLLUP_NATIVE": "false"
       }
     }
   }

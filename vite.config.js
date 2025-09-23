@@ -5,22 +5,12 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   build: {
-    rollupOptions: {
-      // No externalizar konva, asegurar que se incluya en el bundle
-      external: [],
-      output: {
-        manualChunks: {
-          konva: ['konva', 'react-konva']
-        }
-      }
-    },
-    commonjsOptions: {
-      include: [/konva/, /react-konva/, /node_modules/]
-    },
-    // Configuración específica para Vercel
+    // Usar solo esbuild para evitar problemas de Rollup
     target: 'esnext',
     minify: 'esbuild',
-    sourcemap: false
+    sourcemap: false,
+    // Deshabilitar Rollup completamente
+    rollupOptions: undefined
   },
   optimizeDeps: {
     include: ['konva', 'react-konva'],
