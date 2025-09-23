@@ -3,7 +3,7 @@ import { Stage, Layer, Image as KonvaImage, Rect, Text, Transformer } from 'reac
 import useImage from 'use-image';
 import { CANVAS_CONFIG, calculateScaledDimensions } from '../KonvaDesignEditor/constants/canvasConfig';
 import { EDITOR_THEME, EDITOR_LAYOUT, CANVAS_RENDERING } from './constants/editorConfig';
-import { useUnifiedCanvasCentering } from '../KonvaDesignEditor/Hooks/useUnifiedCanvasCentering';
+import { useUnifiedCanvasCentering } from '../KonvaDesignEditor/hooks/useUnifiedCanvasCentering';
 import { GridPattern } from './components/GridPattern';
 import { ExportService } from './services/ExportService';
 import Swal from 'sweetalert2';
