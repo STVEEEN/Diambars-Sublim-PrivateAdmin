@@ -11,15 +11,15 @@ import { ChromePicker } from 'react-color';
 import './styles/sweetalert-fix.css';
 
 // ==================== HOOKS Y SERVICIOS ESPECIALIZADOS ====================
-import { useKonvaCanvas } from './hooks/useKonvaCanvas';
-import { useKonvaHistory } from './hooks/useKonvaHistory';
-import { useKonvaSelection } from './hooks/useKonvaSelection';
-import { useProductBackground } from './hooks/useProductBackground';
-import { useCustomizationAreas } from './hooks/useCustomizationAreas';
+import { useKonvaCanvas } from './Hooks/useKonvaCanvas';
+import { useKonvaHistory } from './Hooks/useKonvaHistory';
+import { useKonvaSelection } from './Hooks/useKonvaSelection';
+import { useProductBackground } from './Hooks/useProductBackground';
+import { useCustomizationAreas } from './Hooks/useCustomizationAreas';
 import { useUnifiedCanvasCentering } from './hooks/useUnifiedCanvasCentering';
 
 // ==================== COMPONENTES ESPECIALIZADOS ====================
-import { EditorToolbar } from './components/Editor/EditorToolbar';
+import { EditorToolbar } from './components/Editor/EditorToolbar';  
 import { ShapeCreatorModal } from './components/Shapes/ShapeCreatorModal';
 import { testImageFlow } from './utils/imageTestUtils';
 import UnifiedPanel from './components/UnifiedPanel/UnifiedPanel';
@@ -27,7 +27,7 @@ import AdvancedShapeCreatorModal from './components/ShapeCreator/ShapeCreatorMod
 
 // ==================== TEMA Y ESTILOS RESPONSIVOS ====================
 import { responsiveTheme, GRADIENTS_3D, SHADOWS_3D, FIXED_COLORS, BORDERS, TRANSITIONS, Z_INDEX } from './styles/responsiveTheme';
-import { useResponsiveLayout } from './hooks/useResponsiveLayout';
+import { useResponsiveLayout } from './Hooks/useResponsiveLayout';
 
 // ==================== ELEMENTOS RENDERIZABLES ====================
 import { KonvaElementRenderer } from './components/Elements/KonvaElementRenderer';
@@ -38,7 +38,7 @@ import { ElementFactory } from './services/ElementFactory';
 import { ValidationService } from './services/ValidationService';
 import { FontService } from './services/FontService';
 import { ExportService } from './services/ExportService';
-import { HistoryManager } from './services/HistoryManager';
+import { HistoryManager } from './Services/HistoryManager';
 import { CANVAS_CONFIG, calculateScaledDimensions } from './constants/canvasConfig';
 
 // ==================== CONSTANTES ====================
