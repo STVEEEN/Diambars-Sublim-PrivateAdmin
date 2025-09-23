@@ -3,11 +3,6 @@
     "installCommand": "npm ci --legacy-peer-deps",
     "framework": "vite",
     "outputDirectory": "dist",
-    "functions": {
-      "app/api/**/*.js": {
-        "runtime": "nodejs18.x"
-      }
-    },
     "env": {
       "NODE_ENV": "production",
       "ROLLUP_NATIVE": "false"
