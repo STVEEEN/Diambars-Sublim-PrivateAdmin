@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
+import AdminReviewsService from '../api/AdminReviewsService';
 
 export const useAdminReviews = () => {
   const [reviews, setReviews] = useState([]);
@@ -10,26 +11,18 @@ export const useAdminReviews = () => {
   const [sortOption, setSortOption] = useState('newest');
   const [showOnlyHighRating, setShowOnlyHighRating] = useState(false);
 
-  const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://expo2025-8bjn.onrender.com/api';
-
   // Obtener todas las reseñas (para admin)
   const fetchAllReviews = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/reviews`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
+      const response = await AdminReviewsService.getAll({
+        status: selectedFilter,
+        search: searchQuery,
+        sort: sortOption,
+        rating: showOnlyHighRating ? 4 : undefined
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const result = await response.json();
-      const reviewsData = result.success ? result.data : result;
+      const reviewsData = response.success ? response.data : response;
       const validReviews = Array.isArray(reviewsData) ? reviewsData : [];
       
       setReviews(validReviews);
@@ -49,265 +42,225 @@ export const useAdminReviews = () => {
   // Aprobar reseña
   const approveReview = async (reviewId) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/reviews/${reviewId}/approve`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.message || 'Error al aprobar reseña');
-      }
-
-      if (result.success) {
+      const response = await AdminReviewsService.approve(reviewId);
+      
+      if (response.success) {
         // Actualizar estado local
         setReviews(prev => prev.map(r => 
           r._id === reviewId ? { ...r, status: 'approved' } : r
         ));
 
-        return { success: true, message: result.message };
+        Swal.fire({
+          title: 'Éxito',
+          text: 'Reseña aprobada correctamente',
+          icon: 'success'
+        });
+
+        return { success: true, message: response.message };
       }
     } catch (error) {
       console.error('Error al aprobar reseña:', error);
+      Swal.fire({
+        title: 'Error',
+        text: 'Error al aprobar la reseña',
+        icon: 'error'
+      });
       return { success: false, message: error.message };
     }
   };
 
   // Rechazar reseña
-  const rejectReview = async (reviewId) => {
+  const rejectReview = async (reviewId, reason = '') => {
     try {
-      const response = await fetch(`${API_BASE_URL}/reviews/${reviewId}/reject`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.message || 'Error al rechazar reseña');
-      }
-
-      if (result.success) {
+      const response = await AdminReviewsService.reject(reviewId, reason);
+      
+      if (response.success) {
         // Actualizar estado local
         setReviews(prev => prev.map(r => 
           r._id === reviewId ? { ...r, status: 'rejected' } : r
         ));
 
-        return { success: true, message: result.message };
+        Swal.fire({
+          title: 'Éxito',
+          text: 'Reseña rechazada correctamente',
+          icon: 'success'
+        });
+
+        return { success: true, message: response.message };
       }
     } catch (error) {
       console.error('Error al rechazar reseña:', error);
+      Swal.fire({
+        title: 'Error',
+        text: 'Error al rechazar la reseña',
+        icon: 'error'
+      });
       return { success: false, message: error.message };
     }
   };
 
-  // Manejar aprobación con confirmación
-  const handleApproveReview = async (reviewId) => {
-    const review = reviews.find(r => r._id === reviewId);
-    
-    const result = await Swal.fire({
-      title: '¿Aprobar reseña?',
-      text: `¿Aprobar la reseña de ${review?.userId?.name || 'Usuario'}?`,
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonColor: '#10b981',
-      cancelButtonColor: '#64748b',
-      confirmButtonText: 'Sí, aprobar',
-      cancelButtonText: 'Cancelar'
-    });
-
-    if (result.isConfirmed) {
-      const approvalResult = await approveReview(reviewId);
+  // Eliminar reseña
+  const deleteReview = async (reviewId) => {
+    try {
+      const response = await AdminReviewsService.delete(reviewId);
       
-      if (approvalResult.success) {
+      if (response.success) {
+        // Remover del estado local
+        setReviews(prev => prev.filter(r => r._id !== reviewId));
+
         Swal.fire({
-          title: '¡Aprobada!',
-          text: 'La reseña ha sido aprobada y ahora es visible para los clientes',
-          icon: 'success',
-          timer: 2000,
-          showConfirmButton: false
+          title: 'Éxito',
+          text: 'Reseña eliminada correctamente',
+          icon: 'success'
         });
-      } else {
-        Swal.fire({
-          title: 'Error',
-          text: approvalResult.message || 'Error al aprobar la reseña',
-          icon: 'error'
-        });
+
+        return { success: true, message: response.message };
       }
+    } catch (error) {
+      console.error('Error al eliminar reseña:', error);
+      Swal.fire({
+        title: 'Error',
+        text: 'Error al eliminar la reseña',
+        icon: 'error'
+      });
+      return { success: false, message: error.message };
     }
   };
 
-  // Manejar rechazo con confirmación
-  const handleRejectReview = async (reviewId) => {
-    const review = reviews.find(r => r._id === reviewId);
-    
-    const result = await Swal.fire({
-      title: '¿Rechazar reseña?',
-      text: `¿Rechazar la reseña de ${review?.userId?.name || 'Usuario'}?`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#ef4444',
-      cancelButtonColor: '#64748b',
-      confirmButtonText: 'Sí, rechazar',
-      cancelButtonText: 'Cancelar'
-    });
-
-    if (result.isConfirmed) {
-      const rejectionResult = await rejectReview(reviewId);
+  // Actualizar reseña
+  const updateReview = async (reviewId, updateData) => {
+    try {
+      const response = await AdminReviewsService.update(reviewId, updateData);
       
-      if (rejectionResult.success) {
+      if (response.success) {
+        // Actualizar estado local
+        setReviews(prev => prev.map(r => 
+          r._id === reviewId ? { ...r, ...updateData } : r
+        ));
+
         Swal.fire({
-          title: '¡Rechazada!',
-          text: 'La reseña ha sido rechazada',
-          icon: 'success',
-          timer: 2000,
-          showConfirmButton: false
+          title: 'Éxito',
+          text: 'Reseña actualizada correctamente',
+          icon: 'success'
         });
-      } else {
-        Swal.fire({
-          title: 'Error',
-          text: rejectionResult.message || 'Error al rechazar la reseña',
-          icon: 'error'
-        });
+
+        return { success: true, message: response.message };
       }
+    } catch (error) {
+      console.error('Error al actualizar reseña:', error);
+      Swal.fire({
+        title: 'Error',
+        text: 'Error al actualizar la reseña',
+        icon: 'error'
+      });
+      return { success: false, message: error.message };
     }
   };
 
-  // Ver detalles de reseña
-  const handleViewReview = (review) => {
-    const userName = review.userId?.name || 'Usuario Anónimo';
-    const userEmail = review.userId?.email || 'Sin email';
-    
-    Swal.fire({
-      title: `Reseña de ${userName}`,
-      html: `
-        <div style="text-align: left; padding: 20px;">
-          <p><strong>Cliente:</strong> ${userName}</p>
-          <p><strong>Email:</strong> ${userEmail}</p>
-          <p><strong>Calificación:</strong> ${'⭐'.repeat(review.rating)} (${review.rating}/5)</p>
-          <p><strong>Estado:</strong> <span style="color: ${getStatusColorCSS(review.status)}">${getStatusTextCSS(review.status)}</span></p>
-          <p><strong>Fecha:</strong> ${new Date(review.createdAt).toLocaleDateString('es-ES')}</p>
-          <div style="margin-top: 16px;">
-            <strong>Comentario:</strong>
-            <div style="margin-top: 8px; padding: 12px; background: #f8fafc; border-radius: 8px;">
-              "${review.comment}"
-            </div>
-          </div>
-        </div>
-      `,
-      confirmButtonText: 'Cerrar',
-      confirmButtonColor: '#1F64BF',
-      width: 600
-    });
-  };
-
-  // Funciones auxiliares para colores y textos de estado
-  const getStatusTextCSS = (status) => {
-    const statusTexts = {
-      pending: 'Pendiente',
-      approved: 'Aprobada',
-      rejected: 'Rechazada'
-    };
-    return statusTexts[status] || status;
-  };
-
-  const getStatusColorCSS = (status) => {
-    const colors = {
-      pending: '#f59e0b',
-      approved: '#10b981',
-      rejected: '#ef4444'
-    };
-    return colors[status] || '#64748b';
+  // Obtener estadísticas
+  const getStats = async () => {
+    try {
+      const response = await AdminReviewsService.getStats();
+      return response.success ? response.data : null;
+    } catch (error) {
+      console.error('Error al obtener estadísticas:', error);
+      return null;
+    }
   };
 
   // Filtrar reseñas
-  useEffect(() => {
-    let filtered = reviews.filter(review => {
-      const userName = review.userId?.name || '';
-      const userEmail = review.userId?.email || '';
+  const filterReviews = async (filters) => {
+    try {
+      const response = await AdminReviewsService.filter(filters);
+      const reviewsData = response.success ? response.data : response;
+      const validReviews = Array.isArray(reviewsData) ? reviewsData : [];
       
-      const matchesSearch = 
-        userName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        review.comment.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        userEmail.toLowerCase().includes(searchQuery.toLowerCase());
+      setFilteredReviews(validReviews);
+      return validReviews;
+    } catch (error) {
+      console.error('Error al filtrar reseñas:', error);
+      return [];
+    }
+  };
 
-      const matchesFilter = selectedFilter === 'all' || review.status === selectedFilter;
-      const matchesRating = !showOnlyHighRating || review.rating >= 4;
+  // Aplicar filtros locales
+  const applyLocalFilters = () => {
+    let filtered = [...reviews];
 
-      return matchesSearch && matchesFilter && matchesRating;
-    });
+    // Filtrar por estado
+    if (selectedFilter && selectedFilter !== 'all') {
+      filtered = filtered.filter(review => review.status === selectedFilter);
+    }
+
+    // Filtrar por búsqueda
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(review => 
+        review.user?.name?.toLowerCase().includes(query) ||
+        review.comment?.toLowerCase().includes(query) ||
+        review.product?.name?.toLowerCase().includes(query)
+      );
+    }
+
+    // Filtrar por rating alto
+    if (showOnlyHighRating) {
+      filtered = filtered.filter(review => review.rating >= 4);
+    }
 
     // Ordenar
-    filtered.sort((a, b) => {
-      switch (sortOption) {
-        case 'newest':
-          return new Date(b.createdAt) - new Date(a.createdAt);
-        case 'oldest':
-          return new Date(a.createdAt) - new Date(b.createdAt);
-        case 'rating_high':
-          return b.rating - a.rating;
-        case 'rating_low':
-          return a.rating - b.rating;
-        default:
-          return 0;
-      }
-    });
+    switch (sortOption) {
+      case 'newest':
+        filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        break;
+      case 'oldest':
+        filtered.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+        break;
+      case 'rating_high':
+        filtered.sort((a, b) => b.rating - a.rating);
+        break;
+      case 'rating_low':
+        filtered.sort((a, b) => a.rating - b.rating);
+        break;
+      default:
+        break;
+    }
 
     setFilteredReviews(filtered);
-  }, [reviews, searchQuery, selectedFilter, sortOption, showOnlyHighRating]);
-
-  // Obtener estadísticas
-  const getStats = () => {
-    const total = reviews.length;
-    const pending = reviews.filter(r => r.status === 'pending').length;
-    const approved = reviews.filter(r => r.status === 'approved').length;
-    const rejected = reviews.filter(r => r.status === 'rejected').length;
-    const avgRating = reviews.length > 0 
-      ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)
-      : '0.0';
-
-    return { total, pending, approved, rejected, avgRating };
   };
 
-  // Limpiar filtros
-  const handleClearFilters = () => {
-    setSearchQuery('');
-    setSelectedFilter('all');
-    setSortOption('newest');
-    setShowOnlyHighRating(false);
-  };
-
-  // Cargar datos al montar el componente
+  // Efectos
   useEffect(() => {
     fetchAllReviews();
-  }, []);
+  }, [selectedFilter, searchQuery, sortOption, showOnlyHighRating]);
+
+  useEffect(() => {
+    applyLocalFilters();
+  }, [reviews, selectedFilter, searchQuery, sortOption, showOnlyHighRating]);
 
   return {
+    // Estado
     reviews,
     filteredReviews,
     loading,
     searchQuery,
-    setSearchQuery,
     selectedFilter,
-    setSelectedFilter,
     sortOption,
-    setSortOption,
     showOnlyHighRating,
+
+    // Setters
+    setSearchQuery,
+    setSelectedFilter,
+    setSortOption,
     setShowOnlyHighRating,
-    handleApproveReview,
-    handleRejectReview,
-    handleViewReview,
-    handleClearFilters,
+
+    // Funciones
     fetchAllReviews,
-    getStats
+    approveReview,
+    rejectReview,
+    deleteReview,
+    updateReview,
+    getStats,
+    filterReviews,
+    applyLocalFilters
   };
 };
-
-export default useAdminReviews;
