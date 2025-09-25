@@ -10,6 +10,13 @@ export const useAdminReviews = () => {
   const [selectedFilter, setSelectedFilter] = useState('pending');
   const [sortOption, setSortOption] = useState('newest');
   const [showOnlyHighRating, setShowOnlyHighRating] = useState(false);
+  const [stats, setStats] = useState({
+    total: 0,
+    pending: 0,
+    approved: 0,
+    rejected: 0,
+    avgRating: 0
+  });
 
   // Obtener todas las reseñas (para admin)
   const fetchAllReviews = async () => {
@@ -160,10 +167,29 @@ export const useAdminReviews = () => {
   // Obtener estadísticas
   const getStats = async () => {
     try {
+      console.log('📊 [useAdminReviews] Obteniendo estadísticas...');
       const response = await AdminReviewsService.getStats();
-      return response.success ? response.data : null;
+      console.log('📊 [useAdminReviews] Respuesta del servicio:', response);
+      
+      if (response.success) {
+        const statsData = response.data;
+        console.log('📊 [useAdminReviews] Datos de estadísticas:', statsData);
+        
+        const newStats = {
+          total: statsData.overview?.total || 0,
+          pending: statsData.overview?.pending || 0,
+          approved: statsData.overview?.approved || 0,
+          rejected: statsData.overview?.rejected || 0,
+          avgRating: statsData.rating?.average || 0
+        };
+        
+        console.log('📊 [useAdminReviews] Estadísticas mapeadas:', newStats);
+        setStats(newStats);
+        return statsData;
+      }
+      return null;
     } catch (error) {
-      console.error('Error al obtener estadísticas:', error);
+      console.error('❌ [useAdminReviews] Error al obtener estadísticas:', error);
       return null;
     }
   };
@@ -231,6 +257,7 @@ export const useAdminReviews = () => {
   // Efectos
   useEffect(() => {
     fetchAllReviews();
+    getStats(); // Cargar estadísticas al montar el componente
   }, [selectedFilter, searchQuery, sortOption, showOnlyHighRating]);
 
   useEffect(() => {
@@ -246,6 +273,7 @@ export const useAdminReviews = () => {
     selectedFilter,
     sortOption,
     showOnlyHighRating,
+    stats,
 
     // Setters
     setSearchQuery,
@@ -261,6 +289,20 @@ export const useAdminReviews = () => {
     updateReview,
     getStats,
     filterReviews,
-    applyLocalFilters
+    applyLocalFilters,
+
+    // Handlers para el componente
+    handleApproveReview: approveReview,
+    handleRejectReview: rejectReview,
+    handleViewReview: (review) => {
+      console.log('Ver reseña:', review);
+      // Aquí puedes implementar la lógica para mostrar detalles de la reseña
+    },
+    handleClearFilters: () => {
+      setSearchQuery('');
+      setSelectedFilter('pending');
+      setSortOption('newest');
+      setShowOnlyHighRating(false);
+    }
   };
 };
