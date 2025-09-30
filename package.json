@@ -6,7 +6,6 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "build:render": "cross-env NODE_OPTIONS=--max-old-space-size=4096 vite build --base=./",
     "build:vercel": "cross-env NODE_OPTIONS=--max-old-space-size=4096 vite build",
     "build:vercel-fix": "npm install @rollup/rollup-linux-x64-gnu --save-optional && cross-env NODE_OPTIONS=--max-old-space-size=4096 vite build",
     "lint": "eslint .",

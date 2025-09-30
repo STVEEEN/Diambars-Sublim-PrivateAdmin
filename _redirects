@@ -1,3 +1,0 @@
-# Redirects para Render
-/api/* https://expo2025-8bjn.onrender.com/api/:splat 200
-/* /index.html 200
