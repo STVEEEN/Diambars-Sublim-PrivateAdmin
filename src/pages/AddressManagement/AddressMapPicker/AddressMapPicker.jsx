@@ -21,7 +21,11 @@ import {
   ArrowsOut as FullscreenIcon,
   ArrowsIn as ExitFullscreenIcon,
   Star as StarIcon,
-  X as CloseIcon
+  X as CloseIcon,
+  Truck as TruckIcon,
+  Warning as WarningIcon,
+  XCircle as ErrorIcon,
+  CheckCircle as SuccessIcon
 } from '@phosphor-icons/react';
 
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
@@ -660,6 +664,46 @@ const AddressMapZoomHandler = ({ onZoomChange }) => {
   return null;
 };
 
+// Componente para detectar interacción manual del usuario (MEJORADO)
+const AddressMapInteractionHandler = ({ onUserInteraction }) => {
+  useMapEvents({
+    dragstart: () => {
+      console.log('🗺️ [InteractionHandler] Usuario comenzó a arrastrar el mapa');
+      onUserInteraction('drag');
+    },
+    drag: () => {
+      // Reportar continuamente durante el drag para mantener la protección
+      onUserInteraction('drag');
+    },
+    movestart: (e) => {
+      // Solo reportar si el movimiento no es por código programático
+      if (!e.target._animatingZoom && !e.target._moving && !e.target._mapPane?.classList?.contains('leaflet-zoom-anim')) {
+        console.log('🗺️ [InteractionHandler] Usuario comenzó a mover el mapa manualmente');
+        onUserInteraction('move');
+      }
+    },
+    move: (e) => {
+      // Detectar movimiento manual continuo
+      if (!e.target._animatingZoom && !e.target._moving) {
+        onUserInteraction('move');
+      }
+    },
+    zoomstart: (e) => {
+      console.log('🗺️ [InteractionHandler] Usuario comenzó a hacer zoom');
+      onUserInteraction('zoom');
+    },
+    zoom: () => {
+      // Reportar continuamente durante el zoom
+      onUserInteraction('zoom');
+    },
+    click: () => {
+      // Cualquier click indica interacción del usuario
+      onUserInteraction('click');
+    }
+  });
+  return null;
+};
+
 // Componente para centrar el mapa
 const AddressMapCenterController = ({ center, shouldCenter, zoom = 15 }) => {
   const map = useMap();
@@ -670,16 +714,18 @@ const AddressMapCenterController = ({ center, shouldCenter, zoom = 15 }) => {
       
       // Verificar que el mapa esté listo
       if (map.getContainer()) {
-        map.setView([center.lat, center.lng], zoom, {
+        map.flyTo([center.lat, center.lng], zoom, {
           animate: true,
-          duration: 1.0,
-          easeLinearity: 0.1
+          duration: 0.8,
+          easeLinearity: 0.2
         });
         
-        // Forzar invalidación del tamaño del mapa
+        // Invalidación más conservadora del tamaño
         setTimeout(() => {
-          map.invalidateSize();
-        }, 100);
+          if (map.getContainer()) {
+            map.invalidateSize({ animate: false });
+          }
+        }, 200);
       }
     }
   }, [map, center, shouldCenter, zoom]);
@@ -703,7 +749,14 @@ const AddressMapPicker = ({
   // Nuevas props para centrado automático por departamento/municipio
   selectedDepartment = null,
   selectedMunicipality = null,
-  autoCenterOnLocationChange = true
+  autoCenterOnLocationChange = true,
+  // Nuevas props para auto-población de formulario
+  onAddressDataChange = null,
+  enableAutoFormPopulation = true,
+  // Nueva prop para manejar limpieza de campos
+  onClearFields = null,
+  // Prop adicional para función de limpieza directa del formulario
+  onClearAllFormFields = null
 }) => {
   const theme = useTheme();
   
@@ -713,6 +766,7 @@ const AddressMapPicker = ({
     isWithinElSalvador,
     getElSalvadorCenter,
     getElSalvadorBounds,
+    getElSalvadorNavigationBounds,
     loading: geocoding
   } = useGeolocation();
 
@@ -723,13 +777,20 @@ const AddressMapPicker = ({
   const [error, setError] = useState(null);
   const [shouldCenter, setShouldCenter] = useState(false);
   const [addressInfo, setAddressInfo] = useState(null);
+  const [deliveryTimeInfo, setDeliveryTimeInfo] = useState(null);
   const [settingAsDefault, setSettingAsDefault] = useState(false);
   const [showLocationPanel, setShowLocationPanel] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [currentZoom, setCurrentZoom] = useState(13);
   const [showConfirmationToast, setShowConfirmationToast] = useState(false);
+  const [isAutoPopulating, setIsAutoPopulating] = useState(false); // Bandera para evitar bucles
+  const [lastAutoCenter, setLastAutoCenter] = useState(null); // Último auto-centrado
+  const [lastProcessedLocation, setLastProcessedLocation] = useState(null); // Última ubicación procesada
+  const [userInteracting, setUserInteracting] = useState(false); // Rastrea si el usuario está interactuando manualmente
 
   const mapRef = useRef(null);
+  const reverseGeocodingTimeoutRef = useRef(null);
+  const isProcessingRef = useRef(false); // Ref para evitar múltiples procesamientos
 
   // ==================== EFECTOS ====================
   useEffect(() => {
@@ -739,79 +800,164 @@ const AddressMapPicker = ({
     }
   }, [selectedLocation]);
 
-  // Efecto para centrar automáticamente el mapa cuando cambien departamento/municipio
+  // Efecto para centrar automáticamente el mapa cuando cambien departamento/municipio (COMPLETAMENTE DESHABILITADO)
+  // NOTA: Este efecto está COMPLETAMENTE DESHABILITADO para evitar auto-centrado no deseado
+  // cuando el usuario navega manualmente por el mapa
+  /*
   useEffect(() => {
-    const centerMap = async () => {
-      if (autoCenterOnLocationChange && (selectedDepartment || selectedMunicipality)) {
-        let newCenter = null;
+    // DESHABILITADO PERMANENTEMENTE - causaba auto-centrado no deseado durante navegación manual
+    console.log('🗺️ [AddressMapPicker] Auto-centrado por departamento/municipio DESHABILITADO');
+  }, [selectedDepartment, selectedMunicipality, autoCenterOnLocationChange, isAutoPopulating, lastAutoCenter]);
+  */
+
+  // Efecto para centrar automáticamente cuando cambie currentLocation (OPTIMIZADO)
+  useEffect(() => {
+    if (currentLocation && !crosshairMode && mapReady && !userInteracting) {
+      console.log('🗺️ [AddressMapPicker] Evaluando auto-centrado:', {
+        currentLocation: !!currentLocation,
+        crosshairMode,
+        mapReady,
+        userInteracting
+      });
+      
+      // Solo auto-centrar si la ubicación cambió significativamente (más de 100m)
+      if (selectedLocation && currentLocation) {
+        const distance = calculateDistance(
+          selectedLocation.lat, selectedLocation.lng,
+          currentLocation.lat, currentLocation.lng
+        );
         
-        // Priorizar municipio si está disponible
-        if (selectedMunicipality && selectedDepartment) {
-          // Primero intentar con la base de datos local
-          newCenter = geocodingService.getMunicipalityCenter(selectedMunicipality, selectedDepartment);
-          
-          // Si no se encuentra en la base local, intentar búsqueda online
-          if (!newCenter || (newCenter.lat === 13.8667 && newCenter.lng === -88.6333)) {
-            console.log('🗺️ [AddressMapPicker] Municipio no encontrado en base local, buscando online...');
-            newCenter = await geocodingService.searchMunicipalityOnline(selectedMunicipality, selectedDepartment);
-          }
-        } else if (selectedDepartment) {
-          newCenter = geocodingService.getDepartmentCenter(selectedDepartment);
+        // Solo centrar si el cambio es significativo y el usuario no está interactuando
+        if (distance > 0.1) { // 100 metros
+          console.log('🗺️ [AddressMapPicker] Auto-centrando por cambio significativo de ubicación');
+          setShouldCenter(true);
+          setTimeout(() => setShouldCenter(false), 300);
         }
-        
-        if (newCenter) {
-          console.log('🗺️ [AddressMapPicker] Centrando mapa en:', { 
-            department: selectedDepartment, 
-            municipality: selectedMunicipality, 
-            coordinates: newCenter 
-          });
-          
-          setCurrentLocation(newCenter);
-          setCrosshairMode(false);
-          setShowLocationPanel(true); // Mostrar panel para confirmar ubicación
-          
-          // Forzar centrado del mapa con un pequeño delay
-          setTimeout(() => {
-            setShouldCenter(true);
-            setTimeout(() => setShouldCenter(false), 100);
-          }, 100);
-          
-          // Limpiar información anterior para forzar nueva búsqueda
-          setAddressInfo(null);
-        }
+      } else {
+        // Primera vez o no hay ubicación previa
+        console.log('🗺️ [AddressMapPicker] Auto-centrando por nueva ubicación inicial');
+        setShouldCenter(true);
+        setTimeout(() => setShouldCenter(false), 300);
       }
-    };
-
-    centerMap();
-  }, [selectedDepartment, selectedMunicipality, autoCenterOnLocationChange]);
-
-  // Efecto para centrar automáticamente cuando cambie currentLocation
-  useEffect(() => {
-    if (currentLocation && !crosshairMode) {
-      console.log('🗺️ [AddressMapPicker] Centrando automáticamente en nueva ubicación:', currentLocation);
-      setShouldCenter(true);
-      setTimeout(() => setShouldCenter(false), 100);
+    } else if (userInteracting) {
+      console.log('🗺️ [AddressMapPicker] Auto-centrado OMITIDO - usuario interactuando con el mapa');
     }
-  }, [currentLocation, crosshairMode]);
+  }, [currentLocation, crosshairMode, mapReady, selectedLocation, userInteracting]);
 
-  // Auto reverse geocoding cuando se selecciona una ubicación
+  // Auto reverse geocoding con auto-población de formulario
   useEffect(() => {
     const performReverseGeocode = async () => {
-      if (currentLocation && !crosshairMode) {
+      // Verificar si ya estamos procesando para evitar bucles
+      if (isProcessingRef.current) {
+        console.log('🗺️ [AddressMapPicker] Saltando reverse geocoding - ya procesando');
+        return;
+      }
+      
+      // Verificar si la ubicación ya fue procesada
+      if (lastProcessedLocation && currentLocation &&
+          Math.abs(lastProcessedLocation.lat - currentLocation.lat) < 0.0001 &&
+          Math.abs(lastProcessedLocation.lng - currentLocation.lng) < 0.0001) {
+        console.log('🗺️ [AddressMapPicker] Saltando reverse geocoding - ubicación ya procesada');
+        return;
+      }
+      
+      console.log('🗺️ [useEffect] Evaluando condiciones para reverse geocoding:', {
+        currentLocation: !!currentLocation,
+        crosshairMode,
+        enableAutoFormPopulation,
+        hasCallback: !!onAddressDataChange,
+        isAutoPopulating,
+        isProcessing: isProcessingRef.current
+      });
+      
+      if (currentLocation && !crosshairMode && enableAutoFormPopulation && onAddressDataChange) {
         try {
+          // Marcar que estamos procesando
+          isProcessingRef.current = true;
+          setIsAutoPopulating(true);
+          
+          console.log('🗺️ [AddressMapPicker] Iniciando reverse geocoding para:', currentLocation);
+          
+          // Usar el servicio de geocodificación
           const result = await reverseGeocode(currentLocation.lat, currentLocation.lng);
-          if (result) {
+          
+          if (result && result.addressComponents) {
+            console.log('🗺️ [AddressMapPicker] Resultado de reverse geocoding:', result);
+            
+            // Actualizar addressInfo
             setAddressInfo(result.addressComponents);
+            
+            // Marcar esta ubicación como procesada
+            setLastProcessedLocation({
+              lat: currentLocation.lat,
+              lng: currentLocation.lng
+            });
+            
+            console.log('🗺️ [AddressMapPicker] Auto-poblando formulario con:', result.addressComponents);
+            
+            // Calcular tiempo estimado de entrega desde San Salvador
+            const deliveryTimeInfo = calculateDeliveryTime(currentLocation.lat, currentLocation.lng);
+            console.log('🚚 [AddressMapPicker] Tiempo estimado de entrega calculado:', deliveryTimeInfo);
+            
+            // Actualizar estado del tiempo de entrega
+            setDeliveryTimeInfo(deliveryTimeInfo);
+            
+            const formData = {
+              department: result.addressComponents.department || '',
+              municipality: result.addressComponents.municipality || '',
+              suggestedAddress: result.addressComponents.formattedAddress || '',
+              coordinates: {
+                lat: currentLocation.lat,
+                lng: currentLocation.lng
+              },
+              // Información de tiempo de entrega calculado
+              estimatedDeliveryTime: deliveryTimeInfo.estimatedMinutes,
+              estimatedDeliveryTimeFormatted: deliveryTimeInfo.formattedTime,
+              deliveryDistance: deliveryTimeInfo.distance,
+              confidence: 'medium',
+              isAutoPopulated: true,
+              source: 'geocoding_service',
+              timestamp: new Date().toISOString()
+            };
+            
+            console.log('🗺️ [AddressMapPicker] Enviando datos al formulario:', formData);
+            onAddressDataChange(formData);
+            
+          } else {
+            console.warn('⚠️ [AddressMapPicker] No se obtuvo resultado válido del reverse geocoding');
           }
         } catch (error) {
-          console.log('Reverse geocoding failed:', error);
+          console.error('❌ [AddressMapPicker] Reverse geocoding failed:', error);
+          setError('Error al obtener información de la ubicación');
+        } finally {
+          // Siempre limpiar las banderas de procesamiento
+          setTimeout(() => {
+            isProcessingRef.current = false;
+            setIsAutoPopulating(false);
+          }, 2000);
         }
+      } else {
+        console.log('🗺️ [AddressMapPicker] Saltando reverse geocoding - condiciones no cumplidas');
       }
     };
 
-    const timeoutId = setTimeout(performReverseGeocode, 1000);
-    return () => clearTimeout(timeoutId);
-  }, [currentLocation, crosshairMode, reverseGeocode]);
+    // Limpiar timeout anterior si existe
+    if (reverseGeocodingTimeoutRef.current) {
+      clearTimeout(reverseGeocodingTimeoutRef.current);
+    }
+
+    // Solo ejecutar si no estamos procesando
+    if (!isProcessingRef.current) {
+      reverseGeocodingTimeoutRef.current = setTimeout(performReverseGeocode, 1500);
+    }
+    
+    return () => {
+      if (reverseGeocodingTimeoutRef.current) {
+        clearTimeout(reverseGeocodingTimeoutRef.current);
+        console.log('🗺️ [AddressMapPicker] Limpiando timeout de reverse geocoding');
+      }
+    };
+  }, [currentLocation, crosshairMode, reverseGeocode, enableAutoFormPopulation, onAddressDataChange]);
 
   // Efecto para manejar tecla Escape en pantalla completa
   useEffect(() => {
@@ -829,22 +975,40 @@ const AddressMapPicker = ({
 
   // ==================== MANEJADORES ====================
   const handleLocationSelect = useCallback((location) => {
-    // Validar que esté dentro de El Salvador
+    console.log('🗺️ [handleLocationSelect] Nueva ubicación seleccionada:', location);
+    
+    // Validar que esté dentro de El Salvador (usando límites ULTRA-ESTRICTOS)
     if (!isWithinElSalvador(location.lat, location.lng)) {
-      setError('La ubicación debe estar dentro de El Salvador');
+      setError('La ubicación debe estar ÚNICAMENTE dentro del territorio de El Salvador. No se permite colocación en fronteras, océano o países vecinos.');
       return;
     }
 
+    // Limpiar COMPLETAMENTE el estado anterior
+    setAddressInfo(null);
+    setDeliveryTimeInfo(null);
+    setError(null);
+    setIsAutoPopulating(false);
+    setLastAutoCenter(null);
+    setLastProcessedLocation(null); // Resetear ubicación procesada
+    isProcessingRef.current = false; // Resetear ref de procesamiento
+    
+    // Limpiar timeout si existe
+    if (reverseGeocodingTimeoutRef.current) {
+      clearTimeout(reverseGeocodingTimeoutRef.current);
+      reverseGeocodingTimeoutRef.current = null;
+    }
+    
+    // Establecer nueva ubicación y estado
     setCurrentLocation(location);
     setCrosshairMode(false);
-    setError(null);
-    setShowLocationPanel(true); // Mostrar panel cuando se selecciona nueva ubicación
+    setShowLocationPanel(true);
     
-    // Limpiar información de dirección anterior para forzar nueva búsqueda
-    setAddressInfo(null);
+    console.log('🗺️ [handleLocationSelect] Estado actualizado - crosshairMode: false, location:', location);
   }, [isWithinElSalvador]);
 
   const handleConfirmLocation = () => {
+    console.log('🗺️ [handleConfirmLocation] Confirmando ubicación:', currentLocation);
+    
     if (currentLocation && onLocationSelect) {
       onLocationSelect(currentLocation);
       setShowLocationPanel(false); // Ocultar panel después de confirmar
@@ -854,6 +1018,10 @@ const AddressMapPicker = ({
       setTimeout(() => {
         setShowConfirmationToast(false);
       }, 3000); // Ocultar después de 3 segundos
+      
+      console.log('🗺️ [handleConfirmLocation] Ubicación confirmada y panel ocultado');
+    } else {
+      console.warn('⚠️ [handleConfirmLocation] No se puede confirmar - falta ubicación o callback');
     }
   };
 
@@ -917,17 +1085,123 @@ const AddressMapPicker = ({
     }
   };
 
+  // Función auxiliar para calcular distancia entre dos puntos
+  const calculateDistance = (lat1, lng1, lat2, lng2) => {
+    const R = 6371; // Radio de la Tierra en km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+              Math.sin(dLng/2) * Math.sin(dLng/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c; // Distancia en km
+  };
+
+  // Función para calcular tiempo estimado de transporte desde San Salvador
+  const calculateDeliveryTime = (lat, lng) => {
+    try {
+      // Coordenadas del centro de San Salvador (punto de partida)
+      const sanSalvadorLat = 13.6929;
+      const sanSalvadorLng = -89.2182;
+      
+      // Calcular distancia haversine en km
+      const distance = calculateDistance(sanSalvadorLat, sanSalvadorLng, lat, lng);
+      
+      // Estimación basada en características de tráfico de San Salvador
+      let estimatedMinutes;
+      
+      if (distance <= 5) {
+        // Dentro de la ciudad - tráfico denso
+        estimatedMinutes = Math.max(15, distance * 8); // 8 min/km mínimo
+      } else if (distance <= 15) {
+        // Área metropolitana - tráfico moderado  
+        estimatedMinutes = 20 + (distance - 5) * 5; // Base + 5 min/km adicional
+      } else if (distance <= 30) {
+        // Periferia - tráfico ligero
+        estimatedMinutes = 70 + (distance - 15) * 3; // Base + 3 min/km
+      } else {
+        // Departamentos lejanos - carretera
+        estimatedMinutes = 115 + (distance - 30) * 2; // Base + 2 min/km
+      }
+      
+      // Factores de corrección por área geográfica
+      if (lat > 14.0) {
+        // Norte (Chalatenango, etc.) - carreteras montañosas
+        estimatedMinutes *= 1.3;
+      } else if (lng < -89.5) {
+        // Oeste (Ahuachapán, Sonsonate) - carreteras costeras
+        estimatedMinutes *= 1.2;
+      } else if (lng > -88.5) {
+        // Este (La Unión, Morazán) - carreteras menos desarrolladas
+        estimatedMinutes *= 1.4;
+      }
+      
+      return {
+        estimatedMinutes: Math.round(estimatedMinutes),
+        distance: Math.round(distance * 100) / 100,
+        estimatedHours: Math.round((estimatedMinutes / 60) * 100) / 100,
+        formattedTime: estimatedMinutes < 60 ? 
+          `${Math.round(estimatedMinutes)} min` : 
+          `${Math.floor(estimatedMinutes / 60)}h ${Math.round(estimatedMinutes % 60)}min`
+      };
+    } catch (error) {
+      console.error('Error calculando tiempo de entrega:', error);
+      return {
+        estimatedMinutes: 30,
+        distance: 0,
+        estimatedHours: 0.5,
+        formattedTime: '30 min' // Fallback
+      };
+    }
+  };
+
+  // Manejar interacción manual del usuario con el mapa (MEJORADO)
+  const handleUserInteraction = (interactionType) => {
+    console.log(`🗺️ [UserInteraction] Detectada interacción: ${interactionType}`);
+    setUserInteracting(true);
+    
+    // Tiempo más largo para evitar auto-centrado no deseado durante navegación
+    const resetTimeout = interactionType === 'drag' ? 10000 : 7000; // 10s para drag, 7s para otros
+    
+    // Limpiar timeout anterior si existe
+    if (window.userInteractionTimeout) {
+      clearTimeout(window.userInteractionTimeout);
+    }
+    
+    // Resetear el flag después de un tiempo
+    window.userInteractionTimeout = setTimeout(() => {
+      setUserInteracting(false);
+      console.log('🗺️ [UserInteraction] Permitiendo auto-centrado nuevamente');
+    }, resetTimeout);
+  };
+
   const handleCenterMap = () => {
     if (currentLocation) {
       console.log('🗺️ [handleCenterMap] Centrando mapa en ubicación actual:', currentLocation);
       setShouldCenter(true);
-      setTimeout(() => setShouldCenter(false), 100);
+      setTimeout(() => setShouldCenter(false), 500); // Más tiempo para completar la animación
     }
   };
 
   const handleEnableCrosshair = () => {
+    console.log('🗺️ [handleEnableCrosshair] Habilitando modo crosshair');
     setCrosshairMode(true);
     setError(null);
+    // Limpiar información anterior cuando se habilita el crosshair
+    setAddressInfo(null);
+    setDeliveryTimeInfo(null);
+    setShowLocationPanel(false);
+    // Resetear TODAS las banderas de auto-población
+    setIsAutoPopulating(false);
+    setLastAutoCenter(null);
+    setLastProcessedLocation(null);
+    isProcessingRef.current = false;
+    
+    // Limpiar timeout si existe
+    if (reverseGeocodingTimeoutRef.current) {
+      clearTimeout(reverseGeocodingTimeoutRef.current);
+      reverseGeocodingTimeoutRef.current = null;
+    }
   };
 
   const handleCenterToElSalvador = () => {
@@ -941,24 +1215,130 @@ const AddressMapPicker = ({
     setCrosshairMode(false);
     setShowLocationPanel(true);
     setShouldCenter(true);
-    setTimeout(() => setShouldCenter(false), 100);
+    setTimeout(() => setShouldCenter(false), 800); // Más tiempo para la animación completa
   };
 
   const handleToggleFullscreen = () => {
-    setIsFullscreen(!isFullscreen);
+    const newFullscreenState = !isFullscreen;
+    setIsFullscreen(newFullscreenState);
+    
+    // Invalidar el tamaño del mapa después del cambio de pantalla completa
+    setTimeout(() => {
+      if (mapRef.current) {
+        const map = mapRef.current;
+        map.invalidateSize({ animate: true });
+        
+        // Re-centrar si hay ubicación actual
+        if (currentLocation) {
+          map.flyTo([currentLocation.lat, currentLocation.lng], newFullscreenState ? 12 : 15, {
+            animate: true,
+            duration: 0.5
+          });
+        }
+      }
+    }, 100);
   };
 
   const handleClearLocation = () => {
+    console.log('🗺️ [handleClearLocation] Limpiando ubicación y reseteando estado COMPLETO');
+    
+    // Limpiar COMPLETAMENTE todo el estado
     setCurrentLocation(null);
     setCrosshairMode(true);
     setAddressInfo(null);
+    setDeliveryTimeInfo(null);
     setShowLocationPanel(false);
     setError(null);
+    setIsAutoPopulating(false);
+    setLastAutoCenter(null);
+    setLastProcessedLocation(null);
+    isProcessingRef.current = false;
+    
+    // Limpiar timeout de reverse geocoding si existe
+    if (reverseGeocodingTimeoutRef.current) {
+      clearTimeout(reverseGeocodingTimeoutRef.current);
+      reverseGeocodingTimeoutRef.current = null;
+    }
+    
+    // Notificar al componente padre que se limpió la ubicación Y los campos
+    console.log('🗺️ [handleClearLocation] Limpiando campos de departamento y municipio');
+    
+    // Usar callback específico para limpieza si está disponible
+    if (onClearFields) {
+      console.log('🗺️ [handleClearLocation] Usando callback específico de limpieza');
+      onClearFields();
+    }
+    
+    // Usar función de limpieza directa del formulario si está disponible
+    if (onClearAllFormFields) {
+      console.log('🗺️ [handleClearLocation] Usando función de limpieza directa del formulario');
+      onClearAllFormFields();
+    }
+    
+    // FORZAR limpieza COMPLETA de todos los campos - Estrategia más agresiva
+    if (onAddressDataChange) {
+      console.log('🗺️ [handleClearLocation] FORZANDO limpieza completa de TODOS los campos');
+      
+      // Estrategia más directa: Enviar valores que el AddressFormModal no pueda ignorar
+      // Usar valores especiales que indiquen limpieza forzada
+      
+      const clearData = {
+        // Usar valores especiales que no sean ni falsy ni truthy normales
+        department: '___FORCE_CLEAR___',
+        municipality: '___FORCE_CLEAR___',
+        suggestedAddress: '___FORCE_CLEAR___',
+        address: '___FORCE_CLEAR___', // También limpiar el campo address
+        coordinates: null,
+        confidence: null,
+        isAutoPopulated: true,
+        source: 'force_clear_all_fields',
+        timestamp: new Date().toISOString(),
+        clearFields: true,
+        forceClear: true,
+        clearAll: true,
+        // Banderas adicionales para máxima compatibilidad
+        action: 'CLEAR_ALL_FIELDS',
+        mustClear: true,
+        resetForm: true
+      };
+      
+      console.log('🗺️ [handleClearLocation] Enviando datos de limpieza:', clearData);
+      onAddressDataChange(clearData);
+      
+      // Enviar una segunda actualización con valores completamente vacíos
+      setTimeout(() => {
+        const finalClearData = {
+          department: '',
+          municipality: '',
+          suggestedAddress: '',
+          address: '',
+          coordinates: [],
+          confidence: null,
+          isAutoPopulated: true,
+          source: 'final_clear_empty',
+          timestamp: new Date().toISOString(),
+          clearFields: true,
+          forceClear: true,
+          clearAll: true,
+          action: 'CLEAR_ALL_FIELDS',
+          mustClear: true,
+          resetForm: true
+        };
+        
+        console.log('🗺️ [handleClearLocation] Enviando limpieza final:', finalClearData);
+        onAddressDataChange(finalClearData);
+      }, 50);
+    }
   };
 
   // ==================== DATOS CALCULADOS ====================
   const mapCenter = currentLocation ? [currentLocation.lat, currentLocation.lng] : [center.lat, center.lng];
-  const bounds = getElSalvadorBounds();
+  
+  // LÍMITES DUALES: Navegación vs Validación
+  // - navigationBounds: Permiten navegación por zonas fronterizas (evita rebotes molestos)
+  // - validationBounds: Solo permiten colocación de marcadores dentro de El Salvador
+  const navigationBounds = getElSalvadorNavigationBounds(); // Límites expandidos para navegación suave
+  const validationBounds = getElSalvadorBounds(); // Límites estrictos para colocación
   const initialZoom = isFullscreen ? 10 : 13; // Zoom más amplio en pantalla completa
 
   // Validaciones para botones
@@ -1046,77 +1426,7 @@ const AddressMapPicker = ({
           </AddressMapHeaderContent>
         </AddressMapHeader>
 
-        {/* Panel de información en pantalla completa */}
-        {isFullscreen && currentLocation && (
-          <FullscreenInfoPanel>
-            <Typography variant="h6" sx={{ 
-              fontSize: '1rem', 
-              fontWeight: '600', 
-              color: '#1F2937',
-              marginBottom: '12px',
-              fontFamily: "'Mona Sans'"
-            }}>
-              Información de Ubicación
-            </Typography>
-            
-            <FullscreenCoordinates>
-              <FullscreenCoordinateItem>
-                <span style={{ fontWeight: '500' }}>Latitud:</span>
-                <span style={{ fontFamily: 'monospace', color: '#1F64BF' }}>
-                  {currentLocation.lat.toFixed(6)}
-                </span>
-              </FullscreenCoordinateItem>
-              <FullscreenCoordinateItem>
-                <span style={{ fontWeight: '500' }}>Longitud:</span>
-                <span style={{ fontFamily: 'monospace', color: '#1F64BF' }}>
-                  {currentLocation.lng.toFixed(6)}
-                </span>
-              </FullscreenCoordinateItem>
-              {addressInfo && (
-                <FullscreenCoordinateItem>
-                  <span style={{ fontWeight: '500' }}>Área:</span>
-                  <span style={{ color: '#059669' }}>
-                    {addressInfo.municipality}, {addressInfo.department}
-                  </span>
-                </FullscreenCoordinateItem>
-              )}
-            </FullscreenCoordinates>
-
-            <FullscreenControls>
-              <FullscreenControlButton
-                variant="contained"
-                color="primary"
-                onClick={handleConfirmLocation}
-                disabled={!canConfirmLocation}
-                startIcon={<ConfirmIcon size={16} />}
-                sx={{ 
-                  backgroundColor: '#1F64BF',
-                  '&:hover': { backgroundColor: '#1E5BA8' },
-                  '&:disabled': { backgroundColor: '#9CA3AF' }
-                }}
-              >
-                Confirmar Ubicación
-              </FullscreenControlButton>
-              
-              <FullscreenControlButton
-                variant="outlined"
-                onClick={handleClearLocation}
-                startIcon={<CloseIcon size={16} />}
-                sx={{ 
-                  borderColor: '#6B7280',
-                  color: '#6B7280',
-                  '&:hover': { 
-                    borderColor: '#EF4444',
-                    color: '#EF4444',
-                    backgroundColor: alpha('#EF4444', 0.05)
-                  }
-                }}
-              >
-                Limpiar Ubicación
-              </FullscreenControlButton>
-            </FullscreenControls>
-          </FullscreenInfoPanel>
-        )}
+        {/* Panel de información eliminado - Se usa Swal para notificaciones en tiempo real */}
 
         {/* Indicador de zoom en pantalla completa */}
         {isFullscreen && (
@@ -1127,7 +1437,11 @@ const AddressMapPicker = ({
 
         {/* Error Alert */}
         {error && (
-          <AddressErrorAlert severity="error" onClose={() => setError(null)}>
+          <AddressErrorAlert 
+            severity="error" 
+            onClose={() => setError(null)}
+            icon={<ErrorIcon size={20} weight="fill" />}
+          >
             {error}
           </AddressErrorAlert>
         )}
@@ -1164,9 +1478,16 @@ const AddressMapPicker = ({
                     <strong>Área:</strong> {addressInfo.municipality || 'Desconocida'}, {addressInfo.department || 'Desconocido'}
                   </AddressCoordinatesText>
                 )}
+                {deliveryTimeInfo && (
+                  <AddressCoordinatesText sx={{ color: '#1F64BF', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <TruckIcon size={16} weight="fill" />
+                    <strong>Tiempo de envío:</strong> {deliveryTimeInfo.formattedTime} • {deliveryTimeInfo.distance} km desde San Salvador
+                  </AddressCoordinatesText>
+                )}
                 {isDefaultLocation && (
-                  <AddressCoordinatesText sx={{ color: '#F59E0B', fontWeight: 600 }}>
-                    ⭐ Ubicación predeterminada
+                  <AddressCoordinatesText sx={{ color: '#F59E0B', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <StarIcon size={16} weight="fill" />
+                    Ubicación predeterminada
                   </AddressCoordinatesText>
                 )}
                 
@@ -1279,16 +1600,18 @@ const AddressMapPicker = ({
         style={{ width: '100%', height: '100%' }}
         zoomControl={true}
         attributionControl={true}
-        maxBounds={bounds}
-        maxBoundsViscosity={1.0}
-        minZoom={isFullscreen ? 6 : 8}
-        maxZoom={isFullscreen ? 20 : 18}
+        maxBounds={navigationBounds} // Límites expandidos - incluyen zonas fronterizas
+        maxBoundsViscosity={0.1} // Muy baja viscosidad para navegación suave
+        minZoom={isFullscreen ? 7 : 9}
+        maxZoom={isFullscreen ? 19 : 17}
+        bounceAtZoomLimits={false}
+        zoomSnap={0.5}
+        zoomDelta={0.5}
         whenReady={() => setMapReady(true)}
       >
         {/* TileLayer */}
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           maxZoom={19}
         />
 
@@ -1301,6 +1624,11 @@ const AddressMapPicker = ({
         {/* Controlador de zoom */}
         <AddressMapZoomHandler 
           onZoomChange={setCurrentZoom} 
+        />
+
+        {/* Controlador de interacción del usuario */}
+        <AddressMapInteractionHandler 
+          onUserInteraction={handleUserInteraction}
         />
 
         {/* Controlador de centrado */}

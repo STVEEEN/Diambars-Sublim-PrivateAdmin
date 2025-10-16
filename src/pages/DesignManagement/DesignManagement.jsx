@@ -1,4 +1,4 @@
-// src/pages/DesignManagement/DesignManagement.jsx - PANEL ADMINISTRATIVO COMPLETO DE DISEÑOS
+// src/pages/DesignManagement/DesignManagement.jsx - PANEL ADMINISTRATIVO MEJORADO CON ESTRUCTURA DE CATALOG
 import React, { useState, useEffect, useMemo } from 'react';
 import Swal from 'sweetalert2';
 import {
@@ -18,7 +18,8 @@ import {
   alpha,
   Skeleton,
   Tooltip,
-  Badge
+  Badge,
+  IconButton
 } from '@mui/material';
 import {
   Palette,
@@ -43,7 +44,9 @@ import {
   Download,
   SortAscending,
   SortDescending,
-  PencilSimple
+  PencilSimple,
+  Copy,
+  Trash
 } from '@phosphor-icons/react';
 
 // Importar componentes personalizados  
@@ -51,16 +54,49 @@ import DesignCard from '../../components/DesignCard/DesignCard';
 import CreateDesignModal from '../../components/CreateDesignModal/CreateDesignModal';
 import QuoteDesignModal from '../../components/QuoteDesignModal/QuoteDesignModal';
 import KonvaDesignViewer from '../../components/KonvaDesignEditor/components/KonvaDesignViewer';
+import Pagination from '../../components/Pagination/Pagination';
 
 // Importar hooks personalizados
 import useDesigns from '../../hooks/useDesigns';
 import useProducts from '../../hooks/useProducts';
 import useUsers from '../../hooks/useUsers';
 
-// ================ ESTILOS MODERNOS ================
+// Configuración global de SweetAlert2
+Swal.mixin({
+  customClass: {
+    container: 'swal-overlay-custom',
+    popup: 'swal-modal-custom'
+  },
+  didOpen: () => {
+    const container = document.querySelector('.swal-overlay-custom');
+    if (container) {
+      container.style.zIndex = '2000';
+    }
+  }
+});
+
+// ================ KEYFRAMES PARA ANIMACIÓN DE MÁRMOL MUY VISIBLE ================ 
+const marbleFlowKeyframes = ` 
+  @keyframes marbleFlow { 
+    0% { transform: translate(2%, 2%) rotate(0deg) scale(1); } 
+    25% { transform: translate(-8%, -8%) rotate(5deg) scale(1.05); } 
+    50% { transform: translate(-15%, 8%) rotate(-3deg) scale(1.08); } 
+    75% { transform: translate(-8%, -5%) rotate(2deg) scale(1.05); } 
+    100% { transform: translate(2%, 2%) rotate(0deg) scale(1); } 
+  } 
+`;
+
+// Inyectar keyframes en el documento
+if (typeof document !== 'undefined') {
+  const styleSheet = document.createElement('style');
+  styleSheet.textContent = marbleFlowKeyframes;
+  document.head.appendChild(styleSheet);
+}
+
+// ================ ESTILOS MODERNOS RESPONSIVE - DISEÑOS ================ 
 const DesignPageContainer = styled(Box)({
   minHeight: '100vh',
-  fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+  fontFamily: "'Mona Sans'",
   background: 'white',
   width: '100%',
   display: 'flex',
@@ -70,27 +106,28 @@ const DesignPageContainer = styled(Box)({
 
 const DesignContentWrapper = styled(Box)(({ theme }) => ({
   width: '100%',
-  maxWidth: '1600px',
+  maxWidth: '1660px',
   margin: '0 auto',
   paddingTop: '120px',
   paddingBottom: '40px',
-  paddingLeft: '24px',
-  paddingRight: '24px',
+  paddingLeft: '32px',
+  paddingRight: '32px',
   minHeight: 'calc(100vh - 120px)',
+  fontFamily: "'Mona Sans'",
   [theme.breakpoints.down('xl')]: {
-    maxWidth: '1400px',
-    paddingLeft: '20px',
-    paddingRight: '20px',
+    maxWidth: '1460px',
+    paddingLeft: '28px',
+    paddingRight: '28px',
   },
   [theme.breakpoints.down('lg')]: {
-    maxWidth: '1200px',
-    paddingLeft: '20px',
-    paddingRight: '20px',
+    maxWidth: '1260px',
+    paddingLeft: '24px',
+    paddingRight: '24px',
   },
   [theme.breakpoints.down('md')]: {
     paddingTop: '110px',
-    paddingLeft: '18px',
-    paddingRight: '18px',
+    paddingLeft: '20px',
+    paddingRight: '20px',
   },
   [theme.breakpoints.down('sm')]: {
     paddingTop: '100px',
@@ -99,26 +136,31 @@ const DesignContentWrapper = styled(Box)(({ theme }) => ({
   }
 }));
 
-const ModernCard = styled(Paper)(({ theme }) => ({
+const DesignModernCard = styled(Paper)(({ theme }) => ({
   background: 'white',
   borderRadius: '16px',
   border: `1px solid ${alpha('#1F64BF', 0.08)}`,
   boxShadow: '0 2px 16px rgba(1, 3, 38, 0.06)',
   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+  fontFamily: "'Mona Sans'",
   '&:hover': {
     boxShadow: '0 4px 24px rgba(1, 3, 38, 0.08)',
     transform: 'translateY(-1px)',
   }
 }));
 
-// Header Section
-const DesignHeaderSection = styled(ModernCard)(({ theme }) => ({
-  padding: '32px',
+const DesignHeaderSection = styled(DesignModernCard)(({ theme }) => ({
+  padding: '40px',
   marginBottom: '32px',
+  fontWeight: '700 !important',
   background: 'white',
   position: 'relative',
   zIndex: 1,
   width: '100%',
+  boxSizing: 'border-box',
+  [theme.breakpoints.down('lg')]: {
+    padding: '32px',
+  },
   [theme.breakpoints.down('md')]: {
     padding: '24px',
     marginBottom: '24px',
@@ -131,13 +173,17 @@ const DesignHeaderSection = styled(ModernCard)(({ theme }) => ({
 
 const DesignHeaderContent = styled(Box)(({ theme }) => ({
   display: 'flex',
-  alignItems: 'flex-start',
+  alignItems: 'center',
   justifyContent: 'space-between',
-  gap: '24px',
+  gap: '32px',
   width: '100%',
+  [theme.breakpoints.down('lg')]: {
+    gap: '24px',
+  },
   [theme.breakpoints.down('md')]: {
     flexDirection: 'column',
     alignItems: 'center',
+    textAlign: 'center',
     gap: '20px',
   },
   [theme.breakpoints.down('sm')]: {
@@ -147,179 +193,296 @@ const DesignHeaderContent = styled(Box)(({ theme }) => ({
 
 const DesignHeaderInfo = styled(Box)(({ theme }) => ({
   flex: 1,
-  width: '100%',
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'flex-start',
+  justifyContent: 'center',
   [theme.breakpoints.down('md')]: {
+    alignItems: 'center',
     textAlign: 'center',
   }
 }));
 
-const MainTitle = styled(Typography)(({ theme }) => ({
-  fontSize: '2rem',
-  fontWeight: 700,
+const DesignMainTitle = styled(Typography)(({ theme }) => ({
+  fontSize: '2.5rem',
+  fontWeight: '700 !important',
   color: '#010326',
-  marginBottom: '8px',
+  marginBottom: '12px',
   letterSpacing: '-0.025em',
   lineHeight: 1.2,
+  textAlign: 'left',
+  fontFamily: "'Mona Sans'",
   display: 'flex',
   alignItems: 'center',
   gap: '12px',
+  [theme.breakpoints.down('lg')]: {
+    fontSize: '2.2rem',
+  },
   [theme.breakpoints.down('md')]: {
-    fontSize: '1.75rem',
+    fontSize: '1.8rem',
+    textAlign: 'center',
+    justifyContent: 'center',
   },
   [theme.breakpoints.down('sm')]: {
-    fontSize: '1.5rem',
+    fontSize: '1.6rem',
   }
 }));
 
-const MainDescription = styled(Typography)(({ theme }) => ({
-  fontSize: '1rem',
+const DesignMainDescription = styled(Typography)(({ theme }) => ({
+  fontSize: '1.1rem',
   color: '#032CA6',
-  fontWeight: 400,
-  lineHeight: 1.5,
+  fontWeight: '700 !important',
+  lineHeight: 1.6,
   opacity: 0.9,
+  textAlign: 'left',
+  maxWidth: '600px',
+  fontFamily: "'Mona Sans'",
+  [theme.breakpoints.down('lg')]: {
+    fontSize: '1rem',
+  },
+  [theme.breakpoints.down('md')]: {
+    fontSize: '0.95rem',
+    textAlign: 'center',
+    maxWidth: '100%',
+  },
   [theme.breakpoints.down('sm')]: {
     fontSize: '0.9rem',
   }
 }));
 
-const HeaderActions = styled(Box)(({ theme }) => ({
+const DesignHeaderActions = styled(Box)(({ theme }) => ({
   display: 'flex',
-  gap: '12px',
-  alignItems: 'flex-start',
+  gap: '16px',
+  alignItems: 'center',
   flexShrink: 0,
+  [theme.breakpoints.down('lg')]: {
+    gap: '12px',
+  },
   [theme.breakpoints.down('md')]: {
-    justifyContent: 'flex-end',
-    gap: '10px',
+    justifyContent: 'center',
+    gap: '12px',
     width: '100%',
   },
   [theme.breakpoints.down('sm')]: {
-    flexDirection: 'column',
+    flexDirection: 'row',
     width: '100%',
-    gap: '8px',
+    gap: '10px',
     '& > *': {
-      width: '100%',
+      flex: 1,
     }
   }
 }));
 
-const PrimaryActionButton = styled(Button)(({ theme }) => ({
+const DesignPrimaryActionButton = styled(Button)(({ theme }) => ({
   background: 'linear-gradient(135deg, #1F64BF 0%, #032CA6 100%)',
   color: 'white',
   borderRadius: '12px',
-  padding: '12px 24px',
-  fontSize: '0.875rem',
+  padding: '14px 28px',
+  fontSize: '0.9rem',
   fontWeight: 600,
   textTransform: 'none',
-  boxShadow: '0 4px 16px rgba(31, 100, 191, 0.24)',
-  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-  minWidth: '140px',
+  fontFamily: "'Mona Sans'",
+  boxShadow: '0 2px 12px rgba(31, 100, 191, 0.18)',
+  transition: 'all 0.3s cubic-bezier(0.23, 1, 0.320, 1)',
+  minWidth: '160px',
+  whiteSpace: 'nowrap',
+  position: 'relative',
+  overflow: 'hidden',
+  '&::before': {
+    content: '""',
+    position: 'absolute',
+    top: 0,
+    left: '-100%',
+    width: '100%',
+    height: '100%',
+    background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent)',
+    transition: 'left 0.5s ease',
+    zIndex: 1,
+  },
+  '& .MuiButton-startIcon, & span': {
+    position: 'relative',
+    zIndex: 2,
+  },
   '&:hover': {
-    background: 'linear-gradient(135deg, #032CA6 0%, #1F64BF 100%)',
-    boxShadow: '0 6px 24px rgba(31, 100, 191, 0.32)',
-    transform: 'translateY(-1px)',
+    boxShadow: '0 4px 16px rgba(31, 100, 191, 0.24)',
+    transform: 'translateY(-1px) scale(1.02)',
+    '&::before': {
+      left: '100%',
+    }
   },
   '&:active': {
     transform: 'translateY(0)',
+    transition: 'transform 0.1s ease-out',
   },
   '&:disabled': {
     background: alpha('#1F64BF', 0.3),
     color: alpha('#ffffff', 0.7),
     boxShadow: 'none',
     transform: 'none',
+    '&::before': {
+      display: 'none',
+    }
+  },
+  [theme.breakpoints.down('lg')]: {
+    minWidth: '140px',
+    padding: '12px 24px',
+    fontSize: '0.875rem',
+  },
+  [theme.breakpoints.down('md')]: {
+    minWidth: 'auto',
+    flex: 1,
   },
   [theme.breakpoints.down('sm')]: {
     minWidth: 'auto',
-    padding: '12px 16px',
-    justifyContent: 'center',
+    padding: '12px 20px',
+    fontSize: '0.85rem',
   }
 }));
 
-const SecondaryActionButton = styled(Button)(({ theme }) => ({
+const DesignSecondaryActionButton = styled(Button)(({ theme }) => ({
   borderRadius: '12px',
-  padding: '12px 20px',
-  fontSize: '0.875rem',
+  padding: '14px 24px',
+  fontSize: '0.9rem',
   fontWeight: 600,
   textTransform: 'none',
-  borderColor: alpha('#1F64BF', 0.3),
+  fontFamily: "'Mona Sans'",
+  borderColor: alpha('#1F64BF', 0.25),
   color: '#1F64BF',
-  minWidth: '120px',
-  transition: 'all 0.3s ease',
+  minWidth: '140px',
+  position: 'relative',
+  overflow: 'hidden',
+  transition: 'all 0.3s cubic-bezier(0.23, 1, 0.320, 1)',
+  boxShadow: '0 2px 8px rgba(31, 100, 191, 0.08)',
+  '&::before': {
+    content: '""',
+    position: 'absolute',
+    top: 0,
+    left: '-100%',
+    width: '100%',
+    height: '100%',
+    background: 'linear-gradient(90deg, transparent, rgba(31, 100, 191, 0.1), transparent)',
+    transition: 'left 0.5s ease',
+    zIndex: 1,
+  },
+  '& .MuiButton-startIcon, & span': {
+    position: 'relative',
+    zIndex: 2,
+  },
   '&:hover': {
     borderColor: '#1F64BF',
-    background: alpha('#1F64BF', 0.05),
-    transform: 'translateY(-1px)',
+    transform: 'translateY(-1px) scale(1.02)',
+    boxShadow: '0 4px 12px rgba(31, 100, 191, 0.12)',
+    '&::before': {
+      left: '100%',
+    }
+  },
+  '&:active': {
+    transform: 'translateY(0)',
+    transition: 'transform 0.1s ease-out',
+  },
+  [theme.breakpoints.down('lg')]: {
+    minWidth: '120px',
+    padding: '12px 20px',
+    fontSize: '0.875rem',
+  },
+  [theme.breakpoints.down('md')]: {
+    minWidth: 'auto',
+    flex: 1,
   },
   [theme.breakpoints.down('sm')]: {
     minWidth: 'auto',
     padding: '12px 16px',
-    justifyContent: 'center',
+    fontSize: '0.85rem',
   }
 }));
 
-// Estadísticas
-const StatsContainer = styled(Box)(({ theme }) => ({
+// CONTENEDOR UNIFICADO DISEÑOS
+const DesignUnifiedContainer = styled(Box)(({ theme }) => ({
+  width: '100%',
+  maxWidth: '100%',
+  margin: '0 auto',
+}));
+
+const DesignStatsContainer = styled(DesignUnifiedContainer)(({ theme }) => ({
   marginBottom: '32px',
   position: 'relative',
   zIndex: 1,
-  width: '100%',
 }));
 
-const StatsGrid = styled(Box)(({ theme }) => ({
+// GRID DE ESTADÍSTICAS DISEÑOS - MEJORADO
+const DesignStatsGrid = styled(Box)(({ theme }) => ({
   width: '100%',
   display: 'grid',
-  gap: '20px',
+  gap: '24px',
   gridTemplateColumns: 'repeat(4, 1fr)',
   [theme.breakpoints.down(1400)]: {
     gridTemplateColumns: 'repeat(4, 1fr)',
-    gap: '18px',
+    gap: '20px',
   },
   [theme.breakpoints.down('lg')]: {
     gridTemplateColumns: 'repeat(2, 1fr)',
-    gap: '16px',
+    gap: '18px',
   },
   [theme.breakpoints.down('md')]: {
     gridTemplateColumns: 'repeat(2, 1fr)',
-    gap: '14px',
+    gap: '16px',
   },
   [theme.breakpoints.down('sm')]: {
     gridTemplateColumns: 'repeat(2, 1fr)',
-    gap: '12px',
+    gap: '14px',
   },
   [theme.breakpoints.down(480)]: {
     gridTemplateColumns: '1fr',
-    gap: '10px',
+    gap: '12px',
   }
 }));
 
-const StatCard = styled(ModernCard)(({ theme, variant }) => {
+const DesignStatCard = styled(DesignModernCard)(({ theme, variant }) => {
   const variants = {
     primary: {
       background: 'linear-gradient(135deg, #1F64BF 0%, #032CA6 100%)',
-      color: 'white',    
+      color: 'white',
       border: 'none',
+      marbleBase: 'rgba(25, 83, 158, 0.2)',
+      marbleVeins: 'rgba(3, 44, 166, 0.35)',
+      marbleHighlight: 'rgba(123, 164, 221, 0.4)',
+      marbleDark: 'rgba(1, 21, 63, 0.15)',
     },
     success: {
       background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
       color: 'white',
       border: 'none',
+      marbleBase: 'rgba(13, 75, 54, 0.2)',
+      marbleVeins: 'rgba(9, 138, 97, 0.35)',
+      marbleHighlight: 'rgba(86, 236, 181, 0.4)',
+      marbleDark: 'rgba(2, 77, 55, 0.15)',
     },
     warning: {
       background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
       color: 'white',
       border: 'none',
+      marbleBase: 'rgba(245, 158, 11, 0.2)',
+      marbleVeins: 'rgba(217, 119, 6, 0.35)',
+      marbleHighlight: 'rgba(251, 191, 36, 0.4)',
+      marbleDark: 'rgba(180, 83, 9, 0.15)',
     },
     secondary: {
       background: 'white',
       color: '#010326',
+      marbleBase: 'rgba(31, 100, 191, 0.08)',
+      marbleVeins: 'rgba(3, 44, 166, 0.15)',
+      marbleHighlight: 'rgba(100, 150, 220, 0.25)',
+      marbleDark: 'rgba(31, 100, 191, 0.05)',
     }
   };
 
   const selectedVariant = variants[variant] || variants.secondary;
+  const isColoredVariant = variant === 'primary' || variant === 'success' || variant === 'warning';
 
   return {
-    padding: '24px',
+    padding: '28px',
     width: '100%',
-    minHeight: '140px',
+    minHeight: '160px',
     maxHeight: 'auto',
     display: 'flex',
     flexDirection: 'column',
@@ -328,49 +491,105 @@ const StatCard = styled(ModernCard)(({ theme, variant }) => {
     overflow: 'hidden',
     boxSizing: 'border-box',
     cursor: 'pointer',
+    transition: 'all 0.3s cubic-bezier(0.23, 1, 0.320, 1)',
+    boxShadow: '0 2px 12px rgba(1, 3, 38, 0.04)',
     ...selectedVariant,
-    '&::before': (variant === 'primary' || variant === 'success' || variant === 'warning') ? {
+    
+    '&::before': {
+      content: '""',
+      position: 'absolute',
+      top: '-50%',
+      left: '-50%',
+      width: '200%',
+      height: '200%',
+      opacity: 0,
+      transition: 'opacity 0.5s ease',
+      pointerEvents: 'none',
+      zIndex: 0, 
+      background: `
+        radial-gradient(ellipse at 15% 30%, ${selectedVariant.marbleHighlight} 0%, transparent 40%),
+        radial-gradient(ellipse at 85% 20%, ${selectedVariant.marbleVeins} 0%, transparent 45%),
+        radial-gradient(ellipse at 50% 80%, ${selectedVariant.marbleBase} 0%, transparent 50%),
+        radial-gradient(ellipse at 70% 50%, ${selectedVariant.marbleHighlight} 0%, transparent 35%),
+        radial-gradient(ellipse at 30% 70%, ${selectedVariant.marbleVeins} 0%, transparent 40%),
+        radial-gradient(ellipse at 90% 90%, ${selectedVariant.marbleBase} 0%, transparent 45%),
+        radial-gradient(ellipse at 10% 90%, ${selectedVariant.marbleDark} 0%, transparent 30%),
+        linear-gradient(125deg, 
+          ${selectedVariant.marbleBase} 0%, 
+          transparent 25%, 
+          ${selectedVariant.marbleVeins} 50%, 
+          transparent 75%, 
+          ${selectedVariant.marbleHighlight} 100%
+        )
+      `,
+      backgroundSize: '100% 100%',
+      animation: 'marbleFlow 10s ease-in-out infinite',
+      filter: 'blur(2px)',
+    },
+
+    '&::after': {
       content: '""',
       position: 'absolute',
       top: 0,
-      right: 0,
-      width: '100px',
-      height: '100px',
-      background: 'rgba(255, 255, 255, 0.1)',
-      borderRadius: '50%',
-      transform: 'translate(30px, -30px)',
-    } : {},
-    '&:hover': {
-      transform: 'translateY(-2px)',
-      boxShadow: '0 8px 32px rgba(1, 3, 38, 0.12)',
+      left: '-100%',
+      width: '100%',
+      height: '100%',
+      background: isColoredVariant 
+        ? 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent)'
+        : 'linear-gradient(90deg, transparent, rgba(31, 100, 191, 0.1), transparent)',
+      transition: 'left 0.6s ease',
+      zIndex: 1, 
+      pointerEvents: 'none',
     },
+
+    '&:hover': {
+      transform: 'translateY(-1px) scale(1.02)',
+      boxShadow: '0 4px 20px rgba(1, 3, 38, 0.08)',
+      '&::before': {
+        opacity: 1,
+      },
+      '&::after': {
+        left: '100%',
+      }
+    },
+
+    '&:active': {
+      transform: 'translateY(0)',
+      transition: 'transform 0.1s ease-out',
+    },
+
+    '& > *': {
+      position: 'relative',
+      zIndex: 2,
+    },
+
     [theme.breakpoints.down('lg')]: {
-      padding: '20px',
-      minHeight: '130px',
+      padding: '24px',
+      minHeight: '150px',
     },
     [theme.breakpoints.down('md')]: {
-      padding: '18px',
-      minHeight: '120px',
+      padding: '20px',
+      minHeight: '140px',
     },
     [theme.breakpoints.down('sm')]: {
-      padding: '16px',
-      minHeight: '110px',
+      padding: '18px',
+      minHeight: '130px',
     }
   };
 });
 
-const StatHeader = styled(Box)({
+const DesignStatHeader = styled(Box)({
   display: 'flex',
   alignItems: 'flex-start',
   justifyContent: 'space-between',
-  marginBottom: '12px',
+  marginBottom: '16px',
   width: '100%',
 });
 
-const StatIconContainer = styled(Box)(({ variant, theme }) => ({
-  width: '48px',
-  height: '48px',
-  borderRadius: '12px',
+const DesignStatIconContainer = styled(Box)(({ variant, theme }) => ({
+  width: '56px',
+  height: '56px',
+  borderRadius: '14px',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
@@ -379,39 +598,52 @@ const StatIconContainer = styled(Box)(({ variant, theme }) => ({
     : alpha('#1F64BF', 0.1),
   color: (variant === 'primary' || variant === 'success' || variant === 'warning') ? 'white' : '#1F64BF',
   flexShrink: 0,
+  transition: 'all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+  [theme.breakpoints.down('lg')]: {
+    width: '48px',
+    height: '48px',
+    borderRadius: '12px',
+  },
   [theme.breakpoints.down('md')]: {
+    width: '44px',
+    height: '44px',
+    borderRadius: '10px',
+  },
+  [theme.breakpoints.down('sm')]: {
     width: '40px',
     height: '40px',
-  },
-  [theme.breakpoints.down('sm')]: {
-    width: '36px',
-    height: '36px',
+    borderRadius: '10px',
   }
 }));
 
-const StatValue = styled(Typography)(({ variant, theme }) => ({
-  fontSize: '2rem',
+const DesignStatValue = styled(Typography)(({ variant, theme }) => ({
+  fontSize: '2.2rem',
   fontWeight: 700,
   lineHeight: 1.1,
-  marginBottom: '4px',
+  marginBottom: '6px',
   color: (variant === 'primary' || variant === 'success' || variant === 'warning') ? 'white' : '#010326',
+  fontFamily: "'Mona Sans'",
   [theme.breakpoints.down('lg')]: {
-    fontSize: '1.8rem',
+    fontSize: '2rem',
   },
   [theme.breakpoints.down('md')]: {
-    fontSize: '1.6rem',
+    fontSize: '1.8rem',
   },
   [theme.breakpoints.down('sm')]: {
-    fontSize: '1.4rem',
+    fontSize: '1.6rem',
   }
 }));
 
-const StatLabel = styled(Typography)(({ variant, theme }) => ({
-  fontSize: '0.875rem',
+const DesignStatLabel = styled(Typography)(({ variant, theme }) => ({
+  fontSize: '0.9rem',
   fontWeight: 500,
   opacity: (variant === 'primary' || variant === 'success' || variant === 'warning') ? 0.9 : 0.7,
   color: (variant === 'primary' || variant === 'success' || variant === 'warning') ? 'white' : '#032CA6',
   lineHeight: 1.3,
+  fontFamily: "'Mona Sans'",
+  [theme.breakpoints.down('lg')]: {
+    fontSize: '0.875rem',
+  },
   [theme.breakpoints.down('md')]: {
     fontSize: '0.8rem',
   },
@@ -420,31 +652,53 @@ const StatLabel = styled(Typography)(({ variant, theme }) => ({
   }
 }));
 
-const StatTrend = styled(Box)(({ variant, theme }) => ({
+const DesignStatChange = styled(Box)(({ variant, trend }) => ({
   display: 'flex',
   alignItems: 'center',
-  gap: '4px',
+  gap: '6px',
   marginTop: 'auto',
-  fontSize: '0.75rem',
-  opacity: (variant === 'primary' || variant === 'success' || variant === 'warning') ? 0.9 : 0.8,
-  color: (variant === 'primary' || variant === 'success' || variant === 'warning') ? 'white' : '#059669',
-  fontWeight: 500,
+  padding: '6px 10px',
+  borderRadius: '8px',
+  background: (variant === 'primary' || variant === 'success' || variant === 'warning')
+    ? 'rgba(255, 255, 255, 0.15)' 
+    : trend === 'up' 
+      ? alpha('#10B981', 0.1) 
+      : alpha('#EF4444', 0.1),
+  width: 'fit-content',
+  transition: 'all 0.3s ease',
 }));
 
-// Controles y filtros
-const DesignControlsSection = styled(ModernCard)(({ theme }) => ({
-  padding: '24px',
+const DesignStatTrendText = styled(Typography)(({ variant, trend, theme }) => ({
+  fontSize: '0.8rem',
+  fontWeight: 600,
+  color: (variant === 'primary' || variant === 'success' || variant === 'warning')
+    ? 'white' 
+    : trend === 'up' 
+      ? '#10B981' 
+      : '#EF4444',
+  fontFamily: "'Mona Sans'",
+  [theme.breakpoints.down('sm')]: {
+    fontSize: '0.75rem',
+  }
+}));
+
+const DesignControlsSection = styled(DesignModernCard)(({ theme }) => ({
+  padding: '32px',
   marginBottom: '32px',
   background: 'white',
   position: 'relative',
   zIndex: 1,
   width: '100%',
+  boxSizing: 'border-box',
+  [theme.breakpoints.down('lg')]: {
+    padding: '28px',
+  },
   [theme.breakpoints.down('md')]: {
-    padding: '20px',
+    padding: '24px',
     marginBottom: '24px',
   },
   [theme.breakpoints.down('sm')]: {
-    padding: '18px',
+    padding: '20px',
     marginBottom: '20px',
   }
 }));
@@ -452,14 +706,23 @@ const DesignControlsSection = styled(ModernCard)(({ theme }) => ({
 const DesignControlsContent = styled(Box)(({ theme }) => ({
   display: 'flex',
   flexDirection: 'column',
-  gap: '20px',
+  gap: '24px',
   width: '100%',
+  [theme.breakpoints.down('lg')]: {
+    gap: '20px',
+  },
+  [theme.breakpoints.down('md')]: {
+    gap: '18px',
+  },
+  [theme.breakpoints.down('sm')]: {
+    gap: '16px',
+  }
 }));
 
 const DesignSearchSection = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
-  gap: '12px',
+  gap: '16px',
   width: '100%',
   [theme.breakpoints.down('md')]: {
     flexDirection: 'column',
@@ -470,27 +733,31 @@ const DesignSearchSection = styled(Box)(({ theme }) => ({
 
 const DesignModernTextField = styled(TextField)(({ theme }) => ({
   flex: 1,
+  fontFamily: "'Mona Sans'",
   '& .MuiOutlinedInput-root': {
     borderRadius: '12px',
-    backgroundColor: '#F8F9FA',
-    transition: 'all 0.3s ease',
-    border: 'none',
+    backgroundColor: '#F2F2F2',
+    transition: 'all 0.3s cubic-bezier(0.23, 1, 0.320, 1)',
     '& fieldset': {
       border: 'none',
     },
     '&:hover': {
       backgroundColor: 'white',
-      boxShadow: '0 2px 8px rgba(1, 3, 38, 0.08)',
+      boxShadow: '0 2px 6px rgba(1, 3, 38, 0.06)',
+      transform: 'translateY(-1px)',
     },
     '&.Mui-focused': {
       backgroundColor: 'white',
-      boxShadow: '0 4px 16px rgba(31, 100, 191, 0.12)',
+      boxShadow: '0 3px 12px rgba(31, 100, 191, 0.08)',
+      transform: 'translateY(-1px)',
     },
     '& input': {
       color: '#010326',
+      fontSize: '0.9rem',
+      fontWeight: 500,
       '&::placeholder': {
-        color: '#032CA6',
-        opacity: 0.7,
+        color: '#64748b',
+        opacity: 1,
       }
     }
   }
@@ -499,16 +766,19 @@ const DesignModernTextField = styled(TextField)(({ theme }) => ({
 const DesignFiltersSection = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
-  gap: '12px',
+  gap: '14px',
   flexWrap: 'wrap',
   width: '100%',
+  [theme.breakpoints.down('lg')]: {
+    gap: '12px',
+  },
   [theme.breakpoints.down('md')]: {
     justifyContent: 'flex-start',
-    gap: '10px',
+    gap: '12px',
   },
   [theme.breakpoints.down('sm')]: {
     justifyContent: 'center',
-    gap: '8px',
+    gap: '10px',
     '& > *': {
       minWidth: 'fit-content',
     }
@@ -519,23 +789,28 @@ const DesignFilterControl = styled(FormControl)(({ theme }) => ({
   minWidth: '140px',
   '& .MuiOutlinedInput-root': {
     borderRadius: '12px',
-    backgroundColor: '#F8F9FA',
-    height: '40px',
+    backgroundColor: '#F2F2F2',
+    height: '44px',
     fontSize: '0.875rem',
     border: 'none',
+    transition: 'all 0.3s cubic-bezier(0.23, 1, 0.320, 1)',
     '& fieldset': {
       border: 'none',
     },
     '&:hover': {
       backgroundColor: 'white',
-      boxShadow: '0 2px 8px rgba(1, 3, 38, 0.08)',
+      boxShadow: '0 2px 6px rgba(1, 3, 38, 0.06)',
+      transform: 'translateY(-1px)',
     },
     '&.Mui-focused': {
       backgroundColor: 'white',
-      boxShadow: '0 4px 16px rgba(31, 100, 191, 0.12)',
+      boxShadow: '0 3px 12px rgba(31, 100, 191, 0.08)',
+      transform: 'translateY(-1px)',
     },
     '& .MuiSelect-select': {
       color: '#010326',
+      fontFamily: "'Mona Sans'",
+      fontWeight: 500,
     }
   },
   [theme.breakpoints.down('sm')]: {
@@ -547,49 +822,82 @@ const DesignSortControl = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
   gap: '8px',
-  padding: '8px 12px',
+  padding: '12px 16px',
   borderRadius: '12px',
-  backgroundColor: '#F8F9FA',
+  backgroundColor: '#F2F2F2',
   cursor: 'pointer',
-  transition: 'all 0.3s ease',
+  transition: 'all 0.3s cubic-bezier(0.23, 1, 0.320, 1)',
+  fontFamily: "'Mona Sans'",
+  position: 'relative',
+  overflow: 'hidden',
+  '&::before': {
+    content: '""',
+    position: 'absolute',
+    top: 0,
+    left: '-100%',
+    width: '100%',
+    height: '100%',
+    background: 'linear-gradient(90deg, transparent, rgba(31, 100, 191, 0.1), transparent)',
+    transition: 'left 0.5s ease',
+    zIndex: 1,
+  },
+  '& > *': {
+    position: 'relative',
+    zIndex: 2,
+  },
   '&:hover': {
+    transform: 'translateY(-1px)',
+    boxShadow: '0 2px 6px rgba(1, 3, 38, 0.06)',
     backgroundColor: 'white',
-    boxShadow: '0 2px 8px rgba(1, 3, 38, 0.08)',
+    '&::before': {
+      left: '100%',
+    }
+  },
+  '&:active': {
+    transform: 'translateY(0)',
+    transition: 'transform 0.1s ease-out',
   }
 }));
 
 // Lista de diseños
-const DesignsSection = styled(Box)({
+const DesignsSection = styled(DesignUnifiedContainer)({
   marginBottom: '32px',
   position: 'relative',
   zIndex: 1,
-  width: '100%',
 });
 
-const SectionHeader = styled(Box)(({ theme }) => ({
+const DesignSectionHeader = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between',
-  marginBottom: '24px',
-  paddingBottom: '16px',
+  marginBottom: '28px',
+  paddingBottom: '18px',
   borderBottom: `1px solid ${alpha('#1F64BF', 0.08)}`,
   width: '100%',
+  [theme.breakpoints.down('lg')]: {
+    marginBottom: '24px',
+    paddingBottom: '16px',
+  },
   [theme.breakpoints.down('sm')]: {
     flexDirection: 'column',
     alignItems: 'flex-start',
-    gap: '12px',
+    gap: '14px',
     marginBottom: '20px',
     paddingBottom: '12px',
   }
 }));
 
-const SectionTitle = styled(Typography)(({ theme }) => ({
-  fontSize: '1.5rem',
+const DesignSectionTitle = styled(Typography)(({ theme }) => ({
+  fontSize: '1.6rem',
   fontWeight: 600,
   color: '#010326',
   display: 'flex',
   alignItems: 'center',
-  gap: '8px',
+  gap: '10px',
+  fontFamily: "'Mona Sans'",
+  [theme.breakpoints.down('lg')]: {
+    fontSize: '1.5rem',
+  },
   [theme.breakpoints.down('sm')]: {
     fontSize: '1.3rem',
   }
@@ -597,12 +905,12 @@ const SectionTitle = styled(Typography)(({ theme }) => ({
 
 const DesignsGrid = styled(Box)(({ theme }) => ({
   display: 'grid',
-  gap: '24px',
+  gap: '28px',
   width: '100%',
   gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
   [theme.breakpoints.down('xl')]: {
     gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
-    gap: '20px',
+    gap: '24px',
   },
   [theme.breakpoints.down('lg')]: {
     gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
@@ -622,12 +930,15 @@ const DesignsGrid = styled(Box)(({ theme }) => ({
   }
 }));
 
-const EmptyState = styled(ModernCard)(({ theme }) => ({
-  padding: '80px 40px',
+const DesignEmptyState = styled(DesignModernCard)(({ theme }) => ({
+  padding: '100px 40px',
   textAlign: 'center',
   background: 'white',
   border: `2px dashed ${alpha('#1F64BF', 0.2)}`,
   width: '100%',
+  [theme.breakpoints.down('lg')]: {
+    padding: '80px 30px',
+  },
   [theme.breakpoints.down('md')]: {
     padding: '60px 30px',
   },
@@ -636,16 +947,21 @@ const EmptyState = styled(ModernCard)(({ theme }) => ({
   }
 }));
 
-const EmptyStateIcon = styled(Box)(({ theme }) => ({
-  width: '80px',
-  height: '80px',
+const DesignEmptyStateIcon = styled(Box)(({ theme }) => ({
+  width: '90px',
+  height: '90px',
   borderRadius: '50%',
   background: alpha('#1F64BF', 0.1),
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  margin: '0 auto 24px',
+  margin: '0 auto 28px',
   color: '#1F64BF',
+  [theme.breakpoints.down('lg')]: {
+    width: '80px',
+    height: '80px',
+    marginBottom: '24px',
+  },
   [theme.breakpoints.down('sm')]: {
     width: '60px',
     height: '60px',
@@ -653,16 +969,60 @@ const EmptyStateIcon = styled(Box)(({ theme }) => ({
   }
 }));
 
-const LoadingContainer = styled(Box)({
+const DesignEmptyStateTitle = styled(Typography)(({ theme }) => ({
+  fontSize: '1.6rem',
+  fontWeight: 600,
+  color: '#010326',
+  marginBottom: '14px',
+  fontFamily: "'Mona Sans'",
+  [theme.breakpoints.down('lg')]: {
+    fontSize: '1.5rem',
+  },
+  [theme.breakpoints.down('sm')]: {
+    fontSize: '1.3rem',
+  }
+}));
+
+const DesignEmptyStateDescription = styled(Typography)(({ theme }) => ({
+  fontSize: '1.1rem',
+  color: '#032CA6',
+  marginBottom: '36px',
+  maxWidth: '450px',
+  margin: '0 auto 36px',
+  lineHeight: 1.6,
+  fontFamily: "'Mona Sans'",
+  [theme.breakpoints.down('lg')]: {
+    fontSize: '1rem',
+    marginBottom: '32px',
+    maxWidth: '400px',
+  },
+  [theme.breakpoints.down('sm')]: {
+    fontSize: '0.9rem',
+    marginBottom: '24px',
+    maxWidth: '300px',
+  }
+}));
+
+const DesignLoadingContainer = styled(Box)({
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
   justifyContent: 'center',
   minHeight: '60vh',
-  gap: '20px',
+  gap: '24px',
 });
 
-const ErrorAlert = styled(ModernCard)(({ theme }) => ({
+const DesignLoadingOverlay = styled(DesignModernCard)({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: '14px',
+  padding: '24px',
+  marginBottom: '24px',
+  background: alpha('#1F64BF', 0.04),
+});
+
+const ErrorAlert = styled(DesignModernCard)(({ theme }) => ({
   padding: '20px',
   marginBottom: '24px',
   background: alpha('#EF4444', 0.05),
@@ -673,19 +1033,6 @@ const ErrorAlert = styled(ModernCard)(({ theme }) => ({
   alignItems: 'center',
   justifyContent: 'space-between',
   gap: '16px',
-}));
-
-const PaginationContainer = styled(Box)(({ theme }) => ({
-  display: 'flex',
-  justifyContent: 'center',
-  alignItems: 'center',
-  marginTop: '40px',
-  gap: '16px',
-  flexDirection: 'row',
-  [theme.breakpoints.down('sm')]: {
-    flexDirection: 'column',
-    gap: '12px',
-  }
 }));
 
 // ================ COMPONENTE PRINCIPAL ================
@@ -710,6 +1057,7 @@ const DesignManagement = () => {
     getDesignStats,
     updateFilters,
     clearFilters,
+    changePage,
     hasDesigns,
     isEmpty,
     refetch
@@ -755,7 +1103,7 @@ const DesignManagement = () => {
         sort: sortOption,
         order: sortOrder
       });
-    }, 300); // Debounce para búsqueda
+    }, 300);
 
     return () => clearTimeout(timeoutId);
   }, [searchQuery, selectedStatus, selectedProduct, selectedUser, sortOption, sortOrder, updateFilters]);
@@ -885,7 +1233,6 @@ const DesignManagement = () => {
   const handleDesignCreated = async (designData) => {
     try {
       setActionLoading(true);
-      // ✅ CORREGIDO: Usar updateDesign si está en modo edición, sino createDesignForClient
       if (editingDesign) {
         console.log('✏️ [DesignManagement] Actualizando diseño existente:', editingDesign._id);
         await updateDesign(editingDesign._id, designData);
@@ -925,7 +1272,6 @@ const DesignManagement = () => {
       setActionLoading(true);
       const design = await getDesignById(designId);
       if (design) {
-        // Encontrar el producto correspondiente para el visor
         const product = products.find(p => p.id === design.productId || p._id === design.productId);
         
         setViewingDesign({
@@ -952,7 +1298,6 @@ const DesignManagement = () => {
       setActionLoading(true);
       const designData = await getDesignById(designId);
       if (designData) {
-        // Verificar que el diseño se puede editar
         if (!designData.canEdit) {
           Swal.fire({
             title: 'No se puede editar',
@@ -1023,7 +1368,6 @@ const DesignManagement = () => {
       setActionLoading(true);
       const designData = await getDesignById(designId);
       if (designData) {
-        // Verificar que el diseño se puede cotizar
         if (designData.status !== 'pending') {
           const statusMessages = {
             'quoted': 'Este diseño ya ha sido cotizado anteriormente',
@@ -1068,7 +1412,6 @@ const DesignManagement = () => {
       }
     } catch (error) {
       console.error('Error en handleQuoteSubmitted:', error);
-      // Mostrar error específico al usuario
       await Swal.fire({
         title: 'Error al cotizar',
         text: error.message || 'No se pudo enviar la cotización',
@@ -1213,13 +1556,6 @@ const DesignManagement = () => {
     }
   };
 
-  // ==================== MANEJADORES DE PAGINACIÓN ====================
-  
-  const handlePageChange = (newPage) => {
-    if (newPage >= 1 && newPage <= pagination.totalPages && !loading) {
-      fetchDesigns({ page: newPage });
-    }
-  };
 
   const handleRefresh = () => {
     refetch();
@@ -1252,7 +1588,6 @@ const DesignManagement = () => {
       });
 
       if (format) {
-        // Aquí implementarías la lógica de exportación según el formato
         Swal.fire({
           title: 'Exportando...',
           text: `Generando archivo ${format.toUpperCase()}`,
@@ -1262,7 +1597,6 @@ const DesignManagement = () => {
           timerProgressBar: true
         });
         
-        // Simulación de exportación
         setTimeout(() => {
           Swal.fire({
             title: 'Exportación completada',
@@ -1289,7 +1623,7 @@ const DesignManagement = () => {
     return (
       <DesignPageContainer>
         <DesignContentWrapper>
-          <LoadingContainer>
+          <DesignLoadingContainer>
             <CircularProgress 
               size={48} 
               sx={{ 
@@ -1297,13 +1631,10 @@ const DesignManagement = () => {
                 filter: 'drop-shadow(0 4px 8px rgba(31, 100, 191, 0.3))'
               }} 
             />
-            <Typography variant="h6" sx={{ color: '#010326', fontWeight: 600 }}>
+            <Typography component="div" variant="body1" sx={{ color: '#010326', fontWeight: 600, fontFamily: "'Mona Sans'" }}>
               Cargando gestión de diseños...
             </Typography>
-            <Typography variant="body2" sx={{ color: '#032CA6', opacity: 0.8 }}>
-              Preparando tu panel administrativo
-            </Typography>
-          </LoadingContainer>
+          </DesignLoadingContainer>
         </DesignContentWrapper>
       </DesignPageContainer>
     );
@@ -1313,48 +1644,47 @@ const DesignManagement = () => {
   
   return (
     <DesignPageContainer>
-      
       <DesignContentWrapper>
         {/* Header Principal */}
-        <DesignHeaderSection>
+        <DesignHeaderSection sx={{ fontWeight: '700 !important' }} className="force-bold" style={{ fontWeight: '700 !important' }}>
           <DesignHeaderContent>
             <DesignHeaderInfo>
-              <MainTitle>
+              <DesignMainTitle sx={{ fontWeight: '700 !important' }} className="force-bold" style={{ fontWeight: '700 !important' }}>
                 <Palette size={32} weight="duotone" />
                 Gestión de Diseños
-              </MainTitle>
-              <MainDescription>
+              </DesignMainTitle>
+              <DesignMainDescription sx={{ fontWeight: '700 !important' }} className="force-bold" style={{ fontWeight: '700 !important' }}>
                 Administra diseños personalizados, cotizaciones y flujo de aprobación de clientes
-              </MainDescription>
+              </DesignMainDescription>
             </DesignHeaderInfo>
             
-            <HeaderActions>
-              <SecondaryActionButton
+            <DesignHeaderActions>
+              <DesignSecondaryActionButton
                 variant="outlined"
                 onClick={handleRefresh}
                 disabled={loading || actionLoading}
-                startIcon={loading ? <CircularProgress size={16} /> : <ArrowsClockwise size={18} weight="bold" />}
+                startIcon={loading ? <CircularProgress size={16} /> : <ArrowsClockwise size={20} weight="bold" />}
               >
                 {loading ? 'Actualizando...' : 'Actualizar'}
-              </SecondaryActionButton>
+              </DesignSecondaryActionButton>
               
-              <SecondaryActionButton
+              <DesignSecondaryActionButton
                 variant="outlined"
                 onClick={handleExportData}
                 disabled={!hasDesigns || loading}
-                startIcon={<Download size={18} weight="bold" />}
+                startIcon={<Download size={20} weight="bold" />}
               >
                 Exportar
-              </SecondaryActionButton>
+              </DesignSecondaryActionButton>
               
-              <PrimaryActionButton
+              <DesignPrimaryActionButton
                 onClick={handleCreateDesign}
                 disabled={loading || actionLoading}
-                startIcon={<Plus size={18} weight="bold" />}
+                startIcon={<Plus size={20} weight="bold" />}
               >
                 Nuevo Diseño
-              </PrimaryActionButton>
-            </HeaderActions>
+              </DesignPrimaryActionButton>
+            </DesignHeaderActions>
           </DesignHeaderContent>
         </DesignHeaderSection>
 
@@ -1364,10 +1694,10 @@ const DesignManagement = () => {
             <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <Warning size={24} weight="fill" color="#EF4444" />
               <Box>
-                <Typography sx={{ color: '#EF4444', fontWeight: 600, fontSize: '0.875rem' }}>
+                <Typography sx={{ color: '#EF4444', fontWeight: 600, fontSize: '0.875rem', fontFamily: "'Mona Sans'" }}>
                   Error en la carga de datos
                 </Typography>
-                <Typography sx={{ color: '#DC2626', fontSize: '0.8rem', opacity: 0.8 }}>
+                <Typography sx={{ color: '#DC2626', fontSize: '0.8rem', opacity: 0.8, fontFamily: "'Mona Sans'" }}>
                   {error}
                 </Typography>
               </Box>
@@ -1380,7 +1710,8 @@ const DesignManagement = () => {
                 color: '#EF4444',
                 fontWeight: 600,
                 textTransform: 'none',
-                minWidth: 'auto'
+                minWidth: 'auto',
+                fontFamily: "'Mona Sans'"
               }}
             >
               Reintentar
@@ -1389,35 +1720,37 @@ const DesignManagement = () => {
         )}
 
         {/* Estadísticas Interactivas */}
-        <StatsContainer>
-          <StatsGrid>
+        <DesignStatsContainer>
+          <DesignStatsGrid>
             {stats.map((stat) => (
-              <StatCard 
+              <DesignStatCard 
                 key={stat.id} 
                 variant={stat.variant}
                 onClick={stat.onClick}
               >
-                <StatHeader>
+                <DesignStatHeader>
                   <Box>
-                    <StatValue variant={stat.variant}>
+                    <DesignStatValue variant={stat.variant}>
                       {stat.value}
-                    </StatValue>
-                    <StatLabel variant={stat.variant}>
+                    </DesignStatValue>
+                    <DesignStatLabel variant={stat.variant}>
                       {stat.title}
-                    </StatLabel>
+                    </DesignStatLabel>
                   </Box>
-                  <StatIconContainer variant={stat.variant}>
+                  <DesignStatIconContainer variant={stat.variant}>
                     <stat.icon size={24} weight="duotone" />
-                  </StatIconContainer>
-                </StatHeader>
-                <StatTrend variant={stat.variant}>
+                  </DesignStatIconContainer>
+                </DesignStatHeader>
+                <DesignStatChange variant={stat.variant} trend={stat.trend}>
                   <TrendUp size={12} weight="bold" />
-                  {stat.change}
-                </StatTrend>
-              </StatCard>
+                  <DesignStatTrendText variant={stat.variant} trend={stat.trend}>
+                    {stat.change}
+                  </DesignStatTrendText>
+                </DesignStatChange>
+              </DesignStatCard>
             ))}
-          </StatsGrid>
-        </StatsContainer>
+          </DesignStatsGrid>
+        </DesignStatsContainer>
 
         {/* Controles de búsqueda y filtros */}
         <DesignControlsSection>
@@ -1438,7 +1771,7 @@ const DesignManagement = () => {
               />
               
               <DesignSortControl onClick={handleSortChange}>
-                <Typography variant="body2" sx={{ color: '#032CA6', fontWeight: 500 }}>
+                <Typography variant="body2" sx={{ color: '#032CA6', fontWeight: 500, fontFamily: "'Mona Sans'" }}>
                   Fecha
                 </Typography>
                 {sortOrder === 'desc' ? (
@@ -1462,9 +1795,9 @@ const DesignManagement = () => {
                     </InputAdornment>
                   }
                   MenuProps={{
-                    style: { zIndex: 10000 }, // Z-index alto para el menú desplegable
+                    style: { zIndex: 10000 },
                     PaperProps: {
-                      style: { zIndex: 10001 } // Z-index adicional en el paper del menú
+                      style: { zIndex: 10001 }
                     }
                   }}
                 >
@@ -1526,9 +1859,9 @@ const DesignManagement = () => {
                     </InputAdornment>
                   }
                   MenuProps={{
-                    style: { zIndex: 10000 }, // Z-index alto para el menú desplegable
+                    style: { zIndex: 10000 },
                     PaperProps: {
-                      style: { zIndex: 10001 } // Z-index adicional en el paper del menú
+                      style: { zIndex: 10001 }
                     }
                   }}
                 >
@@ -1551,7 +1884,7 @@ const DesignManagement = () => {
                             }}
                           />
                         )}
-                        <Typography variant="body2" noWrap>
+                        <Typography variant="body2" noWrap sx={{ fontFamily: "'Mona Sans'" }}>
                           {product.name}
                         </Typography>
                       </Box>
@@ -1572,9 +1905,9 @@ const DesignManagement = () => {
                     </InputAdornment>
                   }
                   MenuProps={{
-                    style: { zIndex: 10000 }, // Z-index alto para el menú desplegable
+                    style: { zIndex: 10000 },
                     PaperProps: {
-                      style: { zIndex: 10001 } // Z-index adicional en el paper del menú
+                      style: { zIndex: 10001 }
                     }
                   }}
                 >
@@ -1583,7 +1916,7 @@ const DesignManagement = () => {
                   </MenuItem>
                   {users.map(user => (
                     <MenuItem key={user.id} value={user.id}>
-                      <Typography variant="body2" noWrap>
+                      <Typography variant="body2" noWrap sx={{ fontFamily: "'Mona Sans'" }}>
                         {user.name}
                       </Typography>
                     </MenuItem>
@@ -1606,8 +1939,11 @@ const DesignManagement = () => {
                       backgroundColor: alpha('#EF4444', 0.1),
                       padding: '8px 16px',
                       minWidth: 'auto',
+                      fontFamily: "'Mona Sans'",
+                      transition: 'all 0.3s ease',
                       '&:hover': {
                         backgroundColor: alpha('#EF4444', 0.15),
+                        transform: 'translateY(-1px)',
                       }
                     }}
                   >
@@ -1619,60 +1955,69 @@ const DesignManagement = () => {
           </DesignControlsContent>
         </DesignControlsSection>
 
+        {/* Paginación superior */}
+        {pagination.pages > 1 && (
+          <Box sx={{ 
+            display: 'flex', 
+            justifyContent: 'center',
+            mb: 3,
+            mt: 2
+          }}>
+            <Pagination
+              currentPage={pagination.currentPage}
+              totalPages={pagination.pages}
+              totalItems={pagination.total}
+              itemsPerPage={pagination.limit}
+              onPageChange={changePage}
+            />
+          </Box>
+        )}
+
         {/* Lista de Diseños */}
         <DesignsSection>
-          <SectionHeader>
-            <SectionTitle component="div">
-  <Box sx={{ 
-    display: 'flex', 
-    alignItems: 'center',
-    gap: 1
-  }}>
-    <GridNine size={24} weight="duotone" />
-    <Box component="span">Diseños</Box>
-    
-    <Badge 
-      badgeContent={designs.length}
-      color="primary"
-      sx={{
-        '& .MuiBadge-badge': {
-          backgroundColor: '#1F64BF',
-          color: 'white',
-          fontWeight: 600,
-          fontSize: '0.75rem',
-          minWidth: '20px',
-          height: '20px'
-        }
-      }}
-    >
-      <Box component="span" sx={{ width: 0 }} /> {/* Elemento invisible para el Badge */}
-    </Badge>
-    
-    {pagination.totalDesigns !== designs.length && (
-      <Chip 
-        label={`de ${pagination.totalDesigns} total`}
-        size="small"
-        sx={{
-          background: alpha('#1F64BF', 0.1),
-          color: '#032CA6',
-          fontWeight: 500,
-          ml: 1,
-          fontSize: '0.75rem'
-        }}
-      />
-    )}
-  </Box>
-</SectionTitle>
+          <DesignSectionHeader>
+            <DesignSectionTitle component="div">
+              <Box sx={{ 
+                display: 'flex', 
+                alignItems: 'center',
+                gap: 1
+              }}>
+                <GridNine size={24} weight="duotone" />
+                <Box component="span">Diseños</Box>
+                
+                <Chip 
+                  label={`${designs.length}${pagination.total !== designs.length ? ` de ${pagination.total}` : ''}`}
+                  size="small"
+                  sx={{
+                    background: alpha('#1F64BF', 0.1),
+                    color: '#032CA6',
+                    fontWeight: 600,
+                    ml: 1,
+                    fontFamily: "'Mona Sans'"
+                  }}
+                />
+              </Box>
+            </DesignSectionTitle>
 
             {/* Información de resultados */}
             {hasDesigns && (
               <Box sx={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                <Typography variant="body2" sx={{ color: '#032CA6', opacity: 0.8 }}>
+                <Typography variant="body2" sx={{ color: '#032CA6', opacity: 0.8, fontFamily: "'Mona Sans'" }}>
                   {loading ? 'Actualizando...' : `${designs.length} resultado${designs.length !== 1 ? 's' : ''}`}
                 </Typography>
               </Box>
             )}
-          </SectionHeader>
+          </DesignSectionHeader>
+
+          {/* Estado de carga durante refetch */}
+          {loading && hasDesigns && (
+            <DesignLoadingOverlay>
+              <CircularProgress size={20} sx={{ color: '#1F64BF' }} />
+              <Typography variant="body2" sx={{ color: '#1F64BF', fontWeight: 600, fontFamily: "'Mona Sans'" }}>
+                Actualizando diseños...
+              </Typography>
+            </DesignLoadingOverlay>
+          )}
 
           {/* Grid de diseños o estado vacío */}
           {designs.length > 0 ? (
@@ -1711,102 +2056,37 @@ const DesignManagement = () => {
                 ))}
               </DesignsGrid>
 
-              {/* Controles de paginación */}
-              {pagination.totalPages > 1 && (
-                <PaginationContainer>
-                  <Button
-                    variant="outlined"
-                    onClick={() => handlePageChange(pagination.currentPage - 1)}
-                    disabled={!pagination.hasPrev || loading}
-                    sx={{
-                      borderRadius: '12px',
-                      textTransform: 'none',
-                      fontWeight: 600,
-                      borderColor: alpha('#1F64BF', 0.3),
-                      color: '#1F64BF',
-                      minWidth: '120px',
-                      '&:hover': {
-                        borderColor: '#1F64BF',
-                        backgroundColor: alpha('#1F64BF', 0.05),
-                      },
-                      '&:disabled': {
-                        borderColor: alpha('#1F64BF', 0.1),
-                        color: alpha('#1F64BF', 0.3),
-                      }
-                    }}
-                  >
-                    ← Anterior
-                  </Button>
-                  
-                  <ModernCard sx={{ 
-                    px: 3, 
-                    py: 1.5,
-                    minWidth: '120px',
-                    textAlign: 'center',
-                    background: alpha('#1F64BF', 0.05)
-                  }}>
-                    <Typography variant="body2" sx={{ color: '#032CA6', fontWeight: 600 }}>
-                      Página {pagination.currentPage} de {pagination.totalPages}
-                    </Typography>
-                  </ModernCard>
-                  
-                  <Button
-                    variant="outlined"
-                    onClick={() => handlePageChange(pagination.currentPage + 1)}
-                    disabled={!pagination.hasNext || loading}
-                    sx={{
-                      borderRadius: '12px',
-                      textTransform: 'none',
-                      fontWeight: 600,
-                      borderColor: alpha('#1F64BF', 0.3),
-                      color: '#1F64BF',
-                      minWidth: '120px',
-                      '&:hover': {
-                        borderColor: '#1F64BF',
-                        backgroundColor: alpha('#1F64BF', 0.05),
-                      },
-                      '&:disabled': {
-                        borderColor: alpha('#1F64BF', 0.1),
-                        color: alpha('#1F64BF', 0.3),
-                      }
-                    }}
-                  >
-                    Siguiente →
-                  </Button>
-                </PaginationContainer>
+              {/* Componente de paginación minimalista */}
+              {pagination.pages > 1 && (
+                <Pagination
+                  currentPage={pagination.currentPage}
+                  totalPages={pagination.pages}
+                  totalItems={pagination.total}
+                  itemsPerPage={pagination.limit}
+                  onPageChange={changePage}
+                />
               )}
             </>
           ) : (
             /* Estado vacío mejorado */
-            <EmptyState>
-              <EmptyStateIcon>
+            <DesignEmptyState>
+              <DesignEmptyStateIcon>
                 <Palette size={40} weight="duotone" />
-              </EmptyStateIcon>
+              </DesignEmptyStateIcon>
               
-              <Typography variant="h5" sx={{ 
-                fontWeight: 700, 
-                color: '#010326', 
-                mb: 2,
-                textAlign: 'center'
-              }}>
+              <DesignEmptyStateTitle>
                 {searchQuery || selectedStatus || selectedProduct || selectedUser
                   ? 'No hay diseños que coincidan con los filtros' 
                   : 'No hay diseños creados aún'
                 }
-              </Typography>
+              </DesignEmptyStateTitle>
               
-              <Typography variant="body1" sx={{ 
-                color: '#032CA6', 
-                mb: 4,
-                textAlign: 'center',
-                maxWidth: '500px',
-                lineHeight: 1.6
-              }}>
+              <DesignEmptyStateDescription>
                 {searchQuery || selectedStatus || selectedProduct || selectedUser
                   ? 'Intenta ajustar los filtros de búsqueda o crear un nuevo diseño personalizado'
                   : 'Comienza creando tu primer diseño personalizado para un cliente. Usa nuestro editor visual para crear diseños únicos.'
                 }
-              </Typography>
+              </DesignEmptyStateDescription>
               
               <Box sx={{ 
                 display: 'flex', 
@@ -1817,28 +2097,28 @@ const DesignManagement = () => {
                 width: '100%',
                 maxWidth: '400px'
               }}>
-                <PrimaryActionButton
+                <DesignPrimaryActionButton
                   onClick={handleCreateDesign}
                   disabled={loading || actionLoading}
-                  startIcon={<Plus size={18} weight="bold" />}
+                  startIcon={<Plus size={20} weight="bold" />}
                   sx={{
                     minWidth: { xs: '100%', sm: '140px' }
                   }}
                 >
                   Crear Diseño
-                </PrimaryActionButton>
+                </DesignPrimaryActionButton>
                 
                 {(searchQuery || selectedStatus || selectedProduct || selectedUser) && (
-                  <SecondaryActionButton
+                  <DesignSecondaryActionButton
                     variant="outlined"
                     onClick={handleClearFilters}
-                    startIcon={<Broom size={18} weight="bold" />}
+                    startIcon={<Broom size={20} weight="bold" />}
                     sx={{
                       minWidth: { xs: '100%', sm: 'auto' }
                     }}
                   >
                     Limpiar Filtros
-                  </SecondaryActionButton>
+                  </DesignSecondaryActionButton>
                 )}
               </Box>
 
@@ -1856,27 +2136,28 @@ const DesignManagement = () => {
                     color: '#1F64BF', 
                     fontWeight: 600, 
                     mb: 2,
-                    textAlign: 'center'
+                    textAlign: 'center',
+                    fontFamily: "'Mona Sans'"
                   }}>
                     💡 Primeros pasos
                   </Typography>
                   <Box sx={{ textAlign: 'left' }}>
-                    <Typography variant="body2" sx={{ color: '#032CA6', mb: 1 }}>
+                    <Typography variant="body2" sx={{ color: '#032CA6', mb: 1, fontFamily: "'Mona Sans'" }}>
                       • Selecciona un cliente y producto base
                     </Typography>
-                    <Typography variant="body2" sx={{ color: '#032CA6', mb: 1 }}>
+                    <Typography variant="body2" sx={{ color: '#032CA6', mb: 1, fontFamily: "'Mona Sans'" }}>
                       • Usa el editor visual para crear elementos
                     </Typography>
-                    <Typography variant="body2" sx={{ color: '#032CA6', mb: 1 }}>
+                    <Typography variant="body2" sx={{ color: '#032CA6', mb: 1, fontFamily: "'Mona Sans'" }}>
                       • Envía cotización al cliente
                     </Typography>
-                    <Typography variant="body2" sx={{ color: '#032CA6' }}>
+                    <Typography variant="body2" sx={{ color: '#032CA6', fontFamily: "'Mona Sans'" }}>
                       • Gestiona aprobaciones y producción
                     </Typography>
                   </Box>
                 </Box>
               )}
-            </EmptyState>
+            </DesignEmptyState>
           )}
         </DesignsSection>
 
@@ -1897,7 +2178,7 @@ const DesignManagement = () => {
             gap: '12px'
           }}>
             <CircularProgress size={20} sx={{ color: '#1F64BF' }} />
-            <Typography variant="body2" sx={{ color: '#032CA6', fontWeight: 500 }}>
+            <Typography variant="body2" sx={{ color: '#032CA6', fontWeight: 500, fontFamily: "'Mona Sans'" }}>
               Actualizando diseños...
             </Typography>
           </Box>

@@ -27,8 +27,8 @@ export const useLogin = () => {
       const user = await login(data);
 
       // Validar roles
-      const allowedTypes = ['employee', 'manager', 'warehouse', 'admin'];
-      const allowedRoles = ['admin', 'manager', 'employee', 'warehouse'];
+      const allowedTypes = ['employee', 'manager', 'delivery', 'admin'];
+      const allowedRoles = ['admin', 'manager', 'employee', 'delivery'];
       const userType = user.type?.toLowerCase();
       const userRole = user.role?.toLowerCase();
 
@@ -48,8 +48,12 @@ export const useLogin = () => {
           background: '#ffffff',
           color: '#1f2937'
         });
+        
+        // Registrar timestamp del login para cambiar frases en el dashboard
+        localStorage.setItem('lastLoginTimestamp', Date.now().toString());
+        
         reset();
-        navigate('/catalog-management', { replace: true });
+        navigate('/dashboard', { replace: true });
       } else {
         await Swal.fire({
           icon: 'warning',

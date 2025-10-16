@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider, useAuth } from './context/AuthContext';
 import LoginPage from './pages/Login/Login';
 import Dashboard from './pages/Dashboard/Dashboard';
+import AnalyticsDashboard from './pages/Analytics/AnalyticsDashboard';
 import CatalogManagement from './pages/CatalogManagement/CatalogManagement';
 import DesignManagement from './pages/DesignManagement/DesignManagement';
 import SplashScreen from './components/SplashScreen/SplashScreen';
@@ -133,11 +134,23 @@ const AppContent = () => {
       
       {/* Rutas protegidas (con navbar y footer) */}
       <Route 
-        path="/Dashboard" 
+        path="/dashboard" 
         element={
           isAuthenticated ? (
             <AuthenticatedLayout>
               <Dashboard/>
+            </AuthenticatedLayout>
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        } 
+      />
+      <Route 
+        path="/analytics" 
+        element={
+          isAuthenticated ? (
+            <AuthenticatedLayout>
+              <AnalyticsDashboard/>
             </AuthenticatedLayout>
           ) : (
             <Navigate to="/login" replace />
@@ -294,7 +307,7 @@ const AppContent = () => {
         path="/" 
         element={
           isAuthenticated ? 
-            <Navigate to="/Dashboard" replace /> : 
+            <Navigate to="/dashboard" replace /> : 
             <Navigate to="/login" replace />
         } 
       />

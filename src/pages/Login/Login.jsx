@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
   Envelope, 
@@ -24,6 +24,19 @@ const LoginPage = () => {
   const successMessage = location.state?.message;
   const messageType = location.state?.type;
 
+  // Agregar/quitar clase al body para controlar el scroll
+  useEffect(() => {
+    // Agregar clase al body y html cuando se monte el componente
+    document.body.classList.add('login-page');
+    document.documentElement.classList.add('login-page');
+
+    // Cleanup: quitar la clase cuando se desmonte el componente
+    return () => {
+      document.body.classList.remove('login-page');
+      document.documentElement.classList.remove('login-page');
+    };
+  }, []);
+
   const handleFormSubmit = async (data) => {
     await onSubmit(data);
   };
@@ -32,9 +45,26 @@ const LoginPage = () => {
     <div className="diambars-login-container">
       {/* Partículas de fondo */}
       <div className="diambars-login-particles">
-        {[...Array(15)].map((_, i) => (
-          <div key={i} className={`login-particle login-particle-${i + 1}`}></div>
-        ))}
+        <div className="login-particle login-particle-1"></div>
+        <div className="login-particle login-particle-2"></div>
+        <div className="login-particle login-particle-3"></div>
+        <div className="login-particle login-particle-4"></div>
+        <div className="login-particle login-particle-5"></div>
+        <div className="login-particle login-particle-6"></div>
+        <div className="login-particle login-particle-7"></div>
+        <div className="login-particle login-particle-8"></div>
+        <div className="login-particle login-particle-9"></div>
+        <div className="login-particle login-particle-10"></div>
+        <div className="login-particle login-particle-11"></div>
+        <div className="login-particle login-particle-12"></div>
+        <div className="login-particle login-particle-13"></div>
+        <div className="login-particle login-particle-14"></div>
+        <div className="login-particle login-particle-15"></div>
+        <div className="login-particle login-particle-16"></div>
+        <div className="login-particle login-particle-17"></div>
+        <div className="login-particle login-particle-18"></div>
+        <div className="login-particle login-particle-19"></div>
+        <div className="login-particle login-particle-20"></div>
       </div>
 
       {/* Card principal */}
@@ -63,13 +93,6 @@ const LoginPage = () => {
               <p className="login-brand-subtitle">sublimado</p>
               <div className="login-brand-tagline">Acceso Administrativo</div>
             </div>
-          </div>
-
-          {/* Formas decorativas */}
-          <div className="login-decorative-shapes">
-            <div className="login-shape login-shape-1"></div>
-            <div className="login-shape login-shape-2"></div>
-            <div className="login-shape login-shape-3"></div>
           </div>
         </div>
 
@@ -169,10 +192,10 @@ const LoginPage = () => {
 
             <div className="login-form-footer">
               <div className="login-divider">
-                <span className="login-divider-text">Seguro y confiable</span>
+                <span className="login-divider-text">Acceso autorizado</span>
               </div>
               <p className="login-footer-text">
-                Sistema protegido con encriptación de última generación
+                Portal administrativo con autenticación de múltiples factores y encriptación.
               </p>
             </div>
           </div>

@@ -1,6 +1,8 @@
 // src/hooks/useEmployees.js
 import { useCallback, useEffect, useState } from 'react';
 import employeeService from '../api/EmployeeService';
+import profileService from '../api/profileService';
+import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-hot-toast';
 
 const handleError = (error, defaultMessage) => {
@@ -16,6 +18,7 @@ const useEmployees = () => {
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const { updateUserProfile } = useAuth();
 
   // Función para formatear empleados con campos faltantes
   const formatEmployee = (employee) => {
@@ -142,6 +145,58 @@ const useEmployees = () => {
     }
   }, []);
 
+  // Funciones para manejo de fotos de perfil
+  const uploadProfilePicture = useCallback(async (id, file) => {
+    try {
+      console.log('[useEmployees] Iniciando subida de foto de perfil:', {
+        employeeId: id,
+        fileName: file?.name,
+        fileSize: file?.size,
+        fileType: file?.type
+      });
+
+      const response = await profileService.uploadProfilePicture(id, file);
+      if (response.success) {
+        console.log('[useEmployees] Foto de perfil subida exitosamente:', response.data);
+        
+        toast.success('Foto de perfil actualizada exitosamente');
+        await fetchEmployees(); // Recargar lista para actualizar las fotos
+        
+        // Actualizar la información del usuario en el contexto de autenticación
+        // Esto asegura que todos los componentes tengan la información actualizada
+        try {
+          await updateUserProfile();
+          console.log('[useEmployees] Información del usuario actualizada en contexto de autenticación');
+        } catch (updateError) {
+          console.warn('[useEmployees] Error actualizando información del usuario:', updateError);
+          // No lanzar error, la subida de la foto fue exitosa
+        }
+        
+        return response.data;
+      } else {
+        throw new Error(response.error);
+      }
+    } catch (error) {
+      console.error('[useEmployees] Error subiendo foto de perfil:', error);
+      handleError(error, 'Error al subir foto de perfil');
+    }
+  }, [fetchEmployees, updateUserProfile]);
+
+  const deleteProfilePicture = useCallback(async (id) => {
+    try {
+      const response = await profileService.deleteProfilePicture(id);
+      if (response.success) {
+        toast.success('Foto de perfil eliminada exitosamente');
+        await fetchEmployees(); // Recargar lista para actualizar las fotos
+        return response.data;
+      } else {
+        throw new Error(response.error);
+      }
+    } catch (error) {
+      handleError(error, 'Error al eliminar foto de perfil');
+    }
+  }, [fetchEmployees]);
+
   // Funciones específicas para empleados
   const getEmployeesByRole = useCallback(async (role) => {
     try {
@@ -253,7 +308,9 @@ const useEmployees = () => {
     getEmployeeStats,
     getEmployeesByStatus,
     searchEmployees,
-    fetchEmployees
+    updateOwnProfile,
+    uploadProfilePicture,
+    deleteProfilePicture
   };
 };
 

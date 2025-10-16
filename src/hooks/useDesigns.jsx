@@ -9,12 +9,12 @@ const useDesigns = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [pagination, setPagination] = useState({
-    totalDesigns: 0,
-    totalPages: 0,
+    total: 0,
+    pages: 0,
     currentPage: 1,
-    perPage: 12,
-    hasNext: false,
-    hasPrev: false,
+    limit: 10,
+    hasNextPage: false,
+    hasPrevPage: false,
     nextPage: null,
     prevPage: null
   });
@@ -90,8 +90,11 @@ const useDesigns = () => {
       // Combinar parámetros con filtros actuales
       const queryParams = {
         ...filters,
+        limit: pagination.limit, // Asegurar que use el límite correcto
         ...params
       };
+      
+      console.log('🔍 [useDesigns] Parámetros finales enviados:', queryParams);
       
       const apiStartTime = Date.now();
       const response = await DesignService.getAll(queryParams);
@@ -115,20 +118,26 @@ const useDesigns = () => {
             return null;
           }
         })
-        .filter(design => design !== null)
-        // Excluir diseños cancelados por defecto, a menos que se esté filtrando específicamente por "cancelled"
-        .filter(design => {
-          if (queryParams.status === 'cancelled') {
-            return design.status === 'cancelled';
-          }
-          // Si no se está filtrando por "cancelled", excluir los cancelados
-          return design.status !== 'cancelled';
-        });
+        .filter(design => design !== null);
+      
+      // Mostrar todos los diseños por defecto (incluyendo cancelados)
+      // Solo filtrar si se especifica un estado específico
+      const finalDesigns = formattedDesigns.filter(design => {
+        // Si no hay filtro de estado específico, mostrar todos
+        if (!queryParams.status || queryParams.status === '') {
+          return true;
+        }
+        
+        // Si hay filtro de estado, aplicar el filtro
+        const shouldInclude = design.status === queryParams.status;
+        
+        return shouldInclude;
+      });
       
       const processingTime = Date.now() - startTime;
       console.log(`⏱️ [useDesigns] Tiempo de procesamiento: ${processingTime}ms`);
       
-      setDesigns(formattedDesigns);
+      setDesigns(finalDesigns);
       
       // Actualizar paginación
       if (response.data.pagination) {
@@ -136,11 +145,11 @@ const useDesigns = () => {
       }
       
       console.log('✅ [useDesigns] Diseños cargados:', {
-        count: formattedDesigns.length,
+        count: finalDesigns.length,
         pagination: response.data.pagination
       });
       
-      return formattedDesigns;
+      return finalDesigns;
     } catch (error) {
       handleError(error, 'Error al cargar diseños');
       setDesigns([]);
@@ -185,7 +194,7 @@ const useDesigns = () => {
       });
       
       // Refrescar lista
-      await fetchDesigns();
+      await fetchDesigns({ limit: pagination.limit });
       
       console.log('✅ [useDesigns] Diseño creado exitosamente');
       return response.data;
@@ -227,7 +236,7 @@ const useDesigns = () => {
       });
       
       // Refrescar lista
-      await fetchDesigns();
+      await fetchDesigns({ limit: pagination.limit });
       
       console.log('✅ [useDesigns] Diseño actualizado exitosamente');
       return response.data;
@@ -341,7 +350,7 @@ const updateProductColor = useCallback(async (id, color) => {
       });
       
       // Refrescar lista
-      await fetchDesigns();
+      await fetchDesigns({ limit: pagination.limit });
       
       console.log('✅ [useDesigns] Diseño clonado exitosamente');
       return response.data;
@@ -422,7 +431,7 @@ const updateProductColor = useCallback(async (id, color) => {
       });
       
       // Refrescar lista
-      await fetchDesigns();
+      await fetchDesigns({ limit: pagination.limit });
       
       console.log('✅ [useDesigns] Cotización enviada exitosamente');
       return response.data;
@@ -466,7 +475,7 @@ const updateProductColor = useCallback(async (id, color) => {
       });
       
       // Refrescar lista
-      await fetchDesigns();
+      await fetchDesigns({ limit: pagination.limit });
       
       console.log('✅ [useDesigns] Respuesta a cotización procesada');
       return response.data;
@@ -512,7 +521,7 @@ const updateProductColor = useCallback(async (id, color) => {
       });
       
       // Refrescar lista
-      await fetchDesigns();
+      await fetchDesigns({ limit: pagination.limit });
       
       console.log('✅ [useDesigns] Estado cambiado exitosamente');
       return response.data;
@@ -578,7 +587,7 @@ const updateProductColor = useCallback(async (id, color) => {
       });
       
       // Refrescar lista
-      await fetchDesigns();
+      await fetchDesigns({ limit: pagination.limit });
       
       console.log('✅ [useDesigns] Diseño cancelado exitosamente');
       return true;
@@ -700,6 +709,39 @@ const updateProductColor = useCallback(async (id, color) => {
     });
   }, []);
 
+  // ==================== GESTIÓN DE PAGINACIÓN ====================
+
+  // Cambiar página
+  const changePage = useCallback((newPage) => {
+    if (newPage >= 1 && newPage <= pagination.pages) {
+      fetchDesigns({ page: newPage });
+    }
+  }, [fetchDesigns, pagination.pages]);
+
+  // Ir a la primera página
+  const goToFirstPage = useCallback(() => {
+    changePage(1);
+  }, [changePage]);
+
+  // Ir a la última página
+  const goToLastPage = useCallback(() => {
+    changePage(pagination.pages);
+  }, [changePage, pagination.pages]);
+
+  // Ir a la página anterior
+  const goToPreviousPage = useCallback(() => {
+    if (pagination.currentPage > 1) {
+      changePage(pagination.currentPage - 1);
+    }
+  }, [changePage, pagination.currentPage]);
+
+  // Ir a la página siguiente
+  const goToNextPage = useCallback(() => {
+    if (pagination.currentPage < pagination.pages) {
+      changePage(pagination.currentPage + 1);
+    }
+  }, [changePage, pagination.currentPage]);
+
   // ==================== UTILIDADES DE KONVA ====================
 
   // Preparar diseño para editor Konva
@@ -726,8 +768,8 @@ const updateProductColor = useCallback(async (id, color) => {
 
   // Cargar diseños solo cuando cambien los filtros específicos
   useEffect(() => {
-    fetchDesigns();
-  }, [filters.search, filters.status, filters.product, filters.user, filters.sort, filters.order]);
+    fetchDesigns({ limit: pagination.limit });
+  }, [filters.search, filters.status, filters.product, filters.user, filters.sort, filters.order, pagination.limit]);
 
   // Limpiar error después de un tiempo
   useEffect(() => {
@@ -774,6 +816,13 @@ const updateProductColor = useCallback(async (id, color) => {
     // Gestión de filtros
     updateFilters,
     clearFilters,
+
+    // Gestión de paginación
+    changePage,
+    goToFirstPage,
+    goToLastPage,
+    goToPreviousPage,
+    goToNextPage,
 
     // Utilidades Konva
     prepareForKonvaEditor,

@@ -10,10 +10,78 @@
   top: 0;
   left: 0;
   overflow: hidden;
-  background: #ffffff;
+  background: #FFFFFF;
   animation: welcomeEntrance 1s ease-out;
   z-index: 9999;
   font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.diambars-welcome-screen::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(ellipse at 25% 15%, rgba(1, 3, 38, 0.08) 0%, transparent 60%),
+    radial-gradient(ellipse at 75% 25%, rgba(3, 44, 166, 0.07) 0%, transparent 65%),
+    radial-gradient(ellipse at 20% 75%, rgba(4, 13, 191, 0.06) 0%, transparent 70%),
+    radial-gradient(ellipse at 80% 80%, rgba(1, 3, 38, 0.05) 0%, transparent 55%),
+    radial-gradient(ellipse at 50% 40%, rgba(3, 44, 166, 0.04) 0%, transparent 75%),
+    radial-gradient(ellipse at 10% 50%, rgba(4, 13, 191, 0.03) 0%, transparent 50%),
+    radial-gradient(ellipse at 90% 45%, rgba(0, 84, 164, 0.05) 0%, transparent 60%);
+  background-size: 
+    200% 200%, 
+    180% 180%, 
+    220% 220%, 
+    170% 170%, 
+    240% 240%, 
+    160% 160%,
+    150% 150%;
+  opacity: 1;
+  animation: backgroundFlow 4s ease-in-out infinite alternate, backgroundToWhite 2.5s ease-out forwards 2s;
+  z-index: 1;
+}
+
+.diambars-welcome-screen::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 30% 20%, rgba(1, 3, 38, 0.06) 0%, transparent 40%),
+    radial-gradient(circle at 70% 60%, rgba(3, 44, 166, 0.05) 0%, transparent 45%),
+    radial-gradient(circle at 15% 80%, rgba(4, 13, 191, 0.04) 0%, transparent 35%),
+    radial-gradient(circle at 85% 30%, rgba(1, 3, 38, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 50% 70%, rgba(3, 44, 166, 0.05) 0%, transparent 38%);
+  background-size: 
+    150% 150%,
+    140% 140%,
+    130% 130%,
+    160% 160%,
+    120% 120%;
+  opacity: 1;
+  animation: flashColors 3s ease-in-out infinite, transitionToWhite 2.5s ease-out forwards 2s;
+  z-index: 2;
+}
+
+/* Overlay suave adicional */
+.diambars-welcome-screen .background-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 40% 30%, rgba(100, 149, 237, 0.06) 0%, transparent 70%),
+    radial-gradient(circle at 60% 70%, rgba(70, 130, 180, 0.04) 0%, transparent 75%),
+    radial-gradient(circle at 80% 20%, rgba(30, 144, 255, 0.03) 0%, transparent 65%);
+  opacity: 0;
+  animation: overlayAppear 3s ease-out forwards 1s, overlayPulse 3s ease-in-out infinite 4s;
+  z-index: 3;
 }
 
 @keyframes welcomeEntrance {
@@ -24,6 +92,230 @@
   to {
     opacity: 1;
     transform: scale(1);
+  }
+}
+
+
+@keyframes flashColors {
+  0% {
+    background-position: 
+      30% 20%,
+      70% 60%,
+      15% 80%,
+      85% 30%,
+      50% 70%;
+    opacity: 0.4
+  }
+  25% {
+    background-position: 
+      35% 25%,
+      65% 55%,
+      20% 75%,
+      80% 35%,
+      45% 65%;
+    opacity: 0.7
+  }
+  50% {
+    background-position: 
+      40% 30%,
+      60% 50%,
+      25% 70%,
+      75% 40%,
+      40% 60%;
+    opacity: 0.9
+  }
+  75% {
+    background-position: 
+      45% 35%,
+      55% 45%,
+      30% 65%,
+      70% 45%,
+      35% 55%;
+    opacity: 0.5
+  }
+  100% {
+    background-position: 
+      50% 40%,
+      50% 40%,
+      35% 60%,
+      65% 50%,
+      30% 50%;
+    opacity: 0.3
+  }
+}
+
+@keyframes backgroundFlow {
+  0% {
+    background-position: 
+      25% 15%,
+      75% 25%,
+      20% 75%,
+      80% 80%,
+      50% 40%,
+      10% 50%,
+      90% 45%
+  }
+  25% {
+    background-position: 
+      30% 20%,
+      70% 30%,
+      25% 70%,
+      75% 75%,
+      45% 45%,
+      15% 45%,
+      85% 50%
+  }
+  50% {
+    background-position: 
+      35% 25%,
+      65% 35%,
+      30% 65%,
+      70% 70%,
+      40% 50%,
+      20% 40%,
+      80% 55%
+  }
+  75% {
+    background-position: 
+      40% 30%,
+      60% 40%,
+      35% 60%,
+      65% 65%,
+      35% 55%,
+      25% 35%,
+      75% 60%
+  }
+  100% {
+    background-position: 
+      45% 35%,
+      55% 45%,
+      40% 55%,
+      60% 60%,
+      30% 60%,
+      30% 30%,
+      70% 65%
+  }
+}
+
+@keyframes overlayAppear {
+  0% { opacity: 0 }
+  100% { opacity: 1 }
+}
+
+@keyframes overlayPulse {
+  0%, 100% { 
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% { 
+    opacity: 0.7;
+    transform: scale(1.02);
+  }
+}
+
+@keyframes backgroundToWhite {
+  0% {
+    background: 
+      radial-gradient(ellipse at 25% 15%, rgba(1, 3, 38, 0.08) 0%, transparent 60%),
+      radial-gradient(ellipse at 75% 25%, rgba(3, 44, 166, 0.07) 0%, transparent 65%),
+      radial-gradient(ellipse at 20% 75%, rgba(4, 13, 191, 0.06) 0%, transparent 70%),
+      radial-gradient(ellipse at 80% 80%, rgba(1, 3, 38, 0.05) 0%, transparent 55%),
+      radial-gradient(ellipse at 50% 40%, rgba(3, 44, 166, 0.04) 0%, transparent 75%),
+      radial-gradient(ellipse at 10% 50%, rgba(4, 13, 191, 0.03) 0%, transparent 50%),
+      radial-gradient(ellipse at 90% 45%, rgba(0, 84, 164, 0.05) 0%, transparent 60%);
+    opacity: 1;
+  }
+  25% {
+    background: 
+      radial-gradient(ellipse at 25% 15%, rgba(1, 3, 38, 0.06) 0%, transparent 60%),
+      radial-gradient(ellipse at 75% 25%, rgba(3, 44, 166, 0.05) 0%, transparent 65%),
+      radial-gradient(ellipse at 20% 75%, rgba(4, 13, 191, 0.04) 0%, transparent 70%),
+      radial-gradient(ellipse at 80% 80%, rgba(1, 3, 38, 0.03) 0%, transparent 55%),
+      radial-gradient(ellipse at 50% 40%, rgba(3, 44, 166, 0.025) 0%, transparent 75%),
+      radial-gradient(ellipse at 10% 50%, rgba(4, 13, 191, 0.02) 0%, transparent 50%),
+      radial-gradient(ellipse at 90% 45%, rgba(0, 84, 164, 0.035) 0%, transparent 60%);
+    opacity: 0.8;
+  }
+  50% {
+    background: 
+      radial-gradient(ellipse at 25% 15%, rgba(1, 3, 38, 0.08) 0%, transparent 60%),
+      radial-gradient(ellipse at 75% 25%, rgba(3, 44, 166, 0.06) 0%, transparent 65%),
+      radial-gradient(ellipse at 20% 75%, rgba(4, 13, 191, 0.05) 0%, transparent 70%),
+      radial-gradient(ellipse at 80% 80%, rgba(1, 3, 38, 0.04) 0%, transparent 55%),
+      radial-gradient(ellipse at 50% 40%, rgba(3, 44, 166, 0.03) 0%, transparent 75%),
+      radial-gradient(ellipse at 10% 50%, rgba(4, 13, 191, 0.02) 0%, transparent 50%),
+      radial-gradient(ellipse at 90% 45%, rgba(0, 84, 164, 0.05) 0%, transparent 60%);
+    opacity: 0.6;
+  }
+  75% {
+    background: 
+      radial-gradient(ellipse at 25% 15%, rgba(255, 255, 255, 0.06) 0%, transparent 60%),
+      radial-gradient(ellipse at 75% 25%, rgba(255, 255, 255, 0.05) 0%, transparent 65%),
+      radial-gradient(ellipse at 20% 75%, rgba(255, 255, 255, 0.04) 0%, transparent 70%),
+      radial-gradient(ellipse at 80% 80%, rgba(255, 255, 255, 0.03) 0%, transparent 55%),
+      radial-gradient(ellipse at 50% 40%, rgba(255, 255, 255, 0.02) 0%, transparent 75%),
+      radial-gradient(ellipse at 10% 50%, rgba(255, 255, 255, 0.015) 0%, transparent 50%),
+      radial-gradient(ellipse at 90% 45%, rgba(255, 255, 255, 0.025) 0%, transparent 60%);
+    opacity: 0.4;
+  }
+  100% {
+    background: 
+      radial-gradient(ellipse at 25% 15%, rgba(255, 255, 255, 0.04) 0%, transparent 60%),
+      radial-gradient(ellipse at 75% 25%, rgba(255, 255, 255, 0.03) 0%, transparent 65%),
+      radial-gradient(ellipse at 20% 75%, rgba(255, 255, 255, 0.025) 0%, transparent 70%),
+      radial-gradient(ellipse at 80% 80%, rgba(255, 255, 255, 0.02) 0%, transparent 55%),
+      radial-gradient(ellipse at 50% 40%, rgba(255, 255, 255, 0.015) 0%, transparent 75%),
+      radial-gradient(ellipse at 10% 50%, rgba(255, 255, 255, 0.01) 0%, transparent 50%),
+      radial-gradient(ellipse at 90% 45%, rgba(255, 255, 255, 0.02) 0%, transparent 60%);
+    opacity: 0.2;
+  }
+}
+
+@keyframes transitionToWhite {
+  0% {
+    background: 
+      radial-gradient(circle at 30% 20%, rgba(1, 3, 38, 0.06) 0%, transparent 40%),
+      radial-gradient(circle at 70% 60%, rgba(3, 44, 166, 0.05) 0%, transparent 45%),
+      radial-gradient(circle at 15% 80%, rgba(4, 13, 191, 0.04) 0%, transparent 35%),
+      radial-gradient(circle at 85% 30%, rgba(1, 3, 38, 0.03) 0%, transparent 50%),
+      radial-gradient(circle at 50% 70%, rgba(3, 44, 166, 0.05) 0%, transparent 38%);
+    opacity: 1;
+  }
+  25% {
+    background: 
+      radial-gradient(circle at 30% 20%, rgba(1, 3, 38, 0.04) 0%, transparent 40%),
+      radial-gradient(circle at 70% 60%, rgba(3, 44, 166, 0.03) 0%, transparent 45%),
+      radial-gradient(circle at 15% 80%, rgba(4, 13, 191, 0.025) 0%, transparent 35%),
+      radial-gradient(circle at 85% 30%, rgba(1, 3, 38, 0.02) 0%, transparent 50%),
+      radial-gradient(circle at 50% 70%, rgba(3, 44, 166, 0.035) 0%, transparent 38%);
+    opacity: 0.8;
+  }
+  50% {
+    background: 
+      radial-gradient(circle at 30% 20%, rgba(1, 3, 38, 0.05) 0%, transparent 40%),
+      radial-gradient(circle at 70% 60%, rgba(3, 44, 166, 0.04) 0%, transparent 45%),
+      radial-gradient(circle at 15% 80%, rgba(4, 13, 191, 0.03) 0%, transparent 35%),
+      radial-gradient(circle at 85% 30%, rgba(1, 3, 38, 0.03) 0%, transparent 50%),
+      radial-gradient(circle at 50% 70%, rgba(3, 44, 166, 0.05) 0%, transparent 38%);
+    opacity: 0.6;
+  }
+  75% {
+    background: 
+      radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.06) 0%, transparent 40%),
+      radial-gradient(circle at 70% 60%, rgba(255, 255, 255, 0.05) 0%, transparent 45%),
+      radial-gradient(circle at 15% 80%, rgba(255, 255, 255, 0.04) 0%, transparent 35%),
+      radial-gradient(circle at 85% 30%, rgba(255, 255, 255, 0.03) 0%, transparent 50%),
+      radial-gradient(circle at 50% 70%, rgba(255, 255, 255, 0.05) 0%, transparent 38%);
+    opacity: 0.4;
+  }
+  100% {
+    background: 
+      radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.03) 0%, transparent 40%),
+      radial-gradient(circle at 70% 60%, rgba(255, 255, 255, 0.025) 0%, transparent 45%),
+      radial-gradient(circle at 15% 80%, rgba(255, 255, 255, 0.02) 0%, transparent 35%),
+      radial-gradient(circle at 85% 30%, rgba(255, 255, 255, 0.015) 0%, transparent 50%),
+      radial-gradient(circle at 50% 70%, rgba(255, 255, 255, 0.025) 0%, transparent 38%);
+    opacity: 0.2;
   }
 }
 
@@ -43,6 +335,7 @@
   border-radius: 50%;
   opacity: 0.3;
   animation: floatParticle 6s ease-in-out infinite;
+  filter: blur(8px);
 }
 
 .particle-1 { width: 4px; height: 4px; top: 20%; left: 10%; animation-delay: 0s; }
@@ -157,14 +450,17 @@
 
 .diambars-main-logo {
   font-size: 4rem;
-  font-weight: 700;
+  font-weight: 900;
+  font-family: 'Mona Sans', 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   letter-spacing: 0.2rem;
   margin: 0;
   padding: 0;
-  color: #010326;
+  color: #000000;
   text-shadow: 2px 2px 4px rgba(4, 13, 191, 0.1);
   display: flex;
   gap: 0.1rem;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .diambars-main-logo .letter {
@@ -232,30 +528,6 @@
   }
 }
 
-.brand-tagline {
-  font-size: 1rem;
-  font-weight: 400;
-  background: linear-gradient(135deg, #040DBF, #1F64BF);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  letter-spacing: 0.1rem;
-  margin-top: 0.5rem;
-  opacity: 0;
-  animation: fadeInUp 0.8s ease-out 1.5s forwards;
-  text-shadow: 1px 1px 2px rgba(4, 13, 191, 0.1);
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(15px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
 
 .progress-section {
   display: flex;
@@ -393,9 +665,6 @@
     letter-spacing: 0.5rem;
   }
 
-  .brand-tagline {
-    font-size: 0.9rem;
-  }
 
   .diambars-logo-img,
   .diambars-logo-placeholder {
@@ -432,9 +701,6 @@
     letter-spacing: 0.3rem;
   }
 
-  .brand-tagline {
-    font-size: 0.8rem;
-  }
 
   .diambars-logo-img,
   .diambars-logo-placeholder {
@@ -474,4 +740,43 @@
     opacity: 0;
     transform: scale(0.95);
   }
+}
+
+/* Estilos para splash screen rápido (refresh) */
+.diambars-welcome-screen.splash-quick {
+  animation: quickEntrance 0.3s ease-out;
+}
+
+@keyframes quickEntrance {
+  from {
+    opacity: 0;
+    transform: scale(1.05);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.diambars-welcome-screen.splash-quick .background-particles {
+  opacity: 0.5;
+}
+
+.diambars-welcome-screen.splash-quick .particle {
+  animation-duration: 3s;
+  filter: blur(12px);
+}
+
+.diambars-welcome-screen.splash-quick .floating-shape {
+  opacity: 0.03;
+  animation-duration: 4s;
+}
+
+.diambars-welcome-screen.splash-quick .diambars-main-logo .letter {
+  animation-duration: 0.3s;
+}
+
+.diambars-welcome-screen.splash-quick .diambars-sublogo {
+  animation-duration: 0.4s;
+  animation-delay: 0.2s;
 }

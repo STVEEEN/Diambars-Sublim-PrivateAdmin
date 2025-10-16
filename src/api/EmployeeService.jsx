@@ -48,6 +48,21 @@ export default {
     return response;
   },
 
+  // Subir foto de perfil de empleado
+  uploadProfilePicture: async (id, file) => {
+    const formData = new FormData();
+    formData.append('profilePicture', file);
+    
+    const response = await apiClient.post(`${BASE_URL}/${id}/profile-picture`, formData);
+    return response;
+  },
+
+  // Eliminar foto de perfil de empleado
+  deleteProfilePicture: async (id) => {
+    const response = await apiClient.delete(`${BASE_URL}/${id}/profile-picture`);
+    return response;
+  },
+
   // Métodos adicionales que podrían ser útiles (aunque no estén en las rutas actuales)
   
   // Obtener empleados por rol (filtro en frontend ya que backend solo devuelve todos)

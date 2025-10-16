@@ -42,8 +42,7 @@ const NewPasswordPage = () => {
 
   const requirements = [
     { id: 'length', label: 'Al menos 8 caracteres', regex: /.{8,}/ },
-    { id: 'lowercase', label: 'Al menos una minúscula', regex: /[a-z]/ },
-    { id: 'uppercase', label: 'Al menos una mayúscula', regex: /[A-Z]/ },
+    { id: 'letters', label: 'Al menos una mayúscula y una minúscula', regex: /^(?=.*[a-z])(?=.*[A-Z])/ },
     { id: 'number', label: 'Al menos un número', regex: /[0-9]/ },
     { id: 'special', label: 'Al menos un carácter especial', regex: /[!@#$%^&*]/ }
   ];
@@ -90,6 +89,19 @@ const NewPasswordPage = () => {
     setPasswordStrength((metRequirements / requirements.length) * 100);
   }, [password, requirements]);
 
+  // Agregar/quitar clase al body para controlar el scroll
+  useEffect(() => {
+    // Agregar clase al body y html cuando se monte el componente
+    document.body.classList.add('login-page');
+    document.documentElement.classList.add('login-page');
+
+    // Cleanup: quitar la clase cuando se desmonte el componente
+    return () => {
+      document.body.classList.remove('login-page');
+      document.documentElement.classList.remove('login-page');
+    };
+  }, []);
+
   const getStrengthColor = () => {
     if (passwordStrength <= 25) return '#dc2626';
     if (passwordStrength <= 50) return '#f59e0b';
@@ -132,83 +144,75 @@ const NewPasswordPage = () => {
   };
 
   return (
-    <div className="diambars-newpass-container">
+    <div className="diambars-login-container">
       {/* Partículas de fondo */}
-      <div className="diambars-newpass-particles">
-        {[...Array(10)].map((_, i) => (
-          <div key={i} className={`newpass-particle newpass-particle-${i + 1}`}></div>
+      <div className="diambars-login-particles">
+        {[...Array(15)].map((_, i) => (
+          <div key={i} className={`login-particle login-particle-${i + 1}`}></div>
         ))}
       </div>
 
       {/* Card principal */}
-      <div className="diambars-newpass-card">
-        {/* Botón de volver */}
+      <div className="diambars-login-card">
+        {/* Navegación dentro del card */}
         <button 
-          className="newpass-back-button"
+          className="recovery-back-button"
           onClick={handleBack}
           aria-label="Volver"
         >
-          <ArrowLeft size={20} weight="bold" />
+          <ArrowLeft size={24} weight="bold" />
         </button>
 
-        {/* Sección de branding */}
-        <div className="diambars-newpass-brand">
-          <div className="newpass-brand-content">
-            <div className="newpass-logo-wrapper">
-              <div className="newpass-logo-glow"></div>
+        {/* Sección izquierda - Branding */}
+        <div className="diambars-login-brand">
+          <div className="login-brand-content">
+            <div className="login-logo-wrapper">
+              <div className="login-logo-glow"></div>
               <img 
                 src="/logo.png" 
                 alt="Logo Diambars" 
-                className="newpass-logo-img"
+                className="login-logo-img"
                 onError={(e) => {
                   e.target.style.display = 'none';
                   e.target.nextSibling.style.display = 'flex';
                 }}
               />
-              <div className="newpass-logo-placeholder" style={{ display: 'none' }}>
+              <div className="login-logo-placeholder" style={{ display: 'none' }}>
                 D
               </div>
             </div>
             
-            <div className="newpass-brand-text">
-              <h1 className="newpass-brand-title">DIAMBARS</h1>
-              <p className="newpass-brand-subtitle">sublimado</p>
+            <div className="login-brand-text">
+              <h1 className="login-brand-title">DIAMBARS</h1>
+              <p className="login-brand-subtitle">sublimado</p>
+              <div className="login-brand-tagline">Nueva Contraseña</div>
             </div>
-          </div>
-
-          {/* Formas decorativas */}
-          <div className="newpass-decorative-shapes">
-            <div className="newpass-shape newpass-shape-1"></div>
-            <div className="newpass-shape newpass-shape-2"></div>
           </div>
         </div>
 
-        {/* Sección del formulario */}
-        <div className="diambars-newpass-form-section">
-          <div className="newpass-form-container">
-            <div className="newpass-form-header">
-              <h2 className="newpass-form-title">Crea tu nueva contraseña</h2>
-              <p className="newpass-form-description">
-                Tu nueva contraseña debe ser diferente a las anteriores
-              </p>
+        {/* Sección derecha - Formulario */}
+        <div className="diambars-login-form-section">
+          <div className="login-form-container">
+            <div className="login-form-header">
+              <h2 className="login-form-title">Crea tu nueva contraseña</h2>
             </div>
             
             {error && (
-              <div className="newpass-form-error">
-                <Warning className="newpass-error-icon" weight="fill" />
+              <div className="login-form-error">
+                <Warning className="login-error-icon" weight="fill" />
                 {error}
               </div>
             )}
             
-            <form className='newpass-form' onSubmit={handleSubmit(onSubmit)} noValidate>
-              <div className="newpass-form-group">
-                <label className="newpass-form-label">Nueva contraseña</label>
-                <div className="newpass-input-wrapper">
-                  <Lock className="newpass-input-icon" weight="duotone" />
+            <form className='login-form' onSubmit={handleSubmit(onSubmit)} noValidate>
+              <div className="login-form-group">
+                <label className="login-form-label">Nueva contraseña</label>
+                <div className="login-input-wrapper">
+                  <Lock className="login-input-icon" weight="duotone" />
                   <input
                     type={showPassword ? "text" : "password"}
                     placeholder="••••••••"
-                    className={`newpass-form-input ${errors.password ? 'newpass-input-error' : ''}`}
+                    className={`login-form-input ${errors.password ? 'login-input-error' : ''}`}
                     {...register('password', {
                       required: 'Este campo es requerido',
                       minLength: {
@@ -221,10 +225,18 @@ const NewPasswordPage = () => {
                       }
                     })}
                   />
-                  <button
-                    type="button"
+                  <div
                     className="newpass-toggle-password"
                     onClick={() => setShowPassword(!showPassword)}
+                    style={{ cursor: 'pointer' }}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        setShowPassword(!showPassword);
+                      }
+                    }}
                     aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
                   >
                     {showPassword ? (
@@ -232,51 +244,66 @@ const NewPasswordPage = () => {
                     ) : (
                       <Eye size={20} weight="duotone" />
                     )}
-                  </button>
+                  </div>
                 </div>
-                {errors.password && (
-                  <div className="newpass-input-error-message">
-                    <Warning className="newpass-error-icon-small" weight="fill" />
-                    <span>{errors.password.message}</span>
-                  </div>
-                )}
-
-                {password && (
-                  <div className="newpass-strength-indicator">
-                    <div className="newpass-strength-bar">
-                      <div 
-                        className="newpass-strength-fill"
-                        style={{
-                          width: `${passwordStrength}%`,
-                          backgroundColor: getStrengthColor()
-                        }}
-                      />
+                
+                {/* Contenedor que siempre reserva espacio */}
+                <div className="newpass-error-placeholder">
+                  {errors.password && (
+                    <div className="login-input-error-message">
+                      <Warning className="login-error-icon-small" weight="fill" />
+                      <span>{errors.password.message}</span>
                     </div>
-                    <span className="newpass-strength-text" style={{ color: getStrengthColor() }}>
-                      {getStrengthText()}
-                    </span>
-                  </div>
-                )}
+                  )}
+                </div>
+
+                {/* Contenedor que siempre reserva espacio */}
+                <div className="newpass-strength-placeholder">
+                  {password && (
+                    <div className="newpass-strength-indicator">
+                      <div className="newpass-strength-bar">
+                        <div 
+                          className="newpass-strength-fill"
+                          style={{
+                            width: `${passwordStrength}%`,
+                            backgroundColor: getStrengthColor()
+                          }}
+                        />
+                      </div>
+                      <span className="newpass-strength-text" style={{ color: getStrengthColor() }}>
+                        {getStrengthText()}
+                      </span>
+                    </div>
+                  )}
+                </div>
               </div>
               
-              <div className="newpass-form-group">
-                <label className="newpass-form-label">Confirmar contraseña</label>
-                <div className="newpass-input-wrapper">
-                  <Lock className="newpass-input-icon" weight="duotone" />
+              <div className="login-form-group">
+                <label className="login-form-label">Confirmar contraseña</label>
+                <div className="login-input-wrapper">
+                  <Lock className="login-input-icon" weight="duotone" />
                   <input
                     type={showConfirmPassword ? "text" : "password"}
                     placeholder="••••••••"
-                    className={`newpass-form-input ${errors.confirmPassword ? 'newpass-input-error' : ''}`}
+                    className={`login-form-input ${errors.confirmPassword ? 'login-input-error' : ''}`}
                     {...register('confirmPassword', {
                       required: 'Este campo es requerido',
                       validate: value => 
                         value === password || 'Las contraseñas no coinciden'
                     })}
                   />
-                  <button
-                    type="button"
+                  <div
                     className="newpass-toggle-password"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    style={{ cursor: 'pointer' }}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        setShowConfirmPassword(!showConfirmPassword);
+                      }
+                    }}
                     aria-label={showConfirmPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
                   >
                     {showConfirmPassword ? (
@@ -284,14 +311,18 @@ const NewPasswordPage = () => {
                     ) : (
                       <Eye size={20} weight="duotone" />
                     )}
-                  </button>
-                </div>
-                {errors.confirmPassword && (
-                  <div className="newpass-input-error-message">
-                    <Warning className="newpass-error-icon-small" weight="fill" />
-                    <span>{errors.confirmPassword.message}</span>
                   </div>
-                )}
+                </div>
+                
+                {/* Contenedor que siempre reserva espacio */}
+                <div className="newpass-error-placeholder">
+                  {errors.confirmPassword && (
+                    <div className="login-input-error-message">
+                      <Warning className="login-error-icon-small" weight="fill" />
+                      <span>{errors.confirmPassword.message}</span>
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="newpass-requirements">
@@ -314,28 +345,20 @@ const NewPasswordPage = () => {
               
               <button
                 type="submit"
-                className="newpass-submit-button"
+                className="login-submit-button"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? (
-                  <CircleNotch className="newpass-button-spinner" weight="bold" />
+                  <CircleNotch className="login-button-spinner" weight="bold" />
                 ) : (
                   <>
                     <span>Guardar nueva contraseña</span>
-                    <ShieldCheck className="newpass-button-icon" weight="bold" />
+                    <ShieldCheck className="login-button-icon" weight="bold" />
                   </>
                 )}
               </button>
             </form>
 
-            <div className="newpass-form-footer">
-              <div className="newpass-divider">
-                <span className="newpass-divider-text">Protección avanzada</span>
-              </div>
-              <p className="newpass-footer-text">
-                Tu contraseña será encriptada con los más altos estándares de seguridad
-              </p>
-            </div>
           </div>
         </div>
       </div>

@@ -227,7 +227,7 @@ const GlassButton = styled(Button)(({ theme, active, variant, hasActiveItems, op
       minWidth: 36,
       borderRadius: 10,
       height: 32,
-      minHeight: 32,
+      minHeight: 32, 
     },
   };
 });
@@ -305,20 +305,24 @@ const GlassIconButton = styled(IconButton)(({ theme, variant, ...props }) => ({
   },
 }));
 
-const StyledAppBar = styled(AppBar)(({ theme, scrolled, hidden, ...props }) => ({
+const StyledAppBar = styled(AppBar)(({ theme, scrolled, hidden, ismobile, ...props }) => ({
   position: "fixed",
-  top: 8,
-  left: "50%",
-  transform: `translateX(-50%) ${hidden ? 'translateY(-100%)' : 'translateY(0)'}`,
-  width: "fit-content",
-  maxWidth: "calc(100vw - 40px)",
+  top: ismobile ? 0 : 8,
+  left: ismobile ? 0 : "50%",
+  transform: ismobile 
+    ? `${hidden ? 'translateY(-100%)' : 'translateY(0)'}` 
+    : `translateX(-50%) ${hidden ? 'translateY(-100%)' : 'translateY(0)'}`,
+  width: ismobile ? "100%" : "fit-content",
+  maxWidth: ismobile ? "100%" : "calc(100vw - 40px)",
   height: 72,
-  background: "rgba(255, 255, 255, 0.95)",
-  backdropFilter: "blur(12px)",
-  WebkitBackdropFilter: "blur(12px)",
-  border: "1px solid rgba(226, 232, 240, 0.3)",
-  borderRadius: 36,
-  boxShadow: "0 2px 14px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.6)",
+  background: ismobile ? "#ffffff" : "rgba(255, 255, 255, 0.95)",
+  backdropFilter: ismobile ? "none" : "blur(12px)",
+  WebkitBackdropFilter: ismobile ? "none" : "blur(12px)",
+  border: ismobile ? "none" : "1px solid rgba(226, 232, 240, 0.3)",
+  borderRadius: ismobile ? 0 : 36,
+  boxShadow: ismobile 
+    ? "0 2px 4px rgba(0, 0, 0, 0.1)" 
+    : "0 2px 14px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.6)",
   transition: "all 0.3s ease",
   zIndex: 1300,
   opacity: hidden ? 0 : 1,
@@ -330,68 +334,73 @@ const StyledAppBar = styled(AppBar)(({ theme, scrolled, hidden, ...props }) => (
     left: 0,
     right: 0,
     height: 1,
-    background: "linear-gradient(90deg, transparent, rgba(31, 100, 191, 0.1), transparent)",
-    borderRadius: "36px 36px 0 0",
+    background: ismobile ? "transparent" : "linear-gradient(90deg, transparent, rgba(31, 100, 191, 0.1), transparent)",
+    borderRadius: ismobile ? 0 : "36px 36px 0 0",
   },
 
   [theme.breakpoints.down('lg')]: {
     height: 68,
-    borderRadius: 34,
-    top: 6,
-    maxWidth: "calc(100vw - 32px)",
+    borderRadius: ismobile ? 0 : 34,
+    top: ismobile ? 0 : 6,
+    maxWidth: ismobile ? "100%" : "calc(100vw - 32px)",
   },
   [theme.breakpoints.down('md')]: {
     height: 64,
-    borderRadius: 32,
-    top: 4,
-    maxWidth: "calc(100vw - 24px)",
+    borderRadius: ismobile ? 0 : 32,
+    top: ismobile ? 0 : 4,
+    maxWidth: ismobile ? "100%" : "calc(100vw - 24px)",
   },
   [`@media (max-width: ${customBreakpoints.sm - 1}px)`]: {
     height: 60,
-    borderRadius: 30,
-    top: 2,
-    maxWidth: "calc(100vw - 20px)",
+    borderRadius: ismobile ? 0 : 30,
+    top: ismobile ? 0 : 2,
+    maxWidth: ismobile ? "100%" : "calc(100vw - 20px)",
   },
   [`@media (max-width: 375px)`]: {
     height: 56,
-    borderRadius: 28,
-    top: 2,
-    maxWidth: "calc(100vw - 16px)",
+    borderRadius: ismobile ? 0 : 28,
+    top: ismobile ? 0 : 2,
+    maxWidth: ismobile ? "100%" : "calc(100vw - 16px)",
   },
 }));
 
-const StyledToolbar = styled(Toolbar)(({ theme }) => ({
+const StyledToolbar = styled(Toolbar)(({ theme, ismobile }) => ({
   height: "100%",
-  padding: "0 24px",
-  justifyContent: "center",
+  padding: ismobile ? "0 16px" : "0 24px",
+  justifyContent: ismobile ? "space-between" : "center",
   minHeight: "unset !important",
   position: "relative",
   display: "flex",
   alignItems: "center",
   borderRadius: "inherit",
+  width: "100%",
 
   [theme.breakpoints.down('xl')]: {
-    padding: "0 20px",
+    padding: ismobile ? "0 16px" : "0 20px",
   },
   [theme.breakpoints.down('lg')]: {
-    padding: "0 18px",
+    padding: ismobile ? "0 16px" : "0 18px",
   },
   [theme.breakpoints.down('md')]: {
-    padding: "0 16px",
+    padding: ismobile ? "0 16px" : "0 16px",
   },
   [`@media (max-width: ${customBreakpoints.sm - 1}px)`]: {
     padding: "0 14px",
+    justifyContent: "space-between",
   },
   [`@media (max-width: 375px)`]: {
     padding: "0 12px",
+    justifyContent: "space-between",
   },
 }));
 
-const MainContent = styled(Box)(({ theme }) => ({
+const MainContent = styled(Box)(({ theme, ismobile }) => ({
   display: "flex",
   alignItems: "center",
   gap: 32,
-  maxWidth: "fit-content",
+  maxWidth: ismobile ? "100%" : "fit-content",
+  width: ismobile ? "100%" : "fit-content",
+  justifyContent: ismobile ? "space-between" : "center",
 
   [theme.breakpoints.down('xl')]: {
     gap: 28,
@@ -404,6 +413,9 @@ const MainContent = styled(Box)(({ theme }) => ({
   },
   [`@media (max-width: ${customBreakpoints.sm - 1}px)`]: {
     gap: 16,
+    maxWidth: "100%",
+    width: "100%",
+    justifyContent: "space-between",
   },
 }));
 
@@ -419,12 +431,12 @@ const BrandContainer = styled(Box)(({ theme }) => ({
   flexShrink: 0,
 
   [theme.breakpoints.down('lg')]: {
-    gap: 14,
-    padding: "6px 10px",
+    gap: 0,
+    padding: "6px",
   },
   [theme.breakpoints.down('md')]: {
-    gap: 12,
-    padding: "4px 8px",
+    gap: 0,
+    padding: "6px",
   },
   [`@media (max-width: ${customBreakpoints.sm - 1}px)`]: {
     gap: 10,
@@ -601,10 +613,19 @@ const UserContainer = styled(GlassBase)(({ theme }) => ({
     boxShadow: "0 2px 8px rgba(31, 100, 191, 0.1)",
   },
 
-  [theme.breakpoints.down('md')]: {
-    padding: "4px",
+  [theme.breakpoints.down('lg')]: {
     gap: 0,
-    borderRadius: 14,
+    padding: "6px",
+    borderRadius: 18,
+    
+    "& .user-info": {
+      display: "none",
+    },
+  },
+  [theme.breakpoints.down('md')]: {
+    gap: 0,
+    padding: "6px",
+    borderRadius: 18,
     
     "& .user-info": {
       display: "none",
@@ -1018,7 +1039,8 @@ const Navbar = () => {
   const isSm = useMediaQuery(`(min-width: ${customBreakpoints.sm}px) and (max-width: ${customBreakpoints.md - 1}px)`);
   const isMd = useMediaQuery(`(min-width: ${customBreakpoints.md}px) and (max-width: ${customBreakpoints.lg - 1}px)`);
   const isLg = useMediaQuery(`(min-width: ${customBreakpoints.lg}px) and (max-width: ${customBreakpoints.xl - 1}px)`);
-  const isMobile = useMediaQuery(`(max-width: ${customBreakpoints.md - 1}px)`);
+  // Extender el breakpoint de móvil desde 400px hasta 767px
+  const ismobile = useMediaQuery(`(max-width: 767px)`);
   const isTablet = useMediaQuery(`(min-width: ${customBreakpoints.md}px) and (max-width: ${customBreakpoints.lg - 1}px)`);
 
   useEffect(() => {
@@ -1153,9 +1175,9 @@ const Navbar = () => {
 
   return (
     <>
-      <StyledAppBar scrolled={isScrolled} hidden={isSidebarOpen} elevation={0}>
-        <StyledToolbar>
-          <MainContent>
+      <StyledAppBar scrolled={isScrolled} hidden={isSidebarOpen} ismobile={ismobile} elevation={0}>
+        <StyledToolbar ismobile={ismobile}>
+          <MainContent ismobile={ismobile}>
             <BrandContainer>
               <LogoContainer>
                 <img 
@@ -1169,13 +1191,15 @@ const Navbar = () => {
                   }} 
                 />
               </LogoContainer>
-              <BrandText>
-                <BrandName>DIAMBARS</BrandName>
-                <BrandSubtitle className="brand-subtitle">administración</BrandSubtitle>
-              </BrandText>
+              {!isLg && !isMd && (
+                <BrandText>
+                  <BrandName>DIAMBARS</BrandName>
+                  <BrandSubtitle className="brand-subtitle">administración</BrandSubtitle>
+                </BrandText>
+              )}
             </BrandContainer>
 
-            {!isMobile && (
+            {!ismobile && (
               <NavContainer>
                 {visibleMainItems.map((item) => (
                   <GlassButton
@@ -1213,19 +1237,21 @@ const Navbar = () => {
             )}
 
             <RightControls>
-              {!isMd && !isMobile && (
+              {!ismobile && (
                 <UserContainer onClick={handleUserMenuClick}>
                   <StyledAvatar>
                     {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
                   </StyledAvatar>
-                  <Box className="user-info">
-                    <Typography variant="body2" fontWeight={700} color="#010326" fontSize={14}>
-                      {user?.name || 'Usuario'}
-                    </Typography>
-                    <Typography variant="caption" color="#64748b" textTransform="uppercase" fontSize={11}>
-                      {user?.type || 'admin'}
-                    </Typography>
-                  </Box>
+                  {!isLg && !isMd && (
+                    <Box className="user-info">
+                      <Typography variant="body2" fontWeight={700} color="#010326" fontSize={14}>
+                        {user?.name || 'Usuario'}
+                      </Typography>
+                      <Typography variant="caption" color="#64748b" textTransform="uppercase" fontSize={11}>
+                        {user?.type || 'admin'}
+                      </Typography>
+                    </Box>
+                  )}
                 </UserContainer>
               )}
 
@@ -1609,7 +1635,7 @@ const Navbar = () => {
       </StyledDrawer>
 
       {/* Menús Desplegables - Solo cuando navbar visible y sidebar cerrado */}
-      {!isMobile && !isSidebarOpen && (
+      {!ismobile && !isSidebarOpen && (
         <>
           {/* Menú de Usuario */}
           <StyledPopper

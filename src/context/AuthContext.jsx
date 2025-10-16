@@ -3,6 +3,7 @@ import React, { createContext, useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import * as authService from '../api/AuthService';
+import ProfileService from '../api/profileService';
 
 export const AuthContext = createContext();
 
@@ -31,8 +32,37 @@ export const AuthProvider = ({ children }) => {
       
       if (response?.authenticated && response?.user) {
         console.log("[AuthContext-ADMIN] Usuario autenticado:", response.user);
-        setUser(response.user);
-        setIsAuthenticated(true);
+        
+        // Obtener información actualizada del perfil para asegurar datos frescos
+        try {
+          const profileResponse = await ProfileService.getUserProfile(response.user.id);
+          if (profileResponse.success) {
+            // Combinar datos del token con datos actualizados del perfil
+            const updatedUser = {
+              ...response.user,
+              ...profileResponse.data
+            };
+            
+            console.log("[AuthContext-ADMIN] Usuario actualizado con datos de perfil:", {
+              id: updatedUser.id,
+              name: updatedUser.name,
+              profilePicture: updatedUser.profilePicture,
+              hasProfilePicture: !!updatedUser.profilePicture
+            });
+            
+            setUser(updatedUser);
+            setIsAuthenticated(true);
+          } else {
+            console.log("[AuthContext-ADMIN] No se pudo obtener perfil actualizado, usando datos del token");
+            setUser(response.user);
+            setIsAuthenticated(true);
+          }
+        } catch (profileError) {
+          console.warn("[AuthContext-ADMIN] Error obteniendo perfil actualizado:", profileError);
+          // Si falla obtener el perfil, usar los datos del token
+          setUser(response.user);
+          setIsAuthenticated(true);
+        }
       } else {
         console.log("[AuthContext-ADMIN] Usuario no autenticado según servidor");
         setIsAuthenticated(false);
@@ -73,12 +103,45 @@ export const AuthProvider = ({ children }) => {
       const user = await authService.login(credentials);
       console.log("[AuthContext-ADMIN] Login exitoso, usuario:", user);
       
-      // Actualizar estado inmediatamente
-      setUser(user);
-      setIsAuthenticated(true);
-      setLoading(false);
-      
-      return user;
+      // Obtener información actualizada del perfil después del login
+      try {
+        const profileResponse = await ProfileService.getUserProfile(user.id);
+        if (profileResponse.success) {
+          // Combinar datos del login con datos actualizados del perfil
+          const updatedUser = {
+            ...user,
+            ...profileResponse.data
+          };
+          
+          console.log("[AuthContext-ADMIN] Usuario actualizado con datos de perfil después del login:", {
+            id: updatedUser.id,
+            name: updatedUser.name,
+            profilePicture: updatedUser.profilePicture,
+            hasProfilePicture: !!updatedUser.profilePicture
+          });
+          
+          setUser(updatedUser);
+          setIsAuthenticated(true);
+          setLoading(false);
+          
+          return updatedUser;
+        } else {
+          console.log("[AuthContext-ADMIN] No se pudo obtener perfil actualizado después del login, usando datos del login");
+          setUser(user);
+          setIsAuthenticated(true);
+          setLoading(false);
+          
+          return user;
+        }
+      } catch (profileError) {
+        console.warn("[AuthContext-ADMIN] Error obteniendo perfil actualizado después del login:", profileError);
+        // Si falla obtener el perfil, usar los datos del login
+        setUser(user);
+        setIsAuthenticated(true);
+        setLoading(false);
+        
+        return user;
+      }
     } catch (error) {
       console.error("[AuthContext-ADMIN] Error en login:", error);
       setLoading(false);
@@ -136,11 +199,49 @@ export const AuthProvider = ({ children }) => {
   const refreshAuth = async () => {
     try {
       console.log("[AuthContext-ADMIN] Refrescando autenticación...");
-      const response = await authService.getCurrentUser();
       
-      if (response?.authenticated && response?.user) {
-        setUser(response.user);
-        setIsAuthenticated(true);
+      // Primero verificar que el token sigue siendo válido
+      const authResponse = await authService.getCurrentUser();
+      
+      if (authResponse?.authenticated && authResponse?.user) {
+        // Si el token es válido, obtener los datos actualizados del usuario desde la base de datos
+        const profileResponse = await ProfileService.getUserProfile(authResponse.user.id);
+        
+        if (profileResponse.success) {
+          // Combinar los datos del token con los datos actualizados de la base de datos
+          const updatedUser = {
+            ...authResponse.user,
+            ...profileResponse.data
+          };
+          
+          console.log("[AuthContext-ADMIN] Usuario actualizado con datos de perfil:", {
+            id: updatedUser.id,
+            name: updatedUser.name,
+            profilePicture: updatedUser.profilePicture,
+            hasProfilePicture: !!updatedUser.profilePicture
+          });
+          
+          console.log("[AuthContext-ADMIN] Usuario anterior vs nuevo:", {
+            anterior: {
+              id: authResponse.user.id,
+              name: authResponse.user.name,
+              profilePicture: authResponse.user.profilePicture
+            },
+            nuevo: {
+              id: updatedUser.id,
+              name: updatedUser.name,
+              profilePicture: updatedUser.profilePicture
+            }
+          });
+          
+          setUser(updatedUser);
+          setIsAuthenticated(true);
+        } else {
+          console.log("[AuthContext-ADMIN] No se pudo obtener perfil, usando datos del token");
+          // Si no se puede obtener el perfil, usar los datos del token
+          setUser(authResponse.user);
+          setIsAuthenticated(true);
+        }
       } else {
         setIsAuthenticated(false);
         setUser(null);
@@ -156,6 +257,40 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Función para actualizar información del usuario después de cambios en el perfil
+  const updateUserProfile = async () => {
+    try {
+      console.log("[AuthContext-ADMIN] Actualizando información del usuario...");
+      
+      if (!user?.id) {
+        console.log("[AuthContext-ADMIN] No hay usuario para actualizar");
+        return;
+      }
+
+      const profileResponse = await ProfileService.getUserProfile(user.id);
+      
+      if (profileResponse.success) {
+        const updatedUser = {
+          ...user,
+          ...profileResponse.data
+        };
+        
+        console.log("[AuthContext-ADMIN] Perfil del usuario actualizado:", {
+          id: updatedUser.id,
+          name: updatedUser.name,
+          profilePicture: updatedUser.profilePicture,
+          hasProfilePicture: !!updatedUser.profilePicture
+        });
+        
+        setUser(updatedUser);
+      } else {
+        console.warn("[AuthContext-ADMIN] No se pudo actualizar el perfil del usuario");
+      }
+    } catch (error) {
+      console.error("[AuthContext-ADMIN] Error actualizando perfil del usuario:", error);
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -165,7 +300,8 @@ export const AuthProvider = ({ children }) => {
         login,
         logout,
         checkAuth,
-        refreshAuth
+        refreshAuth,
+        updateUserProfile
       }}
     >
       {children}

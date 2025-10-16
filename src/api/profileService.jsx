@@ -6,14 +6,21 @@ class ProfileService {
   // Obtener perfil del usuario actual
   async getUserProfile(userId) {
     try {
+      console.log('📸 [ProfileService] getUserProfile called for userId:', userId);
       const data = await apiClient.get(`/employees/${userId}`);
+      
+      console.log('📸 [ProfileService] getUserProfile response:', {
+        hasData: !!data,
+        profilePicture: data?.profilePicture,
+        name: data?.name
+      });
       
       return {
         success: true,
         data
       };
     } catch (error) {
-      console.error('Error fetching user profile:', error);
+      console.error('📸 [ProfileService] Error fetching user profile:', error);
       return {
         success: false,
         error: error.message || 'Error al cargar el perfil'
@@ -67,6 +74,58 @@ class ProfileService {
       return {
         success: false,
         error: error.message || 'Error al cambiar la contraseña'
+      };
+    }
+  }
+
+  // Subir foto de perfil
+  async uploadProfilePicture(userId, file) {
+    try {
+      console.log('📸 [ProfileService] uploadProfilePicture called:', {
+        userId,
+        file: file ? {
+          name: file.name,
+          type: file.type,
+          size: file.size
+        } : 'No file'
+      });
+      
+      const formData = new FormData();
+      formData.append('profilePicture', file);
+      
+      console.log('📸 [ProfileService] FormData created, entries:', Array.from(formData.entries()));
+      
+      const data = await apiClient.post(`/employees/${userId}/profile-picture`, formData);
+      
+      console.log('📸 [ProfileService] Upload successful:', data);
+      
+      return {
+        success: true,
+        data
+      };
+    } catch (error) {
+      console.error('📸 [ProfileService] Upload error:', error);
+      return {
+        success: false,
+        error: error.message || 'Error al subir la foto de perfil'
+      };
+    }
+  }
+
+  // Eliminar foto de perfil
+  async deleteProfilePicture(userId) {
+    try {
+      const data = await apiClient.delete(`/employees/${userId}/profile-picture`);
+      
+      return {
+        success: true,
+        data
+      };
+    } catch (error) {
+      console.error('Error deleting profile picture:', error);
+      return {
+        success: false,
+        error: error.message || 'Error al eliminar la foto de perfil'
       };
     }
   }

@@ -13,9 +13,14 @@ import {
   Typography,
   CircularProgress,
   useMediaQuery,
-  useTheme
+  useTheme,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText
 } from '@mui/material';
-import { X as CloseIcon, Download } from '@phosphor-icons/react';
+import { X as CloseIcon, Download, CaretDown } from '@phosphor-icons/react';
+import ElementDownloadModal from './ElementDownloadModal';
 
 // Tema moderno 3D para el viewer
 const COLOR_PALETTE = {
@@ -193,6 +198,8 @@ const KonvaDesignViewer = ({
   const [productImage, setProductImage] = useState(null);
   const [customizationAreas, setCustomizationAreas] = useState([]);
   const [elements, setElements] = useState([]);
+  const [downloadMenuAnchor, setDownloadMenuAnchor] = useState(null);
+  const [isElementDownloadModalOpen, setIsElementDownloadModalOpen] = useState(false);
 
   // ✅ UNIFICADO: Usar hook compartido para centrado del canvas
   const {
@@ -900,24 +907,46 @@ const KonvaDesignViewer = ({
     }
   }, [design]);
 
+  // Manejar menú de descarga
+  const handleDownloadMenuOpen = useCallback((event) => {
+    setDownloadMenuAnchor(event.currentTarget);
+  }, []);
+
+  const handleDownloadMenuClose = useCallback(() => {
+    setDownloadMenuAnchor(null);
+  }, []);
+
+  const handleDownloadComplete = useCallback(() => {
+    handleDownload();
+    handleDownloadMenuClose();
+  }, [handleDownload, handleDownloadMenuClose]);
+
+  const handleDownloadElements = useCallback(() => {
+    setIsElementDownloadModalOpen(true);
+    handleDownloadMenuClose();
+  }, []);
+
   const handleClose = useCallback(() => {
     setElements([]);
     setProductImage(null);
     setCustomizationAreas([]);
     setError(null);
+    setDownloadMenuAnchor(null);
+    setIsElementDownloadModalOpen(false);
     onClose();
   }, [onClose]);
 
   // console.log('🎨 [KonvaDesignViewer] Renderizando componente:', { isOpen, isLoading, error });
   
   return (
-    <Dialog 
-      open={isOpen} 
-      onClose={handleClose} 
-      maxWidth={false} 
-      fullWidth
-      style={{ zIndex: 5000 }}
-      PaperProps={{
+    <>
+      <Dialog 
+        open={isOpen} 
+        onClose={handleClose} 
+        maxWidth={false} 
+        fullWidth
+        style={{ zIndex: 5000 }}
+        PaperProps={{
         sx: {
           width: isMobile ? '100vw' : '95vw',
           height: isMobile ? '100vh' : '90vh',
@@ -925,7 +954,7 @@ const KonvaDesignViewer = ({
           maxHeight: isMobile ? 'none' : '900px',
           borderRadius: isMobile ? 0 : BORDERS.radius.xxlarge,
           overflow: 'hidden',
-          zIndex: 5000,
+          zIndex: 4000,
           margin: isMobile ? 0 : 'auto',
           background: GRADIENTS_3D.modal,
           border: `1px solid ${COLOR_PALETTE.border}`,
@@ -1282,15 +1311,15 @@ const KonvaDesignViewer = ({
                 }
               })()}
 
-              {/* Áreas de personalización */}
-              {customizationAreas.map(area => (
+              {/* Áreas de personalización - OCULTAS EN EL VIEWER */}
+              {/* {customizationAreas.map(area => (
                 <Rect
                   key={area.id}
                   {...area}
                   fill="transparent"
                   listening={false}
                 />
-              ))}
+              ))} */}
 
               {/* Elementos del diseño */}
               {elements.map(renderElement)}
@@ -1366,42 +1395,110 @@ const KonvaDesignViewer = ({
               </Box>
 
               {enableDownload && (
-                <Button 
-                  variant="contained"
-                  startIcon={<Download size={isMobile ? 16 : 18} />}
-                  onClick={handleDownload}
-                  disabled={isLoading || error}
-                  size={isMobile ? 'small' : 'medium'}
-                  sx={{ 
-                    borderRadius: BORDERS.radius.large,
-                    background: GRADIENTS_3D.success,
-                    boxShadow: SHADOWS_3D.button,
-                    border: `1px solid rgba(255,255,255,0.1)`,
-                    fontWeight: 600,
-                    textTransform: 'none',
-                    transition: TRANSITIONS.fast,
-                    '&:hover': {
-                      background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
-                      transform: 'translateY(-2px)',
-                      boxShadow: SHADOWS_3D.buttonHover
-                    },
-                    '&:active': {
-                      transform: 'translateY(0)'
-                    },
-                    '&:disabled': {
-                      opacity: 0.6,
-                      transform: 'none'
-                    }
-                  }}
-                >
-                  {isMobile ? 'Descargar' : 'Descargar PNG'}
-                </Button>
+                <>
+                  <Button 
+                    variant="contained"
+                    startIcon={<Download size={isMobile ? 16 : 18} />}
+                    endIcon={<CaretDown size={isMobile ? 14 : 16} />}
+                    onClick={handleDownloadMenuOpen}
+                    disabled={isLoading || error}
+                    size={isMobile ? 'small' : 'medium'}
+                    sx={{ 
+                      borderRadius: BORDERS.radius.large,
+                      background: GRADIENTS_3D.success,
+                      boxShadow: SHADOWS_3D.button,
+                      border: `1px solid rgba(255,255,255,0.1)`,
+                      fontWeight: 600,
+                      textTransform: 'none',
+                      transition: TRANSITIONS.fast,
+                      '&:hover': {
+                        background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+                        transform: 'translateY(-2px)',
+                        boxShadow: SHADOWS_3D.buttonHover
+                      },
+                      '&:active': {
+                        transform: 'translateY(0)'
+                      },
+                      '&:disabled': {
+                        opacity: 0.6,
+                        transform: 'none'
+                      }
+                    }}
+                  >
+                    {isMobile ? 'Descargar' : 'Descargar'}
+                  </Button>
+
+                  <Menu
+                    anchorEl={downloadMenuAnchor}
+                    open={Boolean(downloadMenuAnchor)}
+                    onClose={handleDownloadMenuClose}
+                    sx={{
+                      zIndex: 6000 // Mayor que el modal principal (5000)
+                    }}
+                    PaperProps={{
+                      sx: {
+                        borderRadius: BORDERS.radius.large,
+                        background: 'rgba(255, 255, 255, 0.95)',
+                        backdropFilter: 'blur(20px)',
+                        border: `1px solid rgba(31, 100, 191, 0.2)`,
+                        boxShadow: SHADOWS_3D.floating,
+                        mt: 1,
+                        minWidth: 200,
+                        zIndex: 6000 // Asegurar que el contenido también tenga el z-index correcto
+                      }
+                    }}
+                  >
+                    <MenuItem 
+                      onClick={handleDownloadComplete}
+                      sx={{
+                        fontFamily: "'Mona Sans'",
+                        fontWeight: 500,
+                        '&:hover': {
+                          background: 'rgba(31, 100, 191, 0.1)'
+                        }
+                      }}
+                    >
+                      <ListItemIcon>
+                        <Download size={18} weight="duotone" />
+                      </ListItemIcon>
+                      <ListItemText primary="Diseño Completo (PNG)" />
+                    </MenuItem>
+                    
+                    {elements.length > 0 && (
+                      <MenuItem 
+                        onClick={handleDownloadElements}
+                        sx={{
+                          fontFamily: "'Mona Sans'",
+                          fontWeight: 500,
+                          '&:hover': {
+                            background: 'rgba(31, 100, 191, 0.1)'
+                          }
+                        }}
+                      >
+                        <ListItemIcon>
+                          <Download size={18} weight="duotone" />
+                        </ListItemIcon>
+                        <ListItemText primary="Elementos Individuales" />
+                      </MenuItem>
+                    )}
+                  </Menu>
+                </>
               )}
             </Box>
           </Box>
         )}
       </DialogContent>
     </Dialog>
+
+      {/* Modal de descarga de elementos individuales - FUERA del Dialog para evitar problemas de z-index */}
+      <ElementDownloadModal
+        open={isElementDownloadModalOpen}
+        onClose={() => setIsElementDownloadModalOpen(false)}
+        elements={elements}
+        design={design}
+        product={product}
+      />
+    </>
   );
 };
 

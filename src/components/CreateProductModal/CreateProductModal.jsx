@@ -59,6 +59,10 @@ const ModalOverlay = styled(Box)({
   justifyContent: 'center',
   alignItems: 'center',
   zIndex: 1400,
+  // No interferir con la scrollbar del body
+  '&': {
+    '--scrollbar-width': '12px', // Ancho de la scrollbar personalizada
+  }
 });
 
 const ModalContainer = styled(Box)(({ theme }) => ({
@@ -70,7 +74,7 @@ const ModalContainer = styled(Box)(({ theme }) => ({
   maxHeight: '95vh',
   display: 'flex',
   flexDirection: 'column',
-  overflow: 'hidden',
+  overflow: 'visible', // Cambiado de 'hidden' a 'visible' para permitir dropdowns
   [theme.breakpoints.down('sm')]: {
     width: '100%',
     maxHeight: '100vh',
@@ -120,7 +124,7 @@ const TabButton = styled(Button)(({ theme }) => ({
 
 const ModalContent = styled(Box)(({ theme }) => ({
   padding: '24px',
-  overflowY: 'auto',
+  overflowY: 'visible', // Cambiado de 'auto' a 'visible' para permitir dropdowns
   flex: 1,
   display: 'flex',
   flexDirection: 'column',
@@ -172,6 +176,7 @@ const FormField = styled(Box)({
   display: 'flex',
   flexDirection: 'column',
   gap: '8px',
+  position: 'relative', // Importante para el posicionamiento del dropdown
 });
 
 const FormLabel = styled(Typography)(({ theme }) => ({
@@ -242,9 +247,12 @@ const StyledSelect = styled(Select)(({ theme }) => ({
       fontSize: '13px',
     }
   },
-  // ✅ SOLUCIÓN SIMPLE: Solo z-index alto para el menú
+  // Configuración de z-index para dropdowns
   '& .MuiSelect-menu': {
-    zIndex: 1500,
+    zIndex: 1501, // Un poco más alto que el modal (1400)
+  },
+  '& .MuiPopover-root': {
+    zIndex: 1501,
   },
 }));
 
@@ -554,6 +562,21 @@ const CreateProductModal = ({
       });
     }
   }, [categoriesError]);
+
+  // ✅ MANTENER SCROLLBAR SIEMPRE VISIBLE
+  useEffect(() => {
+    if (isOpen) {
+      // Solo asegurar que no se oculte la scrollbar
+      document.documentElement.style.overflowY = 'scroll';
+      document.documentElement.style.overflowX = 'hidden';
+      
+      return () => {
+        // Restaurar configuración por defecto
+        document.documentElement.style.overflowY = 'scroll'; // Mantener siempre visible
+        document.documentElement.style.overflowX = 'hidden';
+      };
+    }
+  }, [isOpen]);
 
   // ==================== FUNCIONES ====================
   const loadProductData = (product) => {
@@ -1070,8 +1093,26 @@ const CreateProductModal = ({
                           MenuProps={{
                             PaperProps: {
                               style: {
-                                zIndex: 1500, // Z-index mayor que el modal (1400)
+                                zIndex: 9999, // Z-index muy alto para asegurar visibilidad
+                                maxHeight: 200,
+                                position: 'absolute',
+                                top: '100%',
+                                left: 0,
+                                right: 0,
+                                backgroundColor: 'white',
+                                border: '1px solid #e2e8f0',
+                                borderRadius: '8px',
+                                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
                               },
+                            },
+                            disablePortal: true, // Renderizar dentro del modal
+                            anchorOrigin: {
+                              vertical: 'bottom',
+                              horizontal: 'left',
+                            },
+                            transformOrigin: {
+                              vertical: 'top',
+                              horizontal: 'left',
                             },
                           }}
                         >
@@ -1564,6 +1605,31 @@ const CreateProductModal = ({
                                 <StyledSelect
                                   value={option.type}
                                   onChange={(e) => handleOptionChange(optionIndex, 'type', e.target.value)}
+                                  MenuProps={{
+                                    PaperProps: {
+                                      style: {
+                                        zIndex: 9999, // Z-index muy alto para asegurar visibilidad
+                                        maxHeight: 200,
+                                        position: 'absolute',
+                                        top: '100%',
+                                        left: 0,
+                                        right: 0,
+                                        backgroundColor: 'white',
+                                        border: '1px solid #e2e8f0',
+                                        borderRadius: '8px',
+                                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                                      },
+                                    },
+                                    disablePortal: true, // Renderizar dentro del modal
+                                    anchorOrigin: {
+                                      vertical: 'bottom',
+                                      horizontal: 'left',
+                                    },
+                                    transformOrigin: {
+                                      vertical: 'top',
+                                      horizontal: 'left',
+                                    },
+                                  }}
                                 >
                                   <MenuItem value="color">Color</MenuItem>
                                   <MenuItem value="size">Tamaño</MenuItem>
@@ -1580,6 +1646,31 @@ const CreateProductModal = ({
                                 <StyledSelect
                                   value={option.metadata?.displayType || 'dropdown'}
                                   onChange={(e) => handleOptionChange(optionIndex, 'metadata.displayType', e.target.value)}
+                                  MenuProps={{
+                                    PaperProps: {
+                                      style: {
+                                        zIndex: 9999, // Z-index muy alto para asegurar visibilidad
+                                        maxHeight: 200,
+                                        position: 'absolute',
+                                        top: '100%',
+                                        left: 0,
+                                        right: 0,
+                                        backgroundColor: 'white',
+                                        border: '1px solid #e2e8f0',
+                                        borderRadius: '8px',
+                                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                                      },
+                                    },
+                                    disablePortal: true, // Renderizar dentro del modal
+                                    anchorOrigin: {
+                                      vertical: 'bottom',
+                                      horizontal: 'left',
+                                    },
+                                    transformOrigin: {
+                                      vertical: 'top',
+                                      horizontal: 'left',
+                                    },
+                                  }}
                                 >
                                   <MenuItem value="dropdown">Lista desplegable</MenuItem>
                                   <MenuItem value="buttons">Botones</MenuItem>

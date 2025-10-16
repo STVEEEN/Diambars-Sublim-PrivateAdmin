@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -25,27 +25,39 @@ const RecoveryPasswordPage = () => {
     await handleRequestCode(data.email);
   };
 
+  // Agregar/quitar clase al body para controlar el scroll
+  useEffect(() => {
+    // Agregar clase al body y html cuando se monte el componente
+    document.body.classList.add('recovery-page');
+    document.documentElement.classList.add('recovery-page');
+
+    // Cleanup: quitar la clase cuando se desmonte el componente
+    return () => {
+      document.body.classList.remove('recovery-page');
+      document.documentElement.classList.remove('recovery-page');
+    };
+  }, []);
+
   return (
     <div className="diambars-recovery-container">
-      {/* Partículas de fondo */}
+      {/* Partículas de fondo - solo para el fondo, no dentro del modal */}
       <div className="diambars-recovery-particles">
-        {[...Array(12)].map((_, i) => (
+        {[...Array(15)].map((_, i) => (
           <div key={i} className={`recovery-particle recovery-particle-${i + 1}`}></div>
         ))}
       </div>
 
       {/* Card principal */}
       <div className="diambars-recovery-card">
-        {/* Botón de volver */}
+        {/* Navegación dentro del card */}
         <button 
           className="recovery-back-button"
           onClick={() => navigate('/login')}
           aria-label="Volver al login"
         >
-          <ArrowLeft size={20} weight="bold" />
+          <ArrowLeft size={24} weight="bold" />
         </button>
-
-        {/* Sección de branding */}
+        {/* Sección izquierda - Branding */}
         <div className="diambars-recovery-brand">
           <div className="recovery-brand-content">
             <div className="recovery-logo-wrapper">
@@ -67,24 +79,17 @@ const RecoveryPasswordPage = () => {
             <div className="recovery-brand-text">
               <h1 className="recovery-brand-title">DIAMBARS</h1>
               <p className="recovery-brand-subtitle">sublimado</p>
+              <div className="recovery-brand-tagline">Recuperación de Acceso</div>
             </div>
-          </div>
-
-          {/* Formas decorativas */}
-          <div className="recovery-decorative-shapes">
-            <div className="recovery-shape recovery-shape-1"></div>
-            <div className="recovery-shape recovery-shape-2"></div>
           </div>
         </div>
 
-        {/* Sección del formulario */}
+        {/* Sección derecha - Formulario */}
         <div className="diambars-recovery-form-section">
           <div className="recovery-form-container">
             <div className="recovery-form-header">
-              <h2 className="recovery-form-title">Recupera tu contraseña</h2>
-              <p className="recovery-form-description">
-                Introduce tu correo electrónico y te enviaremos un código para restablecer tu contraseña
-              </p>
+              <h2 className="recovery-form-title">Recuperar Contraseña</h2>
+              <p className="recovery-form-description">Ingresa tu correo para recibir el código de recuperación</p>
             </div>
             
             {error && (
@@ -136,6 +141,14 @@ const RecoveryPasswordPage = () => {
               </button>
             </form>
 
+            <div className="recovery-form-footer">
+              <div className="recovery-divider">
+                <span className="recovery-divider-text">Protocolo de seguridad</span>
+              </div>
+              <p className="recovery-footer-text">
+                Verificación de identidad mediante código de acceso temporal
+              </p>
+            </div>
           </div>
         </div>
       </div>

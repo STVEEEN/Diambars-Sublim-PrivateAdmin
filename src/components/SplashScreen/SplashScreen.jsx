@@ -4,40 +4,72 @@ import './SplashScreen.css';
 const SplashScreen = ({ onComplete }) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [shouldShow, setShouldShow] = useState(true);
+  const [isFirstTime, setIsFirstTime] = useState(true);
 
   useEffect(() => {
+    // Verificar si ya se mostró el splash screen en esta sesión
+    const splashShown = sessionStorage.getItem('diambars-splash-shown');
+    
+    if (splashShown === 'true') {
+      // Si ya se mostró, es un refresh - usar duración mínima
+      setIsFirstTime(false);
+      console.log("[SplashScreen] Refresh detectado - usando duración mínima");
+    } else {
+      // Primera vez - usar duración completa
+      setIsFirstTime(true);
+      console.log("[SplashScreen] Primera vez - usando duración completa");
+    }
+
+    // Marcar que el splash screen se mostró en esta sesión
+    sessionStorage.setItem('diambars-splash-shown', 'true');
+
+    // Configurar duraciones según el tipo de carga
+    const loadDelay = isFirstTime ? 200 : 50; // Delay inicial
+    const progressSpeed = isFirstTime ? 2 : 8; // Velocidad de progreso
+    const progressInterval = isFirstTime ? 200 : 50; // Intervalo de progreso
+    const totalDuration = isFirstTime ? 2500 : 800; // Duración total
+
     // Animación de carga inicial
     const loadTimer = setTimeout(() => {
       setIsLoaded(true);
-    }, 200);
+    }, loadDelay);
 
     // Simulación de progreso de carga
-    const progressInterval = setInterval(() => {
+    const progressTimer = setInterval(() => {
       setProgress(prev => {
         if (prev >= 100) {
-          clearInterval(progressInterval);
+          clearInterval(progressTimer);
           return 100;
         }
-        return prev + 2;
+        return prev + progressSpeed;
       });
-    }, 200);
+    }, progressInterval);
 
     // Completar splash después de la animación
     const navigationTimer = setTimeout(() => {
       if (onComplete) {
         onComplete();
       }
-    }, 2500);
+    }, totalDuration);
 
     return () => {
       clearTimeout(loadTimer);
       clearTimeout(navigationTimer);
-      clearInterval(progressInterval);
+      clearInterval(progressTimer);
     };
-  }, [onComplete]);
+  }, [onComplete, isFirstTime]);
+
+  // Si no debe mostrarse, retornar null (no renderizar nada)
+  if (!shouldShow) {
+    return null;
+  }
 
   return (
-    <div className="diambars-welcome-screen">
+    <div className={`diambars-welcome-screen ${!isFirstTime ? 'splash-quick' : ''}`}>
+      {/* Overlay suave adicional */}
+      <div className="background-overlay"></div>
+      
       {/* Partículas de fondo */}
       <div className="background-particles">
         {[...Array(20)].map((_, i) => (
@@ -78,7 +110,6 @@ const SplashScreen = ({ onComplete }) => {
               <span className="letter">S</span>
             </h1>
             <p className="diambars-sublogo">sublimado</p>
-            <div className="brand-tagline">Calidad que perdura</div>
           </div>
         </div>
 
@@ -90,7 +121,9 @@ const SplashScreen = ({ onComplete }) => {
               style={{ width: `${progress}%` }}
             ></div>
           </div>
-          <div className="loading-text">Cargando experiencia...</div>
+          <div className="loading-text">
+            {isFirstTime ? 'Cargando experiencia...' : 'Conectando...'}
+          </div>
         </div>
 
         {/* Elementos decorativos */}

@@ -73,7 +73,35 @@ Swal.mixin({
   }
 });
 
-// ================ ESTILOS MODERNOS RESPONSIVE - ORDERS ================
+// ================ KEYFRAMES PARA ANIMACIÓN DE MÁRMOL MUY VISIBLE ================ 
+const marbleFlowKeyframes = `
+@keyframes marbleFlow {
+  0% {
+    transform: translate(2%, 2%) rotate(0deg) scale(1);
+  }
+  25% {
+    transform: translate(-8%, -8%) rotate(5deg) scale(1.05);
+  }
+  50% {
+    transform: translate(-15%, 8%) rotate(-3deg) scale(1.08);
+  }
+  75% {
+    transform: translate(-8%, -5%) rotate(2deg) scale(1.05);
+  }
+  100% {
+    transform: translate(2%, 2%) rotate(0deg) scale(1);
+  }
+}
+`;
+
+// Inyectar keyframes en el documento
+if (typeof document !== 'undefined') {
+  const styleSheet = document.createElement('style');
+  styleSheet.textContent = marbleFlowKeyframes;
+  document.head.appendChild(styleSheet);
+}
+
+// ================ ESTILOS MODERNOS RESPONSIVE - ORDERS ================ 
 const OrdersPageContainer = styled(Box)({
   minHeight: '100vh',
   fontFamily: "'Mona Sans'",
@@ -86,7 +114,7 @@ const OrdersPageContainer = styled(Box)({
 
 const OrdersContentWrapper = styled(Box)(({ theme }) => ({
   width: '100%',
-  maxWidth: '1600px',
+  maxWidth: '1660px',
   margin: '0 auto',
   paddingTop: '120px',
   paddingBottom: '40px',
@@ -262,10 +290,23 @@ const OrdersPrimaryActionButton = styled(Button)(({ theme }) => ({
   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
   minWidth: '160px',
   whiteSpace: 'nowrap',
+  position: 'relative',
+  overflow: 'hidden',
+  '&::before': {
+    content: '""',
+    position: 'absolute',
+    top: 0,
+    left: '-100%',
+    width: '100%',
+    height: '100%',
+    background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent)',
+    transition: 'left 0.5s ease'
+  },
   '&:hover': {
     background: 'linear-gradient(135deg, #032CA6 0%, #1F64BF 100%)',
     boxShadow: '0 6px 24px rgba(31, 100, 191, 0.32)',
     transform: 'translateY(-1px)',
+    '&::before': { left: '100%' }
   },
   '&:active': {
     transform: 'translateY(0)',
@@ -294,9 +335,22 @@ const OrdersSecondaryActionButton = styled(IconButton)(({ theme }) => ({
   height: '52px',
   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
   flexShrink: 0,
+  position: 'relative',
+  overflow: 'hidden',
+  '&::before': {
+    content: '""',
+    position: 'absolute',
+    top: 0,
+    left: '-100%',
+    width: '100%',
+    height: '100%',
+    background: 'linear-gradient(90deg, transparent, rgba(31, 100, 191, 0.15), transparent)',
+    transition: 'left 0.5s ease'
+  },
   '&:hover': {
     background: alpha('#1F64BF', 0.12),
     transform: 'translateY(-1px)',
+    '&::before': { left: '100%' }
   },
   [theme.breakpoints.down('lg')]: {
     width: '48px',
@@ -346,14 +400,41 @@ const OrdersStatCard = styled(OrdersModernCard)(({ theme, variant }) => {
       background: 'linear-gradient(135deg, #1F64BF 0%, #032CA6 100%)',
       color: 'white',
       border: 'none',
+      marbleBase: 'rgba(25, 83, 158, 0.2)',
+      marbleVeins: 'rgba(3, 44, 166, 0.35)',
+      marbleHighlight: 'rgba(123, 164, 221, 0.4)',
+      marbleDark: 'rgba(1, 21, 63, 0.15)',
+    },
+    success: {
+      background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+      color: 'white',
+      border: 'none',
+      marbleBase: 'rgba(13, 75, 54, 0.2)',
+      marbleVeins: 'rgba(9, 138, 97, 0.35)',
+      marbleHighlight: 'rgba(86, 236, 181, 0.4)',
+      marbleDark: 'rgba(2, 77, 55, 0.15)',
+    },
+    warning: {
+      background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
+      color: 'white',
+      border: 'none',
+      marbleBase: 'rgba(245, 158, 11, 0.2)',
+      marbleVeins: 'rgba(217, 119, 6, 0.35)',
+      marbleHighlight: 'rgba(251, 191, 36, 0.4)',
+      marbleDark: 'rgba(180, 83, 9, 0.15)',
     },
     secondary: {
       background: 'white',
       color: '#010326',
+      marbleBase: 'rgba(31, 100, 191, 0.08)',
+      marbleVeins: 'rgba(3, 44, 166, 0.15)',
+      marbleHighlight: 'rgba(100, 150, 220, 0.25)',
+      marbleDark: 'rgba(31, 100, 191, 0.05)',
     }
   };
 
   const selectedVariant = variants[variant] || variants.secondary;
+  const isColoredVariant = variant === 'primary' || variant === 'success' || variant === 'warning';
 
   return {
     padding: '28px',
@@ -366,18 +447,79 @@ const OrdersStatCard = styled(OrdersModernCard)(({ theme, variant }) => {
     position: 'relative',
     overflow: 'hidden',
     boxSizing: 'border-box',
+    cursor: 'pointer',
+    transition: 'all 0.3s cubic-bezier(0.23, 1, 0.320, 1)',
+    boxShadow: '0 2px 12px rgba(1, 3, 38, 0.04)',
     ...selectedVariant,
-    '&::before': variant === 'primary' ? {
+    
+    '&::before': {
+      content: '""',
+      position: 'absolute',
+      top: '-50%',
+      left: '-50%',
+      width: '200%',
+      height: '200%',
+      opacity: 0,
+      transition: 'opacity 0.5s ease',
+      pointerEvents: 'none',
+      zIndex: 0, 
+      background: `
+        radial-gradient(ellipse at 15% 30%, ${selectedVariant.marbleHighlight} 0%, transparent 40%),
+        radial-gradient(ellipse at 85% 20%, ${selectedVariant.marbleVeins} 0%, transparent 45%),
+        radial-gradient(ellipse at 50% 80%, ${selectedVariant.marbleBase} 0%, transparent 50%),
+        radial-gradient(ellipse at 70% 50%, ${selectedVariant.marbleHighlight} 0%, transparent 35%),
+        radial-gradient(ellipse at 30% 70%, ${selectedVariant.marbleVeins} 0%, transparent 40%),
+        radial-gradient(ellipse at 90% 90%, ${selectedVariant.marbleBase} 0%, transparent 45%),
+        radial-gradient(ellipse at 10% 90%, ${selectedVariant.marbleDark} 0%, transparent 30%),
+        linear-gradient(125deg, 
+          ${selectedVariant.marbleBase} 0%, 
+          transparent 25%, 
+          ${selectedVariant.marbleVeins} 50%, 
+          transparent 75%, 
+          ${selectedVariant.marbleHighlight} 100%
+        )
+      `,
+      backgroundSize: '100% 100%',
+      animation: 'marbleFlow 10s ease-in-out infinite',
+      filter: 'blur(2px)',
+    },
+
+    '&::after': {
       content: '""',
       position: 'absolute',
       top: 0,
-      right: 0,
-      width: '120px',
-      height: '120px',
-      background: 'rgba(255, 255, 255, 0.1)',
-      borderRadius: '50%',
-      transform: 'translate(30px, -30px)',
-    } : {},
+      left: '-100%',
+      width: '100%',
+      height: '100%',
+      background: isColoredVariant 
+        ? 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent)'
+        : 'linear-gradient(90deg, transparent, rgba(31, 100, 191, 0.1), transparent)',
+      transition: 'left 0.6s ease',
+      zIndex: 1, 
+      pointerEvents: 'none',
+    },
+
+    '&:hover': {
+      transform: 'translateY(-1px) scale(1.02)',
+      boxShadow: '0 4px 20px rgba(1, 3, 38, 0.08)',
+      '&::before': {
+        opacity: 1,
+      },
+      '&::after': {
+        left: '100%',
+      }
+    },
+
+    '&:active': {
+      transform: 'translateY(0)',
+      transition: 'transform 0.1s ease-out',
+    },
+
+    '& > *': {
+      position: 'relative',
+      zIndex: 2,
+    },
+
     [theme.breakpoints.down('lg')]: {
       padding: '24px',
       minHeight: '150px',
@@ -408,11 +550,15 @@ const OrdersStatIconContainer = styled(Box)(({ variant, theme }) => ({
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  background: variant === 'primary' 
-    ? 'rgba(255, 255, 255, 0.2)' 
-    : alpha('#1F64BF', 0.1),
-  color: variant === 'primary' ? 'white' : '#1F64BF',
+  background: (variant === 'primary' || variant === 'success' || variant === 'warning')
+    ? 'rgba(255, 255, 255, 0.15)' 
+    : alpha('#1F64BF', 0.08),
+  backdropFilter: 'blur(8px)',
+  color: (variant === 'primary' || variant === 'success' || variant === 'warning') ? 'white' : '#1F64BF',
   flexShrink: 0,
+  transition: 'all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+  position: 'relative',
+  zIndex: 2,
   [theme.breakpoints.down('lg')]: {
     width: '48px',
     height: '48px',
@@ -430,12 +576,42 @@ const OrdersStatIconContainer = styled(Box)(({ variant, theme }) => ({
   }
 }));
 
+const OrdersStatChange = styled(Box)(({ variant, trend }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  gap: '6px',
+  marginTop: 'auto',
+  padding: '6px 10px',
+  borderRadius: '8px',
+  background: (variant === 'primary' || variant === 'success' || variant === 'warning')
+    ? 'rgba(255, 255, 255, 0.15)' 
+    : trend === 'up' 
+      ? alpha('#10B981', 0.1) 
+      : alpha('#EF4444', 0.1),
+  width: 'fit-content',
+  transition: 'all 0.3s ease',
+}));
+
+const OrdersStatTrendText = styled(Typography)(({ variant, trend, theme }) => ({
+  fontSize: '0.8rem',
+  fontWeight: 600,
+  color: (variant === 'primary' || variant === 'success' || variant === 'warning')
+    ? 'white' 
+    : trend === 'up' 
+      ? '#10B981' 
+      : '#EF4444',
+  fontFamily: "'Mona Sans'",
+  [theme.breakpoints.down('sm')]: {
+    fontSize: '0.75rem',
+  }
+}));
+
 const OrdersStatValue = styled(Typography)(({ variant, theme }) => ({
   fontSize: '2.2rem',
   fontWeight: 700,
   lineHeight: 1.1,
   marginBottom: '6px',
-  color: variant === 'primary' ? 'white' : '#010326',
+  color: (variant === 'primary' || variant === 'success' || variant === 'warning') ? 'white' : '#010326',
   fontFamily: "'Mona Sans'",
   [theme.breakpoints.down('lg')]: {
     fontSize: '2rem',
@@ -451,8 +627,8 @@ const OrdersStatValue = styled(Typography)(({ variant, theme }) => ({
 const OrdersStatLabel = styled(Typography)(({ variant, theme }) => ({
   fontSize: '0.9rem',
   fontWeight: 500,
-  opacity: variant === 'primary' ? 0.9 : 0.7,
-  color: variant === 'primary' ? 'white' : '#032CA6',
+  opacity: (variant === 'primary' || variant === 'success' || variant === 'warning') ? 0.9 : 0.7,
+  color: (variant === 'primary' || variant === 'success' || variant === 'warning') ? 'white' : '#032CA6',
   lineHeight: 1.3,
   fontFamily: "'Mona Sans'",
   [theme.breakpoints.down('lg')]: {
@@ -543,8 +719,13 @@ const OrdersTable = styled(Table)(({ theme }) => ({
     borderBottom: `1px solid ${alpha('#1F64BF', 0.05)}`,
     fontFamily: "'Mona Sans'",
   },
-  '& .MuiTableRow-root:hover': {
-    backgroundColor: alpha('#1F64BF', 0.02),
+  '& .MuiTableRow-root': {
+    transition: 'all 0.3s ease',
+    '&:hover': {
+      backgroundColor: alpha('#1F64BF', 0.03),
+      transform: 'translateY(-2px)',
+      boxShadow: '0 4px 12px rgba(31, 100, 191, 0.15)',
+    }
   }
 }));
 
@@ -577,9 +758,101 @@ const StatusChip = styled(Chip)(({ status, theme }) => {
     fontSize: '0.75rem',
     fontWeight: 600,
     height: '24px',
-    fontFamily: "'Mona Sans'"
+    fontFamily: "'Mona Sans'",
+    transition: 'all 0.3s ease',
+    '&:hover': {
+      transform: 'translateY(-1px)',
+      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+    }
   };
 });
+
+// Botón Limpiar con efecto shimmer
+const OrdersClearButton = styled(Button)(({ theme }) => ({
+  textTransform: 'none',
+  borderRadius: '12px',
+  fontSize: '0.875rem',
+  fontWeight: 600,
+  color: '#032CA6',
+  backgroundColor: alpha('#032CA6', 0.1),
+  padding: '10px 16px',
+  minWidth: 'auto',
+  fontFamily: "'Mona Sans'",
+  position: 'relative',
+  overflow: 'hidden',
+  '&::before': {
+    content: '""',
+    position: 'absolute',
+    top: 0,
+    left: '-100%',
+    width: '100%',
+    height: '100%',
+    background: 'linear-gradient(90deg, transparent, rgba(3, 44, 166, 0.15), transparent)',
+    transition: 'left 0.5s ease'
+  },
+  '&:hover': {
+    backgroundColor: alpha('#032CA6', 0.15),
+    '&::before': { left: '100%' }
+  }
+}));
+
+// Botones de paginación con efecto shimmer
+const OrdersPaginationButton = styled(Button)(({ theme }) => ({
+  borderRadius: '12px',
+  textTransform: 'none',
+  fontWeight: 600,
+  borderColor: alpha('#1F64BF', 0.3),
+  color: '#1F64BF',
+  minWidth: { xs: '100%', sm: 'auto' },
+  fontFamily: "'Mona Sans'",
+  position: 'relative',
+  overflow: 'hidden',
+  '&::before': {
+    content: '""',
+    position: 'absolute',
+    top: 0,
+    left: '-100%',
+    width: '100%',
+    height: '100%',
+    background: 'linear-gradient(90deg, transparent, rgba(31, 100, 191, 0.15), transparent)',
+    transition: 'left 0.5s ease'
+  },
+  '&:hover': {
+    borderColor: '#1F64BF',
+    backgroundColor: alpha('#1F64BF', 0.05),
+    '&::before': { left: '100%' }
+  },
+  '&:disabled': {
+    borderColor: alpha('#1F64BF', 0.1),
+    color: alpha('#1F64BF', 0.3),
+  }
+}));
+
+// Botones de acción en tabla con efecto shimmer
+const OrdersActionButton = styled(IconButton)(({ theme, color: buttonColor }) => ({
+  transition: 'all 0.3s ease',
+  position: 'relative',
+  overflow: 'hidden',
+  '&::before': {
+    content: '""',
+    position: 'absolute',
+    top: 0,
+    left: '-100%',
+    width: '100%',
+    height: '100%',
+    background: buttonColor === 'success' 
+      ? 'linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.15), transparent)'
+      : 'linear-gradient(90deg, transparent, rgba(31, 100, 191, 0.15), transparent)',
+    transition: 'left 0.5s ease'
+  },
+  '&:hover': {
+    backgroundColor: buttonColor === 'success' 
+      ? alpha('#10b981', 0.08) 
+      : alpha('#1F64BF', 0.08),
+    transform: 'translateY(-1px)',
+    '&::before': { left: '100%' }
+  }
+}));
 
 // ================ COMPONENTE PRINCIPAL ================
 const Orders = () => {
@@ -867,6 +1140,12 @@ const Orders = () => {
                     <stat.icon size={24} weight="duotone" />
                   </OrdersStatIconContainer>
                 </OrdersStatHeader>
+                <OrdersStatChange variant={stat.variant} trend={stat.trend}>
+                  <TrendUp size={12} weight="bold" />
+                  <OrdersStatTrendText variant={stat.variant} trend={stat.trend}>
+                    {stat.change}
+                  </OrdersStatTrendText>
+                </OrdersStatChange>
               </OrdersStatCard>
             ))}
           </OrdersStatsGrid>
@@ -965,24 +1244,12 @@ const Orders = () => {
               </FormControl>
 
               {(searchQuery || statusFilter !== 'all' || sortOption !== 'newest') && (
-                <Button
+                <OrdersClearButton
                   onClick={handleClearFilters}
                   startIcon={<Broom size={16} weight="bold" />}
-                  sx={{
-                    textTransform: 'none',
-                    borderRadius: '8px',
-                    fontSize: '0.875rem',
-                    fontWeight: 600,
-                    color: '#032CA6',
-                    backgroundColor: alpha('#032CA6', 0.1),
-                    fontFamily: "'Mona Sans'",
-                    '&:hover': {
-                      backgroundColor: alpha('#032CA6', 0.15),
-                    }
-                  }}
                 >
                   Limpiar
-                </Button>
+                </OrdersClearButton>
               )}
             </Box>
           </Box>
@@ -1033,7 +1300,7 @@ const Orders = () => {
                             color: '#010326',
                             fontFamily: "'Mona Sans'"
                           }}>
-                            #{order.orderNumber}
+                            # {order.orderNumber}
                           </Typography>
                           {order.isManualOrder && (
                             <Chip 
@@ -1098,32 +1365,27 @@ const Orders = () => {
                       <TableCell align="right">
                         <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
                           <Tooltip title="Ver detalles">
-                            <IconButton
+                            <OrdersActionButton
                               onClick={() => handleViewOrderDetails(order)}
                               size="small"
+                              color="success"
                               sx={{
                                 color: '#10b981',
-                                '&:hover': {
-                                  backgroundColor: alpha('#10b981', 0.08),
-                                }
                               }}
                             >
                               <Eye size={18} weight="bold" />
-                            </IconButton>
+                            </OrdersActionButton>
                           </Tooltip>
                           <Tooltip title="Más acciones">
-                            <IconButton
+                            <OrdersActionButton
                               onClick={(e) => handleMenuClick(e, order)}
                               size="small"
                               sx={{
                                 color: '#032CA6',
-                                '&:hover': {
-                                  backgroundColor: alpha('#1F64BF', 0.08),
-                                }
                               }}
                             >
                               <DotsThreeVertical size={18} weight="bold" />
-                            </IconButton>
+                            </OrdersActionButton>
                           </Tooltip>
                         </Box>
                       </TableCell>
@@ -1196,30 +1458,13 @@ const Orders = () => {
             gap: 2,
             flexDirection: { xs: 'column', sm: 'row' },
           }}>
-            <Button
+            <OrdersPaginationButton
               variant="outlined"
               onClick={() => fetchOrders({ ...filters, page: pagination.page - 1 })}
               disabled={!pagination.hasPrev || loading}
-              sx={{
-                borderRadius: '12px',
-                textTransform: 'none',
-                fontWeight: 600,
-                borderColor: alpha('#1F64BF', 0.3),
-                color: '#1F64BF',
-                minWidth: { xs: '100%', sm: 'auto' },
-                fontFamily: "'Mona Sans'",
-                '&:hover': {
-                  borderColor: '#1F64BF',
-                  backgroundColor: alpha('#1F64BF', 0.05),
-                },
-                '&:disabled': {
-                  borderColor: alpha('#1F64BF', 0.1),
-                  color: alpha('#1F64BF', 0.3),
-                }
-              }}
             >
               ← Anterior
-            </Button>
+            </OrdersPaginationButton>
             
             <OrdersModernCard sx={{ 
               px: 3, 
@@ -1236,30 +1481,13 @@ const Orders = () => {
               </Typography>
             </OrdersModernCard>
             
-            <Button
+            <OrdersPaginationButton
               variant="outlined"
               onClick={() => fetchOrders({ ...filters, page: pagination.page + 1 })}
               disabled={!pagination.hasNext || loading}
-              sx={{
-                borderRadius: '12px',
-                textTransform: 'none',
-                fontWeight: 600,
-                borderColor: alpha('#1F64BF', 0.3),
-                color: '#1F64BF',
-                minWidth: { xs: '100%', sm: 'auto' },
-                fontFamily: "'Mona Sans'",
-                '&:hover': {
-                  borderColor: '#1F64BF',
-                  backgroundColor: alpha('#1F64BF', 0.05),
-                },
-                '&:disabled': {
-                  borderColor: alpha('#1F64BF', 0.1),
-                  color: alpha('#1F64BF', 0.3),
-                }
-              }}
             >
               Siguiente →
-            </Button>
+            </OrdersPaginationButton>
           </Box>
         )}
 

@@ -40,6 +40,7 @@ import {
 } from '@mui/material';
 import { useAuth } from '../../context/AuthContext';
 import ProfileService from '../../api/profileService';
+import useEmployees from '../../hooks/useEmployees';
 import Swal from 'sweetalert2';
 
 // ================ ESTILOS MODERNOS RESPONSIVE - PROFILE ================
@@ -612,6 +613,7 @@ const ProfileSecurityStatus = styled(Chip)(({ variant }) => ({
 
 const Profile = () => {
   const { user, refreshAuth } = useAuth();
+  const { uploadProfilePicture, deleteProfilePicture } = useEmployees();
   const [isEditing, setIsEditing] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
@@ -657,6 +659,12 @@ const Profile = () => {
       
       if (response.success) {
         const userData = response.data;
+        console.log('📸 [Profile] loadUserProfile - userData received:', {
+          name: userData.name,
+          email: userData.email,
+          profilePicture: userData.profilePicture
+        });
+        
         setProfileData({
           name: userData.name || '',
           email: userData.email || '',
@@ -666,8 +674,11 @@ const Profile = () => {
           bio: userData.bio || `${getRoleDisplayName(userData.role)} en DIAMBARS Sublimado`,
           role: userData.role || 'employee',
           hireDate: userData.hireDate ? new Date(userData.hireDate).toLocaleDateString() : '',
-          dui: userData.dui || 'No especificado'
+          dui: userData.dui || 'No especificado',
+          profilePicture: userData.profilePicture || ''
         });
+        
+        console.log('📸 [Profile] loadUserProfile - profileData set with profilePicture:', userData.profilePicture || '');
       } else {
         Swal.fire({
           icon: 'error',
@@ -866,6 +877,110 @@ const Profile = () => {
     setIsEditing(false);
   };
 
+  // Función para manejar la subida de foto de perfil
+  const handleProfilePictureUpload = async (event) => {
+    console.log('📸 [Profile] handleProfilePictureUpload called', event.target.files);
+    const file = event.target.files[0];
+    if (!file) {
+      console.log('📸 [Profile] No file selected');
+      return;
+    }
+
+    console.log('📸 [Profile] File selected:', {
+      name: file.name,
+      type: file.type,
+      size: file.size
+    });
+
+    // Validar tipo de archivo
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      console.log('📸 [Profile] Invalid file type:', file.type);
+      Swal.fire({
+        icon: 'error',
+        title: 'Tipo de archivo no válido',
+        text: 'Solo se permiten archivos de imagen (JPEG, JPG, PNG, GIF, WEBP)',
+        confirmButtonColor: '#1F64BF'
+      });
+      return;
+    }
+
+    // Validar tamaño (5MB máximo)
+    if (file.size > 5 * 1024 * 1024) {
+      console.log('📸 [Profile] File too large:', file.size);
+      Swal.fire({
+        icon: 'error',
+        title: 'Archivo muy grande',
+        text: 'El archivo debe ser menor a 5MB',
+        confirmButtonColor: '#1F64BF'
+      });
+      return;
+    }
+
+    try {
+      setLoading(true);
+      console.log('📸 [Profile] Starting upload...');
+      
+      const result = await uploadProfilePicture(user.id, file);
+      console.log('📸 [Profile] Upload result:', result);
+      
+      setProfileData(prev => ({
+        ...prev,
+        profilePicture: result.profilePicture
+      }));
+      
+      // Actualizar el contexto de autenticación para que el navbar se actualice
+      if (refreshAuth) {
+        console.log('📸 [Profile] Refrescando contexto de autenticación...');
+        await refreshAuth();
+      }
+      
+    } catch (error) {
+      console.error('Error uploading profile picture:', error);
+      // El error ya se maneja en el hook con toast
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Función para eliminar foto de perfil
+  const handleDeleteProfilePicture = async () => {
+    const result = await Swal.fire({
+      title: '¿Eliminar foto de perfil?',
+      text: 'Esta acción no se puede deshacer',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#dc2626',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar'
+    });
+
+    if (result.isConfirmed) {
+      try {
+        setLoading(true);
+        
+        await deleteProfilePicture(user.id);
+        setProfileData(prev => ({
+          ...prev,
+          profilePicture: ''
+        }));
+        
+        // Actualizar el contexto de autenticación para que el navbar se actualice
+        if (refreshAuth) {
+          console.log('📸 [Profile] Refrescando contexto de autenticación después de eliminar foto...');
+          await refreshAuth();
+        }
+        
+      } catch (error) {
+        console.error('Error deleting profile picture:', error);
+        // El error ya se maneja en el hook con toast
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
   const handleCancelPasswordChange = () => {
     setPasswordData({
       currentPassword: '',
@@ -913,13 +1028,61 @@ const Profile = () => {
         <ProfileHeaderSection>
           <ProfileAvatarSection>
             <ProfileAvatarContainer>
-              <ProfileAvatarCircle>
+              <ProfileAvatarCircle src={profileData.profilePicture}>
                 {profileData.name ? profileData.name.charAt(0).toUpperCase() : 'U'}
               </ProfileAvatarCircle>
-              <ProfileAvatarUpload>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleProfilePictureUpload}
+                style={{ display: 'none' }}
+                id="profile-picture-upload"
+                disabled={loading}
+              />
+              <ProfileAvatarUpload
+                onClick={() => {
+                  console.log('📸 [Profile] Button clicked, loading:', loading);
+                  const fileInput = document.getElementById('profile-picture-upload');
+                  console.log('📸 [Profile] File input found:', fileInput);
+                  if (fileInput && !loading) {
+                    fileInput.click();
+                    console.log('📸 [Profile] File input clicked');
+                  } else {
+                    console.log('📸 [Profile] File input not found or loading!');
+                  }
+                }}
+                style={{ cursor: loading ? 'not-allowed' : 'pointer' }}
+              >
                 <Camera size={16} weight="duotone" />
-                <span>Cambiar foto</span>
+                <span>
+                  {loading 
+                    ? 'Subiendo...' 
+                    : profileData.profilePicture 
+                      ? 'Cambiar foto de perfil' 
+                      : 'Agregar foto de perfil'
+                  }
+                </span>
               </ProfileAvatarUpload>
+              {profileData.profilePicture && (
+                <IconButton
+                  onClick={handleDeleteProfilePicture}
+                  disabled={loading}
+                  sx={{
+                    position: 'absolute',
+                    top: '8px',
+                    right: '8px',
+                    background: 'rgba(220, 38, 38, 0.1)',
+                    color: '#dc2626',
+                    '&:hover': {
+                      background: 'rgba(220, 38, 38, 0.2)',
+                    },
+                    width: '32px',
+                    height: '32px'
+                  }}
+                >
+                  <X size={16} weight="bold" />
+                </IconButton>
+              )}
             </ProfileAvatarContainer>
             
             <ProfileMainInfo>

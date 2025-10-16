@@ -63,7 +63,35 @@ Swal.mixin({
   }
 });
 
-// ================ ESTILOS MODERNOS RESPONSIVE - DIRECCIONES ================
+// ================ KEYFRAMES PARA ANIMACIÓN DE MÁRMOL MUY VISIBLE ================ 
+const marbleFlowKeyframes = `
+@keyframes marbleFlow {
+  0% {
+    transform: translate(2%, 2%) rotate(0deg) scale(1);
+  }
+  25% {
+    transform: translate(-8%, -8%) rotate(5deg) scale(1.05);
+  }
+  50% {
+    transform: translate(-15%, 8%) rotate(-3deg) scale(1.08);
+  }
+  75% {
+    transform: translate(-8%, -5%) rotate(2deg) scale(1.05);
+  }
+  100% {
+    transform: translate(2%, 2%) rotate(0deg) scale(1);
+  }
+}
+`;
+
+// Inyectar keyframes en el documento
+if (typeof document !== 'undefined') {
+  const styleSheet = document.createElement('style');
+  styleSheet.textContent = marbleFlowKeyframes;
+  document.head.appendChild(styleSheet);
+}
+
+// ================ ESTILOS MODERNOS RESPONSIVE - DIRECCIONES ================ 
 const AddressPageContainer = styled(Box)({
   minHeight: '100vh',
   fontFamily: "'Mona Sans'",
@@ -76,7 +104,7 @@ const AddressPageContainer = styled(Box)({
 
 const AddressContentWrapper = styled(Box)(({ theme }) => ({
   width: '100%',
-  maxWidth: '1600px',
+  maxWidth: '1660px',
   margin: '0 auto',
   paddingTop: '120px',
   paddingBottom: '40px',
@@ -111,10 +139,10 @@ const AddressModernCard = styled(Paper)(({ theme }) => ({
   borderRadius: '16px',
   border: `1px solid ${alpha('#1F64BF', 0.08)}`,
   boxShadow: '0 2px 16px rgba(1, 3, 38, 0.06)',
-  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+  transition: 'all 0.3s ease',
   fontFamily: "'Mona Sans'",
   '&:hover': {
-    boxShadow: '0 4px 24px rgba(1, 3, 38, 0.08)',
+    boxShadow: '0 4px 20px rgba(1, 3, 38, 0.08)',
     transform: 'translateY(-1px)',
   }
 }));
@@ -249,13 +277,26 @@ const AddressPrimaryActionButton = styled(Button)(({ theme }) => ({
   textTransform: 'none',
   fontFamily: "'Mona Sans'",
   boxShadow: '0 4px 16px rgba(31, 100, 191, 0.24)',
-  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+  transition: 'all 0.3s ease',
   minWidth: '160px',
   whiteSpace: 'nowrap',
+  position: 'relative',
+  overflow: 'hidden',
+  '&::before': {
+    content: '""',
+    position: 'absolute',
+    top: 0,
+    left: '-100%',
+    width: '100%',
+    height: '100%',
+    background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent)',
+    transition: 'left 0.5s ease'
+  },
   '&:hover': {
     background: 'linear-gradient(135deg, #032CA6 0%, #1F64BF 100%)',
     boxShadow: '0 6px 24px rgba(31, 100, 191, 0.32)',
     transform: 'translateY(-1px)',
+    '&::before': { left: '100%' }
   },
   '&:active': {
     transform: 'translateY(0)',
@@ -282,11 +323,24 @@ const AddressSecondaryActionButton = styled(IconButton)(({ theme }) => ({
   borderRadius: '12px',
   width: '52px',
   height: '52px',
-  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+  transition: 'all 0.3s ease',
   flexShrink: 0,
+  position: 'relative',
+  overflow: 'hidden',
+  '&::before': {
+    content: '""',
+    position: 'absolute',
+    top: 0,
+    left: '-100%',
+    width: '100%',
+    height: '100%',
+    background: 'linear-gradient(90deg, transparent, rgba(31, 100, 191, 0.15), transparent)',
+    transition: 'left 0.5s ease'
+  },
   '&:hover': {
     background: alpha('#1F64BF', 0.12),
     transform: 'translateY(-1px)',
+    '&::before': { left: '100%' }
   },
   [theme.breakpoints.down('lg')]: {
     width: '48px',
@@ -349,14 +403,41 @@ const AddressStatCard = styled(AddressModernCard)(({ theme, variant }) => {
       background: 'linear-gradient(135deg, #1F64BF 0%, #032CA6 100%)',
       color: 'white',
       border: 'none',
+      marbleBase: 'rgba(25, 83, 158, 0.2)',
+      marbleVeins: 'rgba(3, 44, 166, 0.35)',
+      marbleHighlight: 'rgba(123, 164, 221, 0.4)',
+      marbleDark: 'rgba(1, 21, 63, 0.15)',
+    },
+    success: {
+      background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+      color: 'white',
+      border: 'none',
+      marbleBase: 'rgba(13, 75, 54, 0.2)',
+      marbleVeins: 'rgba(9, 138, 97, 0.35)',
+      marbleHighlight: 'rgba(86, 236, 181, 0.4)',
+      marbleDark: 'rgba(2, 77, 55, 0.15)',
+    },
+    warning: {
+      background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
+      color: 'white',
+      border: 'none',
+      marbleBase: 'rgba(245, 158, 11, 0.2)',
+      marbleVeins: 'rgba(217, 119, 6, 0.35)',
+      marbleHighlight: 'rgba(251, 191, 36, 0.4)',
+      marbleDark: 'rgba(180, 83, 9, 0.15)',
     },
     secondary: {
       background: 'white',
       color: '#010326',
+      marbleBase: 'rgba(31, 100, 191, 0.08)',
+      marbleVeins: 'rgba(3, 44, 166, 0.15)',
+      marbleHighlight: 'rgba(100, 150, 220, 0.25)',
+      marbleDark: 'rgba(31, 100, 191, 0.05)',
     }
   };
 
   const selectedVariant = variants[variant] || variants.secondary;
+  const isColoredVariant = variant === 'primary' || variant === 'success' || variant === 'warning';
 
   return {
     padding: '28px',
@@ -369,18 +450,79 @@ const AddressStatCard = styled(AddressModernCard)(({ theme, variant }) => {
     position: 'relative',
     overflow: 'hidden',
     boxSizing: 'border-box',
+    cursor: 'pointer',
+    transition: 'all 0.3s cubic-bezier(0.23, 1, 0.320, 1)',
+    boxShadow: '0 2px 12px rgba(1, 3, 38, 0.04)',
     ...selectedVariant,
-    '&::before': variant === 'primary' ? {
+    
+    '&::before': {
+      content: '""',
+      position: 'absolute',
+      top: '-50%',
+      left: '-50%',
+      width: '200%',
+      height: '200%',
+      opacity: 0,
+      transition: 'opacity 0.5s ease',
+      pointerEvents: 'none',
+      zIndex: 0, 
+      background: `
+        radial-gradient(ellipse at 15% 30%, ${selectedVariant.marbleHighlight} 0%, transparent 40%),
+        radial-gradient(ellipse at 85% 20%, ${selectedVariant.marbleVeins} 0%, transparent 45%),
+        radial-gradient(ellipse at 50% 80%, ${selectedVariant.marbleBase} 0%, transparent 50%),
+        radial-gradient(ellipse at 70% 50%, ${selectedVariant.marbleHighlight} 0%, transparent 35%),
+        radial-gradient(ellipse at 30% 70%, ${selectedVariant.marbleVeins} 0%, transparent 40%),
+        radial-gradient(ellipse at 90% 90%, ${selectedVariant.marbleBase} 0%, transparent 45%),
+        radial-gradient(ellipse at 10% 90%, ${selectedVariant.marbleDark} 0%, transparent 30%),
+        linear-gradient(125deg, 
+          ${selectedVariant.marbleBase} 0%, 
+          transparent 25%, 
+          ${selectedVariant.marbleVeins} 50%, 
+          transparent 75%, 
+          ${selectedVariant.marbleHighlight} 100%
+        )
+      `,
+      backgroundSize: '100% 100%',
+      animation: 'marbleFlow 10s ease-in-out infinite',
+      filter: 'blur(2px)',
+    },
+
+    '&::after': {
       content: '""',
       position: 'absolute',
       top: 0,
-      right: 0,
-      width: '120px',
-      height: '120px',
-      background: 'rgba(255, 255, 255, 0.1)',
-      borderRadius: '50%',
-      transform: 'translate(30px, -30px)',
-    } : {},
+      left: '-100%',
+      width: '100%',
+      height: '100%',
+      background: isColoredVariant 
+        ? 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent)'
+        : 'linear-gradient(90deg, transparent, rgba(31, 100, 191, 0.1), transparent)',
+      transition: 'left 0.6s ease',
+      zIndex: 1, 
+      pointerEvents: 'none',
+    },
+
+    '&:hover': {
+      transform: 'translateY(-1px) scale(1.02)',
+      boxShadow: '0 4px 20px rgba(1, 3, 38, 0.08)',
+      '&::before': {
+        opacity: 1,
+      },
+      '&::after': {
+        left: '100%',
+      }
+    },
+
+    '&:active': {
+      transform: 'translateY(0)',
+      transition: 'transform 0.1s ease-out',
+    },
+
+    '& > *': {
+      position: 'relative',
+      zIndex: 2,
+    },
+
     [theme.breakpoints.down('lg')]: {
       padding: '24px',
       minHeight: '150px',
@@ -628,6 +770,23 @@ const AddressFilterChip = styled(Box)(({ theme, active }) => ({
   }
 }));
 
+// Selects originales sin efectos especiales
+const AddressStyledSelect = styled(Select)(({ theme }) => ({
+  borderRadius: '12px',
+  backgroundColor: '#F2F2F2',
+  transition: 'all 0.2s ease',
+  '& .MuiOutlinedInput-notchedOutline': {
+    border: 'none',
+  },
+  '& .MuiSelect-select': {
+    padding: '8px 12px',
+    fontSize: '0.875rem',
+    fontWeight: 500,
+    color: '#010326',
+    fontFamily: "'Mona Sans'",
+  }
+}));
+
 const AddressContentSection = styled(AddressUnifiedContainer)({
   marginBottom: '32px',
   position: 'relative',
@@ -688,10 +847,23 @@ const AddressViewToggleButton = styled(Button)(({ theme, active }) => ({
   background: active ? alpha('#1F64BF', 0.1) : '#F2F2F2',
   color: active ? '#1F64BF' : '#032CA6',
   border: `1px solid ${active ? alpha('#1F64BF', 0.2) : 'transparent'}`,
-  transition: 'all 0.2s ease',
+  transition: 'all 0.3s ease',
+  position: 'relative',
+  overflow: 'hidden',
+  '&::before': {
+    content: '""',
+    position: 'absolute',
+    top: 0,
+    left: '-100%',
+    width: '100%',
+    height: '100%',
+    background: 'linear-gradient(90deg, transparent, rgba(31, 100, 191, 0.1), transparent)',
+    transition: 'left 0.5s ease'
+  },
   '&:hover': {
     background: active ? alpha('#1F64BF', 0.15) : 'white',
     transform: 'translateY(-1px)',
+    '&::before': { left: '100%' }
   },
   [theme.breakpoints.down('sm')]: {
     flex: 1,
@@ -706,6 +878,12 @@ const AddressEmptyState = styled(AddressModernCard)(({ theme }) => ({
   background: 'white',
   border: `2px dashed ${alpha('#1F64BF', 0.2)}`,
   width: '100%',
+  transition: 'all 0.3s ease',
+  '&:hover': {
+    borderColor: alpha('#1F64BF', 0.4),
+    transform: 'translateY(-1px)',
+    boxShadow: '0 4px 20px rgba(1, 3, 38, 0.08)'
+  },
   [theme.breakpoints.down('lg')]: {
     padding: '80px 30px',
   },
@@ -755,7 +933,7 @@ const AddressEmptyStateTitle = styled(Typography)(({ theme }) => ({
 
 const AddressEmptyStateDescription = styled(Typography)(({ theme }) => ({
   fontSize: '1.1rem',
-  color: '#032CA6',
+  color: '#64748b',
   marginBottom: '36px',
   maxWidth: '450px',
   margin: '0 auto 36px',
@@ -781,6 +959,35 @@ const AddressLoadingContainer = styled(Box)({
   minHeight: '60vh',
   gap: '24px',
 });
+
+// Botón Limpiar con efecto shimmer
+const AddressClearButton = styled(Button)(({ theme }) => ({
+  textTransform: 'none',
+  borderRadius: '12px',
+  fontSize: '0.875rem',
+  fontWeight: 600,
+  color: '#032CA6',
+  backgroundColor: alpha('#032CA6', 0.1),
+  padding: '10px 16px',
+  minWidth: 'auto',
+  fontFamily: "'Mona Sans'",
+  position: 'relative',
+  overflow: 'hidden',
+  '&::before': {
+    content: '""',
+    position: 'absolute',
+    top: 0,
+    left: '-100%',
+    width: '100%',
+    height: '100%',
+    background: 'linear-gradient(90deg, transparent, rgba(3, 44, 166, 0.15), transparent)',
+    transition: 'left 0.5s ease'
+  },
+  '&:hover': {
+    backgroundColor: alpha('#032CA6', 0.15),
+    '&::before': { left: '100%' }
+  }
+}));
 
 // ================ COMPONENTE PRINCIPAL ================
 const AddressManagement = () => {
@@ -1253,7 +1460,22 @@ const AddressManagement = () => {
                   color: '#dc2626',
                   fontWeight: 600,
                   textTransform: 'none',
-                  fontFamily: "'Mona Sans'"
+                  fontFamily: "'Mona Sans'",
+                  position: 'relative',
+                  overflow: 'hidden',
+                  '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    top: 0,
+                    left: '-100%',
+                    width: '100%',
+                    height: '100%',
+                    background: 'linear-gradient(90deg, transparent, rgba(220, 38, 38, 0.1), transparent)',
+                    transition: 'left 0.5s ease'
+                  },
+                  '&:hover': {
+                    '&::before': { left: '100%' }
+                  }
                 }}
               >
                 Reintentar
@@ -1262,7 +1484,7 @@ const AddressManagement = () => {
           </AddressModernCard>
         )}
 
-        {/* Estadísticas */}
+        {/* Estadísticas con hover disminuido */}
         <AddressStatsContainer>
           <AddressStatsGrid>
             {stats.map((stat) => (
@@ -1291,7 +1513,7 @@ const AddressManagement = () => {
           </AddressStatsGrid>
         </AddressStatsContainer>
 
-        {/* Controles de búsqueda y filtros */}
+        {/* Controles de búsqueda y filtros - Selects originales */}
         <AddressControlsSection>
           <AddressControlsContent>
             <AddressSearchSection>
@@ -1314,49 +1536,25 @@ const AddressManagement = () => {
               <AddressFilterChip active={selectedStatus !== 'all'}>
                 <Funnel size={16} weight="bold" />
                 <FormControl size="small" sx={{ minWidth: 100 }}>
-                  <Select
+                  <AddressStyledSelect
                     value={selectedStatus}
                     onChange={(e) => setSelectedStatus(e.target.value)}
                     displayEmpty
-                    sx={{
-                      border: 'none',
-                      fontFamily: "'Mona Sans'",
-                      '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
-                      '& .MuiSelect-select': { 
-                        padding: 0,
-                        fontSize: '0.875rem',
-                        fontWeight: 500,
-                        color: '#010326',
-                        fontFamily: "'Mona Sans'",
-                      }
-                    }}
                   >
                     <MenuItem value="all">Todas</MenuItem>
                     <MenuItem value="active">Activas</MenuItem>
                     <MenuItem value="inactive">Inactivas</MenuItem>
-                  </Select>
+                  </AddressStyledSelect>
                 </FormControl>
               </AddressFilterChip>
 
               <AddressFilterChip active={selectedDepartment !== ''}>
                 <Compass size={16} weight="bold" />
                 <FormControl size="small" sx={{ minWidth: 120 }}>
-                  <Select
+                  <AddressStyledSelect
                     value={selectedDepartment}
                     onChange={(e) => setSelectedDepartment(e.target.value)}
                     displayEmpty
-                    sx={{
-                      border: 'none',
-                      fontFamily: "'Mona Sans'",
-                      '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
-                      '& .MuiSelect-select': { 
-                        padding: 0,
-                        fontSize: '0.875rem',
-                        fontWeight: 500,
-                        color: '#010326',
-                        fontFamily: "'Mona Sans'",
-                      }
-                    }}
                   >
                     <MenuItem value="">Departamentos</MenuItem>
                     {departmentOptions.map(department => (
@@ -1364,30 +1562,18 @@ const AddressManagement = () => {
                         {department}
                       </MenuItem>
                     ))}
-                  </Select>
+                  </AddressStyledSelect>
                 </FormControl>
               </AddressFilterChip>
 
               <AddressFilterChip active={selectedUser !== ''}>
                 <Users size={16} weight="bold" />
                 <FormControl size="small" sx={{ minWidth: 120 }}>
-                  <Select
+                  <AddressStyledSelect
                     value={selectedUser}
                     onChange={(e) => setSelectedUser(e.target.value)}
                     displayEmpty
                     disabled={loadingUsers}
-                    sx={{
-                      border: 'none',
-                      fontFamily: "'Mona Sans'",
-                      '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
-                      '& .MuiSelect-select': { 
-                        padding: 0,
-                        fontSize: '0.875rem',
-                        fontWeight: 500,
-                        color: '#010326',
-                        fontFamily: "'Mona Sans'",
-                      }
-                    }}
                   >
                     <MenuItem value="">
                       {loadingUsers ? 'Cargando...' : 'Usuarios'}
@@ -1397,59 +1583,33 @@ const AddressManagement = () => {
                         {user.name}
                       </MenuItem>
                     ))}
-                  </Select>
+                  </AddressStyledSelect>
                 </FormControl>
               </AddressFilterChip>
 
               <AddressFilterChip active={sortOption !== 'createdAt_desc'}>
                 <ChartLine size={16} weight="bold" />
-                <FormControl size="small" sx={{ minWidth: 100 }}>
-                  <Select
+                <FormControl size="small" sx={{ minWidth: 140 }}>
+                  <AddressStyledSelect
                     value={sortOption}
                     onChange={(e) => setSortOption(e.target.value)}
-                    sx={{
-                      border: 'none',
-                      fontFamily: "'Mona Sans'",
-                      '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
-                      '& .MuiSelect-select': { 
-                        padding: 0,
-                        fontSize: '0.875rem',
-                        fontWeight: 500,
-                        color: '#010326',
-                        fontFamily: "'Mona Sans'",
-                      }
-                    }}
                   >
                     <MenuItem value="createdAt_desc">Más recientes</MenuItem>
                     <MenuItem value="createdAt_asc">Más antiguas</MenuItem>
                     <MenuItem value="department_asc">Departamento A-Z</MenuItem>
                     <MenuItem value="department_desc">Departamento Z-A</MenuItem>
                     <MenuItem value="user_asc">Usuario A-Z</MenuItem>
-                  </Select>
+                  </AddressStyledSelect>
                 </FormControl>
               </AddressFilterChip>
 
               {(searchQuery || selectedDepartment || selectedUser || selectedStatus !== 'all' || sortOption !== 'createdAt_desc') && (
-                <Button
+                <AddressClearButton
                   onClick={handleClearFilters}
                   startIcon={<Broom size={16} weight="bold" />}
-                  sx={{
-                    textTransform: 'none',
-                    borderRadius: '8px',
-                    fontSize: '0.875rem',
-                    fontWeight: 600,
-                    color: '#032CA6',
-                    backgroundColor: alpha('#032CA6', 0.1),
-                    padding: '8px 12px',
-                    minWidth: 'auto',
-                    fontFamily: "'Mona Sans'",
-                    '&:hover': {
-                      backgroundColor: alpha('#032CA6', 0.15),
-                    }
-                  }}
                 >
                   Limpiar
-                </Button>
+                </AddressClearButton>
               )}
             </AddressFiltersSection>
           </AddressControlsContent>

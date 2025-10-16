@@ -66,6 +66,17 @@ const EmployeeCardAvatar = styled(Avatar)(({ theme }) => ({
   transition: 'all 0.3s ease',
   fontSize: '24px',
   fontWeight: '700',
+  // Optimización para URLs de Cloudinary
+  '& img': {
+    objectFit: 'cover',
+    objectPosition: 'center',
+    borderRadius: '50%',
+    width: '100%',
+    height: '100%',
+    // Optimización para Cloudinary
+    loading: 'lazy',
+    decoding: 'async',
+  },
   '&:hover': {
     transform: 'scale(1.02)',
     boxShadow: '0 4px 15px rgba(4, 13, 191, 0.25)',
@@ -354,6 +365,19 @@ const EmployeeCard = ({
     }
   };
 
+  // Función para optimizar URLs de Cloudinary
+  const getOptimizedImageUrl = (url) => {
+    if (!url) return null;
+    
+    // Si es una URL de Cloudinary, aplicar optimizaciones
+    if (url.includes('cloudinary.com')) {
+      // Aplicar transformaciones para optimización
+      return url.replace('/upload/', '/upload/w_200,h_200,c_fill,f_auto,q_auto/');
+    }
+    
+    return url;
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     const date = new Date(dateString);
@@ -382,7 +406,10 @@ const EmployeeCard = ({
       {/* Card Header */}
       <EmployeeCardHeader>
         <Box sx={{ position: 'relative' }}>
-          <EmployeeCardAvatar>
+          <EmployeeCardAvatar 
+            src={getOptimizedImageUrl(employee.profilePicture)}
+            alt={`Foto de perfil de ${employee.name}`}
+          >
             {employee.name.charAt(0).toUpperCase()}
           </EmployeeCardAvatar>
           <EmployeeCardStatusDot status={employee.status} />

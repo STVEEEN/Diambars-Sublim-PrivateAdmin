@@ -32,6 +32,13 @@ apiClient.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
     config.withCredentials = false;
+    
+    // Si es FormData, no establecer Content-Type manualmente
+    // El navegador lo establecerá automáticamente con el boundary correcto
+    if (config.data instanceof FormData) {
+      delete config.headers['Content-Type'];
+    }
+    
     return config;
   },
   (error) => {

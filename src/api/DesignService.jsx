@@ -15,7 +15,7 @@ const DesignService = {
     try {
       const {
         page = 1,
-        limit = 12,
+        limit = 10,
         status,      // 'pending', 'quoted', 'approved', 'rejected', 'draft'
         product,     // ID del producto
         user,        // ID del usuario/cliente
@@ -25,6 +25,7 @@ const DesignService = {
       } = params;
 
       console.log('🎨 [DesignService] Obteniendo diseños con params:', params);
+      console.log('🔍 [DesignService] Límite configurado:', limit);
 
       const queryParams = new URLSearchParams();
       queryParams.append('page', page.toString());
