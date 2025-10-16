@@ -20,7 +20,6 @@ import { useUnifiedCanvasCentering } from './hooks/useUnifiedCanvasCentering';
 
 // ==================== COMPONENTES ESPECIALIZADOS ====================
 import { EditorToolbar } from './components/Editor/EditorToolbar';  
-import { ShapeCreatorModal } from './components/Shapes/ShapeCreatorModal';
 import { testImageFlow } from './utils/imageTestUtils';
 import UnifiedPanel from './components/UnifiedPanel/UnifiedPanel';
 import AdvancedShapeCreatorModal from './components/ShapeCreator/ShapeCreatorModal';
@@ -175,7 +174,6 @@ const KonvaDesignEditor = ({
   }, [initialDesign?.productColorFilter]);
   
   // ==================== ESTADO DEL MODAL DE FORMAS ====================
-  const [showShapeModal, setShowShapeModal] = useState(false);
   const [showShapeCreatorModal, setShowShapeCreatorModal] = useState(false);
 
   // ==================== ESTADO DE FUENTES ====================
@@ -458,14 +456,6 @@ const KonvaDesignEditor = ({
 
   // ==================== MANEJADORES DEL MODAL DE FORMAS ====================
   
-  const handleOpenShapeModal = useCallback(() => {
-    setShowShapeModal(true);
-  }, []);
-
-  const handleCloseShapeModal = useCallback(() => {
-    setShowShapeModal(false);
-  }, []);
-
   // Manejadores del modal de creación de formas
   const handleOpenShapeCreatorModal = useCallback(() => {
     setShowShapeCreatorModal(true);
@@ -1010,8 +1000,8 @@ const KonvaDesignEditor = ({
         >
           <Stage
             ref={stageRef}
-            width={stageDimensions.width}
-            height={stageDimensions.height}
+            width={CANVAS_CONFIG.width}
+            height={CANVAS_CONFIG.height}
             scaleX={stageScale}
             scaleY={stageScale}
             x={stagePosition.x}
@@ -1022,13 +1012,17 @@ const KonvaDesignEditor = ({
             draggable
             pixelRatio={window.devicePixelRatio || 1}
             listening={true}
+            style={{
+              display: 'block',
+              margin: '0 auto' // ✅ CENTRADO AUTOMÁTICO DEL STAGE
+            }}
           >
             <Layer ref={layerRef}>
               {/* Grid de fondo */}
               {showGrid && (
                 <GridPattern
-                  width={stageDimensions.width}
-                  height={stageDimensions.height}
+                  width={CANVAS_CONFIG.width}
+                  height={CANVAS_CONFIG.height}
                   size={CANVAS_CONFIG.grid.size}
                   stroke={CANVAS_CONFIG.grid.color}
                   opacity={CANVAS_CONFIG.grid.opacity}
@@ -1036,23 +1030,82 @@ const KonvaDesignEditor = ({
                 />
               )}
 
-              {/* Imagen del producto con filtro de color - CORREGIDO para usar misma lógica que KonvaAreaEditor */}
+              {/* Imagen del producto con filtro de color - CORREGIDO para centrado perfecto */}
               {productImage && productImageLoaded && (() => {
-                // ✅ CORREGIDO: Usar la función compartida calculateScaledDimensions
-                const scaleX = stageDimensions.width / productImage.width;
-                const scaleY = stageDimensions.height / productImage.height;
+                // ✅ CORREGIDO: Calcular escala para que el producto quepa en el canvas
+                const scaleX = CANVAS_CONFIG.width / productImage.width;
+                const scaleY = CANVAS_CONFIG.height / productImage.height;
                 const scale = Math.min(scaleX, scaleY) * CANVAS_CONFIG.productScale;
-                const scaledDimensions = calculateScaledDimensions(productImage.width, productImage.height, scale);
+                
+                const scaledWidth = productImage.width * scale;
+                const scaledHeight = productImage.height * scale;
+                
+                // ✅ CORREGIDO: Centrado perfecto en el canvas (800x600)
+                // El centro del canvas es (400, 300), así que centramos el producto ahí
+                const centerX = (CANVAS_CONFIG.width - scaledWidth) / 2;
+                const centerY = (CANVAS_CONFIG.height - scaledHeight) / 2;
+                
+                // ✅ DEBUG: Verificar que el cálculo sea correcto
+                console.log('🔍 [DEBUG] Cálculo de centrado ANTES:', {
+                  canvasWidth: CANVAS_CONFIG.width,
+                  canvasHeight: CANVAS_CONFIG.height,
+                  scaledWidth: scaledWidth,
+                  scaledHeight: scaledHeight,
+                  centerX: centerX,
+                  centerY: centerY,
+                  expectedCenter: { x: 400, y: 300 }
+                });
+                
+                // ✅ CORREGIDO: El problema es que el producto se está posicionando mal
+                // Necesitamos centrarlo correctamente en el canvas
+                // El producto se posiciona desde su esquina superior izquierda,
+                // pero queremos que su CENTRO coincida con el centro del canvas
+                const finalCenterX = centerX;
+                const finalCenterY = centerY;
+                
+                console.log('🔍 [DEBUG] Cálculo de centrado DESPUÉS:', {
+                  finalCenterX: finalCenterX,
+                  finalCenterY: finalCenterY,
+                  productCenter: { 
+                    x: finalCenterX + scaledWidth/2, 
+                    y: finalCenterY + scaledHeight/2 
+                  },
+                  canvasCenter: { x: 400, y: 300 },
+                  isActuallyCentered: {
+                    x: Math.abs((finalCenterX + scaledWidth/2) - 400) < 1,
+                    y: Math.abs((finalCenterY + scaledHeight/2) - 300) < 1
+                  }
+                });
+                
+                console.log('🎯 [KonvaDesignEditor] Producto centrado perfecto:', {
+                  canvasCenter: { x: CANVAS_CONFIG.width / 2, y: CANVAS_CONFIG.height / 2 },
+                  canvasSize: { width: CANVAS_CONFIG.width, height: CANVAS_CONFIG.height },
+                  productOriginal: { width: productImage.width, height: productImage.height },
+                  productScaled: { width: scaledWidth, height: scaledHeight },
+                  productPosition: { x: centerX, y: centerY },
+                  scale: scale,
+                  // Verificar que esté centrado
+                  isCentered: {
+                    x: Math.abs(centerX + scaledWidth/2 - CANVAS_CONFIG.width/2) < 1,
+                    y: Math.abs(centerY + scaledHeight/2 - CANVAS_CONFIG.height/2) < 1
+                  },
+                  // Debug adicional
+                  stageInfo: {
+                    stageScale: stageScale,
+                    stagePosition: stagePosition,
+                    stageDimensions: stageDimensions
+                  }
+                });
                 
                 return (
                   <KonvaElementRenderer
                     element={{
                       id: 'product-background',
                       type: 'image',
-                      x: scaledDimensions.x,
-                      y: scaledDimensions.y,
-                      width: scaledDimensions.width,
-                      height: scaledDimensions.height,
+                      x: finalCenterX,
+                      y: finalCenterY,
+                      width: scaledWidth,
+                      height: scaledHeight,
                       imageUrl: product.images?.main,
                       image: productImage,
                       listening: false,
@@ -1159,19 +1212,12 @@ const KonvaDesignEditor = ({
         isDesktop={isDesktop}
       />
 
-      {/* Modal de Formas Personalizadas */}
-      <ShapeCreatorModal
-        isOpen={showShapeModal}
-        onClose={handleCloseShapeModal}
-        onAddShape={handleAddShapeFromCreator}
-        onAddCustomShape={(points) => handleAddShapeFromCreator('custom', { points })}
-      />
-
-      {/* Modal de Creación de Formas Avanzado */}
+      {/* Modal de Creación de Formas */}
       <AdvancedShapeCreatorModal
         isOpen={showShapeCreatorModal}
         onClose={handleCloseShapeCreatorModal}
         onAddShape={handleAddShapeFromCreator}
+        onAddCustomShape={(points) => handleAddShapeFromCreator('custom', { points })}
       />
 
 

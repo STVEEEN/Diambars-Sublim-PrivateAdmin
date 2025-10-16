@@ -43,8 +43,7 @@ import { GRADIENTS_3D, SHADOWS_3D, FIXED_COLORS, BORDERS, TRANSITIONS, Z_INDEX }
 const ResizableModal = styled(Dialog)(({ theme }) => ({
   zIndex: Z_INDEX.modal,
   '& .MuiDialog-paper': {
-    background: GRADIENTS_3D.glass,
-    backdropFilter: 'blur(20px)',
+    background: GRADIENTS_3D.modal,
     borderRadius: BORDERS.radius.large,
     border: `1px solid rgba(255,255,255,0.2)`,
     boxShadow: SHADOWS_3D.strong,

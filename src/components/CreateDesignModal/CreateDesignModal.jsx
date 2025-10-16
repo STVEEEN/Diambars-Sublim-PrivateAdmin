@@ -25,8 +25,11 @@ import {
   styled,
   alpha,
   useTheme,
+  useMediaQuery,
   Popper,
-  Fade
+  Fade,
+  Modal,
+  Backdrop
 } from '@mui/material';
 import {
   X,
@@ -222,114 +225,195 @@ const CustomPopper = styled(Popper)(({ theme }) => ({
   }
 }));
 
-// ================ ESTILOS MODERNOS ================
+// ================ ESTILOS GLOBALES PARA ANIMACIONES ================
+const GlobalStyles = () => (
+  <style>
+    {`
+    @keyframes flowMove {
+      0% {
+        opacity: 0.2;
+        transform: scale(1);
+      }
+      50% {
+        opacity: 0.4;
+        transform: scale(1.01);
+      }
+      100% {
+        opacity: 0.3;
+        transform: scale(1);
+      }
+    }
+
+    @keyframes shineMove {
+      0% {
+        left: -100%;
+      }
+      20% {
+        left: -100%;
+      }
+      80% {
+        left: 150%;
+      }
+      100% {
+        left: 150%;
+      }
+    }
+
+    @keyframes modalSlideIn {
+      0% {
+        opacity: 0;
+        transform: scale(0.98) translateY(10px);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }
+    `}
+  </style>
+);
+
+// ================ BACKDROP MODERNO ================
+const ModernModalBackdrop = styled(Backdrop)({
+  background: 'rgba(1, 3, 38, 0.2)',
+  backdropFilter: 'blur(8px)',
+  WebkitBackdropFilter: 'blur(8px)',
+});
+
+// ================ CONTAINER RESPONSIVE ================
+const ModernModalContainer = styled(Box)(({ theme }) => ({
+  position: 'fixed',
+  top: 0,
+  left: 0,
+  right: 0,
+  bottom: 0,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: '20px',
+  [theme.breakpoints.down('md')]: {
+    padding: '16px',
+    alignItems: 'flex-start',
+    paddingTop: '20px',
+  },
+  [theme.breakpoints.down('sm')]: {
+    padding: '0',
+    alignItems: 'stretch',
+  }
+}));
+
+// ================ DIALOG RESPONSIVE ================
 const StyledDialog = styled(Dialog)(({ theme }) => ({
-  zIndex: 1500, // Z-index alto para estar por encima del navbar
   '& .MuiDialog-paper': {
-    borderRadius: '40px', // Más redondeado
-    background: 'linear-gradient(135deg, #FFFFFF 0%, #FAFBFC 100%)',
-    boxShadow: '0 40px 80px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(255, 255, 255, 0.8)',
-    backdropFilter: 'blur(24px)',
-    border: 'none', // Quitado el borde blanco
-    maxWidth: '1400px',
-    width: '95vw',
-    maxHeight: '92vh',
-    margin: '24px',
+    borderRadius: '24px',
+    background: 'white',
+    border: `1px solid ${alpha('#1F64BF', 0.08)}`,
+    boxShadow: '0 4px 20px rgba(1, 3, 38, 0.08)',
+    maxWidth: '1200px',
+    width: '100%',
+    maxHeight: '90vh',
     overflow: 'hidden',
-    animation: 'modalSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-    zIndex: 1501, // Z-index alto en el paper
-  },
-  '& .MuiBackdrop-root': {
-    zIndex: 1499 // Backdrop con z-index alto
-  },
-  '@keyframes modalSlideIn': {
-    '0%': {
-      opacity: 0,
-      transform: 'scale(0.95) translateY(20px)',
+    position: 'relative',
+    fontFamily: "'Mona Sans'",
+    animation: 'modalSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+    [theme.breakpoints.down('lg')]: {
+      maxWidth: '1000px',
     },
-    '100%': {
-      opacity: 1,
-      transform: 'scale(1) translateY(0)',
+    [theme.breakpoints.down('md')]: {
+      maxWidth: '900px',
+      maxHeight: '85vh',
     },
+    [theme.breakpoints.down('sm')]: {
+      maxWidth: '100%',
+      maxHeight: '100vh',
+      borderRadius: '0',
+      margin: '0',
+    }
   },
 }));
 
+// ================ HEADER CON GLASSMORPHISM ANIMADO ================
 const ModalHeader = styled(DialogTitle)(({ theme }) => ({
-  background: 'linear-gradient(135deg, #1F64BF 0%, #032CA6 100%)',
-  color: 'white',
-  padding: '32px 40px',
-  margin: 0,
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
+  background: 'rgba(255, 255, 255, 0.05)',
+  backdropFilter: 'blur(25px)',
+  WebkitBackdropFilter: 'blur(25px)',
+  color: '#010326',
+  padding: '32px',
   position: 'relative',
-  borderRadius: '40px 40px 0 0', // Más redondeado
+  borderBottom: `2px solid rgba(31, 100, 191, 0.3)`,
+  borderRadius: '24px 24px 0 0',
+  border: '1px solid rgba(255, 255, 255, 0.3)',
+  boxShadow: `
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.1)
+  `,
   overflow: 'hidden',
-  border: 'none', // Quitado el borde blanco
+
+  // Efecto de borde superior brillante
   '&::before': {
     content: '""',
     position: 'absolute',
     top: 0,
+    left: 0,
     right: 0,
-    width: '200px',
-    height: '200px',
-    background: 'radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%)',
-    borderRadius: '50%',
-    transform: 'translate(50px, -50px)',
-    animation: 'float 6s ease-in-out infinite',
+    height: '1px',
+    background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8), transparent)',
+    zIndex: 1,
   },
+
+  // Efecto de borde lateral izquierdo
   '&::after': {
     content: '""',
     position: 'absolute',
-    bottom: 0,
+    top: 0,
     left: 0,
-    width: '150px',
-    height: '150px',
-    background: 'radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%)',
-    borderRadius: '50%',
-    transform: 'translate(-30px, 30px)',
-    animation: 'float 8s ease-in-out infinite reverse',
+    width: '1px',
+    height: '100%',
+    background: 'linear-gradient(180deg, rgba(255, 255, 255, 0.8), transparent, rgba(255, 255, 255, 0.3))',
+    zIndex: 1,
   },
-  '@keyframes float': {
-    '0%, 100%': {
-      transform: 'translate(50px, -50px) scale(1)',
-    },
-    '50%': {
-      transform: 'translate(60px, -40px) scale(1.1)',
-    },
+
+  [theme.breakpoints.down('md')]: {
+    padding: '28px',
   },
   [theme.breakpoints.down('sm')]: {
-    padding: '24px 32px',
+    padding: '24px',
+    borderRadius: '0',
   }
 }));
 
 const HeaderTitle = styled(Typography)(({ theme }) => ({
   fontSize: '1.75rem',
-  fontWeight: 800,
-  color: 'white',
+  fontWeight: 700,
+  margin: 0,
+  marginBottom: '8px',
+  fontFamily: "'Mona Sans'",
+  position: 'relative',
+  zIndex: 3,
   display: 'flex',
   alignItems: 'center',
-  gap: '16px',
-  zIndex: 2,
-  textShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-  letterSpacing: '-0.02em',
-  [theme.breakpoints.down('sm')]: {
+  gap: '12px',
+  color: '#010326',
+  [theme.breakpoints.down('md')]: {
     fontSize: '1.5rem',
+  },
+  [theme.breakpoints.down('sm')]: {
+    fontSize: '1.3rem',
   }
 }));
 
-const CloseButton = styled(IconButton)({
+const CloseButton = styled(IconButton)(({ theme }) => ({
+  position: 'absolute',
+  right: '24px',
+  top: '24px',
+  width: '40px',
+  height: '40px',
+  background: 'linear-gradient(135deg,rgb(239, 242, 255) 0%,rgb(239, 242, 255) 100%)',
   color: 'white',
-  background: 'rgba(255, 255, 255, 0.15)',
-  width: '52px',
-  height: '52px',
-  borderRadius: '18px',
-  backdropFilter: 'blur(20px)',
-  border: '1px solid rgba(255, 255, 255, 0.3)',
-  transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-  zIndex: 2,
-  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-  position: 'relative',
+  borderRadius: '12px',
+  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+  boxShadow: '0 1px 4px rgba(31, 100, 191, 0.1)',
+  zIndex: 10,
   overflow: 'hidden',
   '&::before': {
     content: '""',
@@ -340,74 +424,109 @@ const CloseButton = styled(IconButton)({
     height: '100%',
     background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent)',
     transition: 'left 0.6s ease',
+    zIndex: 1,
+  },
+  '& > *': {
+    position: 'relative',
+    zIndex: 2,
   },
   '&:hover': {
-    background: 'rgba(255, 255, 255, 0.25)',
-    transform: 'scale(1.1) translateY(-3px)',
-    boxShadow: '0 12px 24px rgba(0, 0, 0, 0.2)',
+    background: 'linear-gradient(135deg,rgb(180, 179, 247) 0%,rgb(188, 179, 247) 100%)',
+    transform: 'translateY(-1px)',
+    boxShadow: '0 2px 8px rgba(31, 100, 191, 0.2)',
     '&::before': {
       left: '100%',
     },
   },
   '&:active': {
-    transform: 'scale(0.95) translateY(-1px)',
+    transform: 'scale(0.95)',
   },
-});
+  [theme.breakpoints.down('md')]: {
+    right: '20px',
+    top: '20px',
+    width: '36px',
+    height: '36px',
+  },
+  [theme.breakpoints.down('sm')]: {
+    right: '16px',
+    top: '16px',
+    width: '32px',
+    height: '32px',
+  }
+}));
 
 const ModalContent = styled(DialogContent)(({ theme }) => ({
-  padding: '40px',
-  background: 'linear-gradient(135deg, #FAFBFC 0%, #F8F9FA 100%)',
-  borderRadius: '0 0 40px 40px', // Más redondeado
+  padding: 0,
+  maxHeight: 'calc(90vh - 180px)',
+  overflowY: 'auto',
   position: 'relative',
-  overflow: 'hidden',
+  background: 'transparent',
+  boxShadow: 'none',
+  border: 'none',
   display: 'flex',
   flexDirection: 'column',
   flex: '1',
-  minHeight: 0, // ✅ AÑADIDO: Permitir que el contenido se colapse
-  '&::before': {
-    content: '""',
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: '1px',
-    background: 'linear-gradient(90deg, transparent 0%, rgba(31, 100, 191, 0.3) 50%, transparent 100%)',
+  minHeight: 0,
+
+  '&::-webkit-scrollbar': {
+    width: '6px',
+  },
+  '&::-webkit-scrollbar-track': {
+    background: alpha('#1F64BF', 0.05),
+    borderRadius: '3px',
+  },
+  '&::-webkit-scrollbar-thumb': {
+    background: alpha('#1F64BF', 0.2),
+    borderRadius: '3px',
+    '&:hover': {
+      background: alpha('#1F64BF', 0.3),
+    }
+  },
+  [theme.breakpoints.down('md')]: {
+    maxHeight: 'calc(85vh - 160px)',
   },
   [theme.breakpoints.down('sm')]: {
-    padding: '32px 24px',
+    maxHeight: 'calc(100vh - 140px)',
   }
 }));
 
 const StepperContainer = styled(Box)(({ theme }) => ({
-  marginBottom: '40px',
   padding: '24px',
-  background: 'rgba(255, 255, 255, 0.8)',
-  borderRadius: '20px',
-  backdropFilter: 'blur(10px)',
-  border: '1px solid rgba(255, 255, 255, 0.2)',
-  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.04)',
+  background: 'rgba(255, 255, 255, 0.1)',
+  backdropFilter: 'blur(15px)',
+  WebkitBackdropFilter: 'blur(15px)',
+  borderRadius: 0,
+  border: 'none',
+  borderBottom: '1px solid rgba(31, 100, 191, 0.1)',
+  boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.3)',
+  position: 'relative',
+  overflow: 'hidden',
+  '& > *': {
+    position: 'relative',
+    zIndex: 1,
+  },
   '& .MuiStep-root': {
     '& .MuiStepLabel-root': {
       '& .MuiStepLabel-label': {
         fontSize: '0.9rem',
-        fontWeight: 700,
-        color: '#1F64BF',
+        fontWeight: 600,
+        color: '#010326',
         letterSpacing: '-0.01em',
-        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+        fontFamily: "'Mona Sans'",
         '&.Mui-active': {
           color: '#1F64BF',
-          fontWeight: 800,
-          transform: 'scale(1.02)',
+          fontWeight: 700,
+          transform: 'scale(1.01)',
         },
         '&.Mui-completed': {
-          color: '#040DBF',
-          fontWeight: 700,
+          color: '#032CA6',
+          fontWeight: 600,
         }
       }
     }
   },
   [theme.breakpoints.down('sm')]: {
-    marginBottom: '32px',
     padding: '20px',
     '& .MuiStepLabel-label': {
       fontSize: '0.8rem !important'
@@ -415,120 +534,156 @@ const StepperContainer = styled(Box)(({ theme }) => ({
   }
 }));
 
-const StepContent = styled(Box)({
-  minHeight: '400px',
-  maxHeight: '500px',
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '32px',
+const StepContent = styled(Box)(({ theme }) => ({
   padding: '24px',
-  background: 'rgba(255, 255, 255, 0.6)',
-  borderRadius: '20px',
-  backdropFilter: 'blur(10px)',
-  border: '1px solid rgba(255, 255, 255, 0.3)',
-  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.02)',
-  overflowY: 'auto',
-  overflowX: 'hidden',
-  flex: '1',
-  // ✅ MEJORADO: Scrollbar personalizado más robusto
-  '&::-webkit-scrollbar': {
-    width: '8px',
-  },
-  '&::-webkit-scrollbar-track': {
-    background: 'rgba(0, 0, 0, 0.05)',
-    borderRadius: '4px',
-  },
-  '&::-webkit-scrollbar-thumb': {
-    background: 'rgba(31, 100, 191, 0.4)',
-    borderRadius: '4px',
-    '&:hover': {
-      background: 'rgba(31, 100, 191, 0.6)',
-    },
-  },
-  // ✅ MEJORADO: Scroll suave
-  scrollBehavior: 'smooth',
-  // ✅ MEJORADO: Mejor rendimiento
-  willChange: 'scroll-position',
-  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-  '&:hover': {
-    boxShadow: '0 8px 30px rgba(0, 0, 0, 0.04)',
-  },
-});
-
-const SectionCard = styled(Paper)(({ theme }) => ({
-  padding: '32px',
-  borderRadius: '24px',
-  border: '1px solid rgba(31, 100, 191, 0.1)',
-  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(242, 242, 242, 0.9) 100%)',
-  boxShadow: '0 8px 32px rgba(31, 100, 191, 0.08)',
-  backdropFilter: 'blur(20px)',
-  transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+  background: 'rgba(255, 255, 255, 0.05)',
+  backdropFilter: 'blur(15px)',
+  WebkitBackdropFilter: 'blur(15px)',
+  borderRadius: 0,
+  border: 'none',
   position: 'relative',
   overflow: 'hidden',
+  flex: '1',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '24px',
+  // ✅ AGREGAR SCROLL PARA CONTENIDO LARGO
+  maxHeight: '500px',
+  overflowY: 'auto',
+  overflowX: 'hidden',
+  // Mejorar la experiencia de scroll
+  scrollBehavior: 'smooth',
+  '& > *': {
+    position: 'relative',
+    zIndex: 1,
+  },
+  '&::-webkit-scrollbar': {
+    width: '6px',
+  },
+  '&::-webkit-scrollbar-track': {
+    background: alpha('#1F64BF', 0.05),
+    borderRadius: '3px',
+  },
+  '&::-webkit-scrollbar-thumb': {
+    background: alpha('#1F64BF', 0.2),
+    borderRadius: '3px',
+    '&:hover': {
+      background: alpha('#1F64BF', 0.3),
+    }
+  },
+  [theme.breakpoints.down('sm')]: {
+    padding: '20px',
+  }
+}));
+
+const SectionCard = styled(Paper)(({ theme }) => ({
+  padding: '24px',
+  borderRadius: '16px',
+  border: '1px solid rgba(255, 255, 255, 0.3)',
+  background: 'rgba(255, 255, 255, 0.4)',
+  backdropFilter: 'blur(10px)',
+  WebkitBackdropFilter: 'blur(10px)',
+  boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 1px 4px rgba(1, 3, 38, 0.02)',
+  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+  position: 'relative',
+  // ✅ AGREGAR SCROLL PARA CONTENIDO LARGO
+  maxHeight: '400px',
+  overflowY: 'auto',
+  overflowX: 'hidden',
   '&::before': {
     content: '""',
     position: 'absolute',
     top: 0,
-    left: 0,
-    right: 0,
-    height: '2px',
-    background: 'linear-gradient(90deg, #1F64BF 0%, #040DBF 100%)',
-    opacity: 0,
-    transition: 'opacity 0.3s ease',
+    left: '-100%',
+    width: '100%',
+    height: '100%',
+    background: 'linear-gradient(90deg, transparent, rgba(31, 100, 191, 0.08), transparent)',
+    transition: 'left 0.5s ease',
+    zIndex: 1,
   },
   '&:hover': {
-    boxShadow: '0 16px 48px rgba(31, 100, 191, 0.15)',
-    transform: 'translateY(-4px) scale(1.01)',
+    background: 'rgba(255, 255, 255, 0.6)',
+    borderColor: 'rgba(31, 100, 191, 0.2)',
+    boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 2px 8px rgba(31, 100, 191, 0.1)',
+    transform: 'translateY(-1px)',
     '&::before': {
-      opacity: 1,
-    },
+      left: '100%',
+    }
   },
+  // ✅ SCROLLBAR PERSONALIZADO PARA SECTIONCARD
+  '&::-webkit-scrollbar': {
+    width: '6px',
+  },
+  '&::-webkit-scrollbar-track': {
+    background: alpha('#1F64BF', 0.05),
+    borderRadius: '3px',
+  },
+  '&::-webkit-scrollbar-thumb': {
+    background: alpha('#1F64BF', 0.2),
+    borderRadius: '3px',
+    '&:hover': {
+      background: alpha('#1F64BF', 0.3),
+    }
+  },
+  scrollBehavior: 'smooth',
   [theme.breakpoints.down('sm')]: {
-    padding: '24px',
+    padding: '20px',
+    maxHeight: '350px', // ✅ ALTURA REDUCIDA EN MÓVIL
   }
 }));
 
-const SectionTitle = styled(Typography)({
-  fontSize: '1.25rem',
-  fontWeight: 800,
-  color: '#1F64BF',
-  marginBottom: '24px',
+const SectionTitle = styled(Typography)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
-  gap: '12px',
-  letterSpacing: '-0.02em',
-  textShadow: '0 2px 4px rgba(31, 100, 191, 0.1)',
+  gap: '10px',
+  fontSize: '1.1rem',
+  fontWeight: 600,
+  color: '#010326',
+  margin: 0,
+  marginBottom: '20px',
+  paddingBottom: '12px',
+  borderBottom: '1px solid rgba(31, 100, 191, 0.15)',
+  fontFamily: "'Mona Sans'",
   position: 'relative',
+
+  // Efecto de gradiente en el borde inferior
   '&::after': {
     content: '""',
     position: 'absolute',
-    bottom: '-8px',
+    bottom: '-1px',
     left: 0,
-    width: '40px',
-    height: '3px',
-    background: 'linear-gradient(90deg, #1F64BF 0%, #040DBF 100%)',
+    width: '60px',
+    height: '2px',
+    background: 'linear-gradient(90deg, #1F64BF, #032CA6)',
     borderRadius: '2px',
+    boxShadow: '0 0 4px rgba(31, 100, 191, 0.3)',
   },
-});
+
+  [theme.breakpoints.down('sm')]: {
+    fontSize: '1rem',
+  }
+}));
 
 const ModernTextField = styled(TextField)(({ theme }) => ({
   '& .MuiOutlinedInput-root': {
-    borderRadius: '16px',
-    background: 'rgba(255, 255, 255, 0.8)',
+    borderRadius: '12px',
+    backgroundColor: 'rgba(255, 255, 255, 0.4)',
     backdropFilter: 'blur(10px)',
-    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-    border: '1px solid rgba(31, 100, 191, 0.1)',
-    paddingTop: '16px', // Espacio adicional para evitar solapamiento
+    WebkitBackdropFilter: 'blur(10px)',
+    border: '1px solid rgba(255, 255, 255, 0.3)',
+    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+    boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 1px 2px rgba(1, 3, 38, 0.03)',
     '&:hover': {
-      background: 'rgba(255, 255, 255, 0.95)',
-      borderColor: 'rgba(31, 100, 191, 0.3)',
+      backgroundColor: 'rgba(255, 255, 255, 0.6)',
+      boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 1px 4px rgba(1, 3, 38, 0.05)',
       transform: 'translateY(-1px)',
-      boxShadow: '0 4px 12px rgba(31, 100, 191, 0.1)',
+      border: '1px solid rgba(31, 100, 191, 0.2)',
     },
     '&.Mui-focused': {
-      background: 'rgba(255, 255, 255, 1)',
-      boxShadow: '0 0 0 4px rgba(31, 100, 191, 0.15)',
-      transform: 'translateY(-2px)',
+      backgroundColor: 'rgba(255, 255, 255, 0.7)',
+      boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 2px 8px rgba(31, 100, 191, 0.08)',
+      transform: 'translateY(-1px)',
+      border: '1px solid rgba(31, 100, 191, 0.3)',
     },
     '& fieldset': {
       border: 'none',
@@ -538,9 +693,9 @@ const ModernTextField = styled(TextField)(({ theme }) => ({
     }
   },
   '& .MuiInputLabel-root': {
-    color: '#1F64BF',
-    fontWeight: 600,
-    marginTop: '8px', // Espacio adicional para evitar solapamiento
+    color: '#010326',
+    fontWeight: 500,
+    fontFamily: "'Mona Sans'",
     '&.Mui-focused': {
       color: '#1F64BF',
     },
@@ -800,16 +955,18 @@ const DesignPreviewCard = styled(SectionCard)(({ theme }) => ({
 }));
 
 const ActionButton = styled(Button)(({ variant: buttonVariant, theme }) => ({
-  borderRadius: '16px',
-  padding: '14px 28px',
-  fontSize: '0.9rem',
-  fontWeight: 700,
+  borderRadius: '12px',
+  padding: '12px 24px',
+  fontSize: '0.875rem',
+  fontWeight: 600,
   textTransform: 'none',
-  minWidth: '140px',
+  fontFamily: "'Mona Sans'",
+  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
   position: 'relative',
   overflow: 'hidden',
-  transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-  backdropFilter: 'blur(10px)',
+  minWidth: '140px',
+  
+  // Efecto de brillo animado
   '&::before': {
     content: '""',
     position: 'absolute',
@@ -817,51 +974,84 @@ const ActionButton = styled(Button)(({ variant: buttonVariant, theme }) => ({
     left: '-100%',
     width: '100%',
     height: '100%',
-    background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent)',
-    transition: 'left 0.6s ease',
+    background: buttonVariant === 'contained' 
+      ? 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent)'
+      : 'linear-gradient(90deg, transparent, rgba(31, 100, 191, 0.15), transparent)',
+    transition: 'left 0.5s ease',
+    zIndex: 1,
   },
-  '&:hover::before': {
-    left: '100%',
+
+  '& > *': {
+    position: 'relative',
+    zIndex: 2,
   },
+
   ...(buttonVariant === 'contained' ? {
-    background: 'linear-gradient(135deg, #1F64BF 0%, #032CA6 100%)',
-    color: 'white',
-    boxShadow: '0 8px 32px rgba(31, 100, 191, 0.3)',
-    border: '1px solid rgba(255, 255, 255, 0.2)',
+    background: 'linear-gradient(135deg, #1F64BF 0%, #032CA6 50%, #040DBF 100%)',
+    color: '#ffffff',
+    boxShadow: '0 2px 8px rgba(31, 100, 191, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
+    border: '1px solid rgba(255, 255, 255, 0.25)',
     '&:hover': {
-      background: 'linear-gradient(135deg, #032CA6 0%, #040DBF 100%)',
-      boxShadow: '0 12px 40px rgba(31, 100, 191, 0.4)',
-      transform: 'translateY(-3px) scale(1.02)',
+      background: 'linear-gradient(135deg, #032CA6 0%, #1F64BF 50%, #032CA6 100%)',
+      boxShadow: '0 3px 12px rgba(31, 100, 191, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.3)',
+      transform: 'translateY(-1px)',
+      '&::before': {
+        left: '100%',
+      }
     },
     '&:active': {
-      transform: 'translateY(-1px) scale(0.98)',
-    },
+      transform: 'translateY(0)',
+      boxShadow: '0 1px 4px rgba(31, 100, 191, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
+    }
   } : {
-    border: '2px solid #1F64BF',
-    color: '#1F64BF',
-    background: 'rgba(255, 255, 255, 0.8)',
-    backdropFilter: 'blur(20px)',
+    background: 'rgba(255, 255, 255, 0.15)',
+    backdropFilter: 'blur(15px)',
+    WebkitBackdropFilter: 'blur(15px)',
+    color: '#64748b',
+    border: '1px solid rgba(255, 255, 255, 0.4)',
+    boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 1px 4px rgba(1, 3, 38, 0.03)',
     '&:hover': {
-      background: 'rgba(31, 100, 191, 0.1)',
-      borderColor: '#032CA6',
+      background: 'rgba(31, 100, 191, 0.12)',
       color: '#032CA6',
-      transform: 'translateY(-2px) scale(1.02)',
-      boxShadow: '0 8px 24px rgba(31, 100, 191, 0.2)',
+      borderColor: 'rgba(31, 100, 191, 0.3)',
+      boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 2px 8px rgba(31, 100, 191, 0.1)',
+      transform: 'translateY(-1px)',
+      '&::before': {
+        left: '100%',
+      }
     },
     '&:active': {
-      transform: 'translateY(0) scale(0.98)',
-    },
-  })
+      transform: 'translateY(0)',
+      boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 1px 2px rgba(1, 3, 38, 0.03)',
+    }
+  }),
+
+  '&:disabled': {
+    opacity: 0.5,
+    transform: 'none',
+    cursor: 'not-allowed',
+    '&::before': {
+      display: 'none',
+    }
+  },
+
+  [theme.breakpoints.down('sm')]: {
+    minWidth: '120px',
+    justifyContent: 'center',
+    width: '100%',
+  }
 }));
 
-const CrystalIconButton = styled(IconButton)({
-  background: 'rgba(31, 100, 191, 0.1)',
+const CrystalIconButton = styled(IconButton)(({ theme }) => ({
+  background: 'rgba(255, 255, 255, 0.4)',
   backdropFilter: 'blur(10px)',
-  border: '1px solid rgba(31, 100, 191, 0.2)',
+  WebkitBackdropFilter: 'blur(10px)',
+  border: '1px solid rgba(255, 255, 255, 0.3)',
   borderRadius: '12px',
-  transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
   position: 'relative',
   overflow: 'hidden',
+  boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 1px 2px rgba(1, 3, 38, 0.03)',
   '&::before': {
     content: '""',
     position: 'absolute',
@@ -869,33 +1059,80 @@ const CrystalIconButton = styled(IconButton)({
     left: '-100%',
     width: '100%',
     height: '100%',
-    background: 'linear-gradient(90deg, transparent, rgba(31, 100, 191, 0.2), transparent)',
+    background: 'linear-gradient(90deg, transparent, rgba(31, 100, 191, 0.15), transparent)',
     transition: 'left 0.5s ease',
+    zIndex: 1,
+  },
+  '& > *': {
+    position: 'relative',
+    zIndex: 2,
   },
   '&:hover': {
-    background: 'rgba(31, 100, 191, 0.2)',
-    transform: 'translateY(-2px) scale(1.05)',
-    boxShadow: '0 8px 20px rgba(31, 100, 191, 0.3)',
+    background: 'rgba(31, 100, 191, 0.12)',
+    borderColor: 'rgba(31, 100, 191, 0.3)',
+    boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 2px 8px rgba(31, 100, 191, 0.1)',
+    transform: 'translateY(-1px)',
     '&::before': {
       left: '100%',
     },
   },
   '&:active': {
-    transform: 'translateY(0) scale(0.95)',
+    transform: 'scale(0.95)',
   },
-});
+}));
 
 const ModalActions = styled(DialogActions)(({ theme }) => ({
-  padding: '24px 32px',
-  background: alpha('#1F64BF', 0.02),
-  borderTop: `1px solid ${alpha('#1F64BF', 0.08)}`,
+  display: 'flex',
   gap: '12px',
+  justifyContent: 'flex-end',
+  padding: '16px 32px 20px 32px', // ✅ REDUCIR PADDING SUPERIOR, MANTENER INFERIOR
+  background: 'rgba(255, 255, 255, 0.05)',
+  position: 'relative',
+  borderTop: '2px solid rgba(31, 100, 191, 0.3)',
+  borderRadius: '0 0 24px 24px',
+  border: '1px solid rgba(255, 255, 255, 0.3)',
+  boxShadow: `
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.1)
+  `,
+  overflow: 'hidden',
+
+  '&::before': {
+    content: '""',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: '1px',
+    background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8), transparent)',
+    zIndex: 1,
+  },
+
+  '&::after': {
+    content: '""',
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    width: '1px',
+    height: '100%',
+    background: 'linear-gradient(180deg, rgba(255, 255, 255, 0.8), transparent, rgba(255, 255, 255, 0.3))',
+    zIndex: 1,
+  },
+
+  '& > *': {
+    position: 'relative',
+    zIndex: 3,
+  },
+
+  [theme.breakpoints.down('md')]: {
+    padding: '16px 28px 20px 28px', // ✅ CONSISTENTE CON EL PADDING PRINCIPAL
+    borderRadius: '0 0 16px 16px',
+  },
   [theme.breakpoints.down('sm')]: {
-    padding: '20px 24px',
-    flexDirection: 'column-reverse',
-    '& > *': {
-      width: '100%'
-    }
+    flexDirection: 'column',
+    padding: '16px 24px 20px 24px', // ✅ CONSISTENTE CON EL PADDING PRINCIPAL
+    gap: '10px',
+    borderRadius: '0',
   }
 }));
 
@@ -908,6 +1145,46 @@ const ElementSummary = styled(Box)(({ theme }) => ({
   alignItems: 'center',
   gap: '12px'
 }));
+
+// ================ COMPONENTE DEL HEADER CON EFECTOS ANIMADOS ================
+const AnimatedModalHeader = ({ children, ...props }) => {
+  return (
+    <ModalHeader {...props}>
+      {/* Efecto de glow animado */}
+      <div style={{
+        position: 'absolute',
+        top: '-3px',
+        left: '-3px',
+        right: '-3px',
+        bottom: '-3px',
+        background: 'linear-gradient(135deg, rgba(31, 100, 191, 0.3), rgba(3, 44, 166, 0.2), rgba(4, 13, 191, 0.3), rgba(1, 3, 38, 0.2))',
+        borderRadius: '27px',
+        opacity: 0.3,
+        zIndex: -1,
+        animation: 'flowMove 3s ease-in-out infinite alternate',
+        filter: 'blur(6px)',
+        pointerEvents: 'none'
+      }} />
+
+      {/* Efecto de brillo animado */}
+      <div style={{
+        position: 'absolute',
+        top: 0,
+        left: '-100%',
+        width: '50%',
+        height: '100%',
+        background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent)',
+        transform: 'skewX(-15deg)',
+        animation: 'shineMove 4s ease-in-out infinite',
+        zIndex: 1,
+        pointerEvents: 'none'
+      }} />
+
+      {/* Contenido del header */}
+      {children}
+    </ModalHeader>
+  );
+};
 
 // ================ COMPONENTE PRINCIPAL ================
 const CreateDesignModal = ({
@@ -922,6 +1199,11 @@ const CreateDesignModal = ({
   loadingUsers = false
 }) => {
   const theme = useTheme();
+  
+  // ==================== RESPONSIVE HOOKS ====================
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isTablet = useMediaQuery(theme.breakpoints.down('md'));
+  const isSmallScreen = isMobile || isTablet;
   
   // ==================== ESTADOS ====================
   const [activeStep, setActiveStep] = useState(0);
@@ -975,6 +1257,36 @@ const CreateDesignModal = ({
       document.head.removeChild(style);
     };
   }, []);
+
+  // Efecto para bloquear el scroll del body cuando el modal está abierto
+  useEffect(() => {
+    if (isOpen) {
+      // Guardar la posición actual del scroll
+      const scrollY = window.scrollY;
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+      document.body.style.overflow = 'hidden';
+    } else {
+      // Restaurar el scroll
+      const scrollY = document.body.style.top;
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      document.body.style.overflow = '';
+      if (scrollY) {
+        window.scrollTo(0, parseInt(scrollY || '0') * -1);
+      }
+    }
+
+    return () => {
+      // Cleanup en caso de que el componente se desmonte
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
 
   useEffect(() => {
     if (editMode && designToEdit) {
@@ -1688,8 +2000,222 @@ const CreateDesignModal = ({
   };
 
   // ==================== RENDER PRINCIPAL ====================
+  // Para pantallas pequeñas, renderizar como página completa
+  if (isSmallScreen) {
+    return (
+      <>
+        <GlobalStyles />
+        <Modal
+          open={isOpen}
+          onClose={handleClose}
+          closeAfterTransition
+          BackdropComponent={ModernModalBackdrop}
+        >
+          <ModernModalContainer>
+            <Box
+              sx={{
+                width: '100%',
+                height: '100%',
+                background: 'white',
+                display: 'flex',
+                flexDirection: 'column',
+                position: 'relative',
+                fontFamily: "'Mona Sans'",
+                animation: 'modalSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+              }}
+            >
+              {/* Efecto de glow animado para todo el modal */}
+              <div style={{
+                position: 'absolute',
+                top: '-3px',
+                left: '-3px',
+                right: '-3px',
+                bottom: '-3px',
+                background: 'linear-gradient(135deg, rgba(31, 100, 191, 0.3), rgba(3, 44, 166, 0.2), rgba(4, 13, 191, 0.3), rgba(1, 3, 38, 0.2))',
+                borderRadius: '23px',
+                opacity: 0.3,
+                zIndex: -1,
+                animation: 'flowMove 3s ease-in-out infinite alternate',
+                filter: 'blur(6px)',
+              }} />
+              
+              {/* Efecto de brillo interior animado para todo el modal */}
+              <div style={{
+                position: 'absolute',
+                top: 0,
+                left: '-100%',
+                width: '50%',
+                height: '100%',
+                background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent)',
+                transform: 'skewX(-15deg)',
+                animation: 'shineMove 4s ease-in-out infinite',
+                zIndex: 1,
+                pointerEvents: 'none',
+              }} />
+
+              {/* HEADER MEJORADO CON GLASSMORPHISM ANIMADO */}
+              <AnimatedModalHeader>
+                <CloseButton
+                  onClick={handleClose}
+                  disabled={loading}
+                  aria-label="Cerrar modal"
+                >
+                  <X size={18} weight="bold" color="#000000" />
+                </CloseButton>
+                
+                <HeaderTitle>
+                  <Palette size={28} weight="duotone" />
+                  {editMode ? 'Editar Diseño' : 'Crear Nuevo Diseño'}
+                </HeaderTitle>
+                <Typography variant="body1" sx={{ 
+                  fontSize: '1rem',
+                  opacity: 0.7,
+                  margin: 0,
+                  fontFamily: "'Mona Sans'",
+                  position: 'relative',
+                  zIndex: 3,
+                  color: '#032CA6',
+                }}>
+                  {editMode ? 'Modifica los elementos del diseño existente' : 'Crea un nuevo diseño personalizado paso a paso'}
+                </Typography>
+              </AnimatedModalHeader>
+
+              <ModalContent>
+                <StepperContainer>
+                  <Stepper activeStep={activeStep} orientation={isMobile ? "vertical" : "horizontal"}>
+                    {steps.map((step, index) => (
+                      <Step key={step.label}>
+                        <StepLabel
+                          icon={<step.icon size={20} weight={index <= activeStep ? "fill" : "regular"} />}
+                        >
+                          <Box sx={{ textAlign: isMobile ? 'left' : 'center' }}>
+                            <Typography variant="body2" fontWeight={600}>
+                              {step.label}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {step.description}
+                            </Typography>
+                          </Box>
+                        </StepLabel>
+                      </Step>
+                    ))}
+                  </Stepper>
+                </StepperContainer>
+
+                <StepContent>
+                  {renderStepContent()}
+                </StepContent>
+              </ModalContent>
+
+              <ModalActions>
+                {/* Efecto de glow animado */}
+                <div style={{
+                  position: 'absolute',
+                  top: '-3px',
+                  left: '-3px',
+                  right: '-3px',
+                  bottom: '-3px',
+                  background: 'linear-gradient(135deg, rgba(31, 100, 191, 0.3), rgba(3, 44, 166, 0.2), rgba(4, 13, 191, 0.3), rgba(1, 3, 38, 0.2))',
+                  borderRadius: '0 0 23px 23px',
+                  opacity: 0.3,
+                  zIndex: -1,
+                  animation: 'flowMove 3s ease-in-out infinite alternate',
+                  filter: 'blur(6px)',
+                }} />
+                
+                {/* Efecto de brillo animado */}
+                <div style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: '-100%',
+                  width: '50%',
+                  height: '100%',
+                  background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent)',
+                  transform: 'skewX(-15deg)',
+                  animation: 'shineMove 4s ease-in-out infinite',
+                  zIndex: 1,
+                }} />
+
+                <ActionButton
+                  variant="outlined"
+                  onClick={handleClose}
+                  disabled={loading}
+                >
+                  Cancelar
+                </ActionButton>
+
+                <Box sx={{ display: 'flex', gap: '12px', width: isMobile ? '100%' : 'auto' }}>
+                  {activeStep > 0 && (
+                    <ActionButton
+                      variant="outlined"
+                      onClick={handleBack}
+                      disabled={loading}
+                      startIcon={<ArrowLeft size={16} weight="bold" />}
+                    >
+                      Anterior
+                    </ActionButton>
+                  )}
+
+                  {isLastStep ? (
+                    <ActionButton
+                      variant="contained"
+                      onClick={handleSubmit}
+                      disabled={loading || !canProceed || !hasDesignElements}
+                      startIcon={loading ? <CircularProgress size={16} color="inherit" /> : <CheckCircle size={16} weight="bold" />}
+                    >
+                      {loading ? 'Creando...' : (editMode ? 'Actualizar Diseño' : 'Crear Diseño')}
+                    </ActionButton>
+                  ) : (
+                    <ActionButton
+                      variant="contained"
+                      onClick={handleNext}
+                      disabled={loading}
+                      endIcon={<ArrowRight size={16} weight="bold" />}
+                    >
+                      Siguiente
+                    </ActionButton>
+                  )}
+                </Box>
+              </ModalActions>
+            </Box>
+          </ModernModalContainer>
+        </Modal>
+
+        {/* ✅ EDITOR: Solo para edición */}
+        {isEditorOpen && selectedProduct && (
+          <>
+            <KonvaDesignEditor
+              isOpen={isEditorOpen}
+              onClose={handleCloseEditor}
+              product={selectedProduct}
+              initialDesign={(() => {
+                const savedData = getCurrentCanvasData();
+                const fallbackData = { elements: designElements };
+                return savedData || fallbackData;
+              })()}
+              onSave={handleSaveDesign}
+              onBack={handleCloseEditor}
+            />
+          </>
+        )}
+
+        {/* ✅ VISTA PREVIA: Usar KonvaDesignViewer para vista previa */}
+        {isPreviewOpen && selectedProduct && previewDesign && (
+          <KonvaDesignViewer
+            isOpen={isPreviewOpen}
+            onClose={handleClosePreview}
+            design={previewDesign}
+            product={selectedProduct}
+          />
+        )}
+      </>
+    );
+  }
+
+  // Para pantallas grandes, renderizar como modal tradicional
   return (
     <>
+      <GlobalStyles />
       <StyledDialog
         open={isOpen}
         onClose={handleClose}
@@ -1697,18 +2223,64 @@ const CreateDesignModal = ({
         fullWidth
         disableEnforceFocus
         disableAutoFocus
-        disableScrollLock={false}
+        disableScrollLock={true}
         keepMounted={false}
       >
-        <ModalHeader>
+        {/* Efecto de glow animado para todo el modal */}
+        <div style={{
+          position: 'absolute',
+          top: '-3px',
+          left: '-3px',
+          right: '-3px',
+          bottom: '-3px',
+          background: 'linear-gradient(135deg, rgba(31, 100, 191, 0.3), rgba(3, 44, 166, 0.2), rgba(4, 13, 191, 0.3), rgba(1, 3, 38, 0.2))',
+          borderRadius: '27px',
+          opacity: 0.3,
+          zIndex: -1,
+          animation: 'flowMove 3s ease-in-out infinite alternate',
+          filter: 'blur(6px)',
+        }} />
+        
+        {/* Efecto de brillo interior animado para todo el modal */}
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: '-100%',
+          width: '50%',
+          height: '100%',
+          background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent)',
+          transform: 'skewX(-15deg)',
+          animation: 'shineMove 4s ease-in-out infinite',
+          zIndex: 1,
+          pointerEvents: 'none',
+        }} />
+
+        {/* HEADER MEJORADO CON GLASSMORPHISM ANIMADO */}
+        <AnimatedModalHeader>
+          <CloseButton
+            onClick={handleClose}
+            disabled={loading}
+            aria-label="Cerrar modal"
+          >
+            <X size={18} weight="bold" color="#000000" />
+          </CloseButton>
+          
           <HeaderTitle>
-            <Palette size={24} weight="duotone" />
+            <Palette size={28} weight="duotone" />
             {editMode ? 'Editar Diseño' : 'Crear Nuevo Diseño'}
           </HeaderTitle>
-          <CloseButton onClick={handleClose} disabled={loading}>
-            <X size={20} weight="bold" />
-          </CloseButton>
-        </ModalHeader>
+          <Typography variant="body1" sx={{ 
+            fontSize: '1rem',
+            opacity: 0.7,
+            margin: 0,
+            fontFamily: "'Mona Sans'",
+            position: 'relative',
+            zIndex: 3,
+            color: '#032CA6',
+          }}>
+            {editMode ? 'Modifica los elementos del diseño existente' : 'Crea un nuevo diseño personalizado paso a paso'}
+          </Typography>
+        </AnimatedModalHeader>
 
         <ModalContent>
           <StepperContainer>
@@ -1732,10 +2304,40 @@ const CreateDesignModal = ({
             </Stepper>
           </StepperContainer>
 
-          {renderStepContent()}
+          <StepContent>
+            {renderStepContent()}
+          </StepContent>
         </ModalContent>
 
         <ModalActions>
+          {/* Efecto de glow animado */}
+          <div style={{
+            position: 'absolute',
+            top: '-3px',
+            left: '-3px',
+            right: '-3px',
+            bottom: '-3px',
+            background: 'linear-gradient(135deg, rgba(31, 100, 191, 0.3), rgba(3, 44, 166, 0.2), rgba(4, 13, 191, 0.3), rgba(1, 3, 38, 0.2))',
+            borderRadius: '0 0 23px 23px',
+            opacity: 0.3,
+            zIndex: -1,
+            animation: 'flowMove 3s ease-in-out infinite alternate',
+            filter: 'blur(6px)',
+          }} />
+          
+          {/* Efecto de brillo animado */}
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: '-100%',
+            width: '50%',
+            height: '100%',
+            background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent)',
+            transform: 'skewX(-15deg)',
+            animation: 'shineMove 4s ease-in-out infinite',
+            zIndex: 1,
+          }} />
+
           <ActionButton
             variant="outlined"
             onClick={handleClose}

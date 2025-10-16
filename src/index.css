@@ -199,19 +199,17 @@ body.MuiModal-open {
 }
 
 /* Asegurar que los modales no afecten el layout */
-.MuiModal-root {
-  /* Los modales deben ser completamente independientes del layout */
-  position: fixed !important;
-  z-index: 1300 !important;
-}
+
 
 /* Asegurar que los menús y popovers no causen movimiento */
 .MuiMenu-root,
 .MuiPopover-root {
   /* Los menús deben ser completamente independientes del layout */
   position: fixed !important;
-  z-index: 1300 !important;
+  z-index: 5300 !important;
 }
+
+
 
 /* ==================== SOLUCIÓN ESPECÍFICA PARA NAVBAR ==================== */
 /* Prevenir que el navbar se mueva cuando se abren modales/dropdowns */
@@ -297,6 +295,30 @@ select {
   /* Prevenir zoom en elementos interactivos */
   button, a, input, select, textarea {
     touch-action: manipulation;
+  }
+}
+
+/* ==================== ESPACIADO DEL CONTENIDO PRINCIPAL ==================== */
+/* Agregar margen superior al contenido principal para separarlo del navbar */
+.app-main {
+  margin-top: 0px !important; /* Espacio muy mínimo para separar del navbar */
+  padding-top: 0px !important; /* Sin padding adicional */
+  min-height: calc(100vh - 100px) !important; /* Asegurar altura mínima */
+}
+
+/* Ajustar el espaciado en dispositivos móviles */
+@media screen and (max-width: 768px) {
+  .app-main {
+    margin-top: 0px !important; /* Sin margen en móviles */
+    padding-top: 0px !important;
+  }
+}
+
+/* Ajustar el espaciado en pantallas muy pequeñas */
+@media screen and (max-width: 480px) {
+  .app-main {
+    margin-top: 0px !important; /* Sin margen en pantallas pequeñas */
+    padding-top: 0px !important;
   }
 }
 

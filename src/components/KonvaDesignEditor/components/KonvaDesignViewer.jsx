@@ -22,7 +22,44 @@ import {
 import { X as CloseIcon, Download, CaretDown } from '@phosphor-icons/react';
 import ElementDownloadModal from './ElementDownloadModal';
 
-// Tema moderno 3D para el viewer
+// ================ ESTILOS GLOBALES PARA ANIMACIONES MÁRMOL ================
+const GlobalStyles = () => (
+  <style>
+    {`
+    @keyframes flowMove {
+      0% {
+        opacity: 0.2;
+        transform: scale(1);
+      }
+      50% {
+        opacity: 0.4;
+        transform: scale(1.01);
+      }
+      100% {
+        opacity: 0.3;
+        transform: scale(1);
+      }
+    }
+
+    @keyframes shineMove {
+      0% {
+        left: -100%;
+      }
+      20% {
+        left: -100%;
+      }
+      80% {
+        left: 150%;
+      }
+      100% {
+        left: 150%;
+      }
+    }
+    `}
+  </style>
+);
+
+// Tema moderno blanco para el viewer
 const COLOR_PALETTE = {
   white: '#FFFFFF',
   primary: '#1F64BF',
@@ -30,31 +67,31 @@ const COLOR_PALETTE = {
   primaryLight: '#4A8BDF',
   dark: '#010326',
   accent: '#040DBF',
-  surface: '#1A1F2E',
-  surfaceLight: '#2A2F3E',
-  text: '#FFFFFF',
-  textSecondary: '#B0B8CC',
-  border: '#374151'
+  surface: '#FFFFFF',
+  surfaceLight: '#F8F9FA',
+  text: '#010326',
+  textSecondary: '#64748B',
+  border: 'rgba(31, 100, 191, 0.12)'
 };
 
 const GRADIENTS_3D = {
   primary: `linear-gradient(135deg, ${COLOR_PALETTE.primary} 0%, ${COLOR_PALETTE.primaryDark} 50%, ${COLOR_PALETTE.primary} 100%)`,
   primaryHover: `linear-gradient(135deg, ${COLOR_PALETTE.primaryDark} 0%, ${COLOR_PALETTE.primary} 50%, ${COLOR_PALETTE.primaryDark} 100%)`,
   surface: `linear-gradient(135deg, ${COLOR_PALETTE.surface} 0%, ${COLOR_PALETTE.surfaceLight} 50%, ${COLOR_PALETTE.surface} 100%)`,
-  surfaceHover: `linear-gradient(135deg, ${COLOR_PALETTE.surfaceLight} 0%, #3A3F4E 50%, ${COLOR_PALETTE.surfaceLight} 100%)`,
+  surfaceHover: `linear-gradient(135deg, ${COLOR_PALETTE.surfaceLight} 0%, #E9ECEF 50%, ${COLOR_PALETTE.surfaceLight} 100%)`,
   success: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
-  glass: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)',
-  glassHover: 'linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.08) 100%)',
-  modal: 'linear-gradient(135deg, #0A0E1A 0%, #1A1F2E 50%, #0A0E1A 100%)'
+  glass: 'linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.2) 100%)',
+  glassHover: 'linear-gradient(135deg, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.4) 100%)',
+  modal: 'linear-gradient(135deg, #FFFFFF 0%, #F8F9FA 50%, #FFFFFF 100%)'
 };
 
 const SHADOWS_3D = {
-  light: '0 2px 4px rgba(0,0,0,0.1)',
-  medium: '0 4px 16px rgba(0,0,0,0.2)',
-  heavy: '0 8px 32px rgba(0,0,0,0.3)',
-  floating: '0 12px 50px rgba(0,0,0,0.5), 0 6px 20px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1)',
-  button: '0 4px 12px rgba(31,100,191,0.3), 0 2px 4px rgba(0,0,0,0.2)',
-  buttonHover: '0 6px 20px rgba(31,100,191,0.4), 0 4px 8px rgba(0,0,0,0.3)'
+  light: '0 2px 4px rgba(1,3,38,0.05)',
+  medium: '0 4px 16px rgba(1,3,38,0.08)',
+  heavy: '0 8px 32px rgba(1,3,38,0.12)',
+  floating: '0 12px 50px rgba(1,3,38,0.15), 0 6px 20px rgba(1,3,38,0.08), inset 0 1px 0 rgba(255,255,255,0.8)',
+  button: '0 4px 12px rgba(31,100,191,0.2), 0 2px 4px rgba(1,3,38,0.05)',
+  buttonHover: '0 6px 20px rgba(31,100,191,0.25), 0 4px 8px rgba(1,3,38,0.08)'
 };
 
 const BORDERS = {
@@ -211,7 +248,7 @@ const KonvaDesignViewer = ({
   const stageConfig = useMemo(() => ({
     width: CANVAS_CONFIG.width,
     height: CANVAS_CONFIG.height,
-    backgroundColor: CANVAS_CONFIG.backgroundColor
+    backgroundColor: '#F2F2F2' // Cambiar de blanco puro a gris suave
   }), []);
 
   // ==================== CARGA DE IMAGEN DEL PRODUCTO ====================
@@ -940,6 +977,7 @@ const KonvaDesignViewer = ({
   
   return (
     <>
+      <GlobalStyles />
       <Dialog 
         open={isOpen} 
         onClose={handleClose} 
@@ -959,8 +997,8 @@ const KonvaDesignViewer = ({
           background: GRADIENTS_3D.modal,
           border: `1px solid ${COLOR_PALETTE.border}`,
           boxShadow: isMobile ? 'none' : SHADOWS_3D.floating,
-          backdropFilter: 'blur(20px)',
           position: 'relative',
+          fontFamily: "'Mona Sans'",
           '&::before': {
             content: '""',
             position: 'absolute',
@@ -968,7 +1006,7 @@ const KonvaDesignViewer = ({
             left: 0,
             right: 0,
             bottom: 0,
-            background: 'linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 50%, rgba(255,255,255,0.02) 100%)',
+            background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 50%, rgba(255,255,255,0.05) 100%)',
             borderRadius: 'inherit',
             pointerEvents: 'none',
             zIndex: 1
@@ -981,37 +1019,88 @@ const KonvaDesignViewer = ({
           display: 'flex', 
           alignItems: 'center', 
           justifyContent: 'space-between',
-          background: GRADIENTS_3D.primary,
-          color: COLOR_PALETTE.white,
+          background: 'rgba(255, 255, 255, 0.05)',
+          backdropFilter: 'blur(25px)',
+          WebkitBackdropFilter: 'blur(25px)',
+          color: COLOR_PALETTE.text,
           py: isMobile ? 2 : 2.5,
           px: isMobile ? 2.5 : 3.5,
           position: 'relative',
           zIndex: 2,
-          '&::after': {
+          borderBottom: `2px solid rgba(31, 100, 191, 0.3)`,
+          borderRadius: '24px 24px 0 0',
+          border: '1px solid rgba(255, 255, 255, 0.3)',
+          boxShadow: `
+            inset 0 1px 0 rgba(255, 255, 255, 0.5),
+            inset 0 -1px 0 rgba(255, 255, 255, 0.1)
+          `,
+          overflow: 'hidden',
+          '&::before': {
             content: '""',
             position: 'absolute',
-            bottom: 0,
+            top: 0,
             left: 0,
             right: 0,
             height: '1px',
-            background: `linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent)`
+            background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8), transparent)',
+            zIndex: 1,
+          },
+          '&::after': {
+            content: '""',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '1px',
+            height: '100%',
+            background: 'linear-gradient(180deg, rgba(255, 255, 255, 0.8), transparent, rgba(255, 255, 255, 0.3))',
+            zIndex: 1,
           }
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: isMobile ? 1.5 : 2 }}>
+        {/* Efecto de glow animado - ESTILO MÁRMOL */}
+        <div style={{
+          position: 'absolute',
+          top: '-3px',
+          left: '-3px',
+          right: '-3px',
+          bottom: '-3px',
+          background: 'linear-gradient(135deg, rgba(31, 100, 191, 0.3), rgba(3, 44, 166, 0.2), rgba(4, 13, 191, 0.3), rgba(1, 3, 38, 0.2))',
+          borderRadius: '27px',
+          opacity: 0.3,
+          zIndex: -1,
+          animation: 'flowMove 3s ease-in-out infinite alternate',
+          filter: 'blur(6px)',
+          pointerEvents: 'none'
+        }} />
+
+        {/* Efecto de brillo animado - ESTILO MÁRMOL */}
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: '-100%',
+          width: '50%',
+          height: '100%',
+          background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent)',
+          transform: 'skewX(-15deg)',
+          animation: 'shineMove 4s ease-in-out infinite',
+          zIndex: 1,
+          pointerEvents: 'none'
+        }} />
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: isMobile ? 1.5 : 2, position: 'relative', zIndex: 3 }}>
           <Box sx={{
             width: isMobile ? '32px' : '40px',
             height: isMobile ? '32px' : '40px',
             borderRadius: BORDERS.radius.medium,
-            background: GRADIENTS_3D.glass,
+            background: 'linear-gradient(135deg,rgb(239, 242, 255) 0%,rgb(239, 242, 255) 100%)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            border: `1px solid rgba(255,255,255,0.2)`
+            border: `1px solid rgba(31, 100, 191, 0.2)`,
+            boxShadow: '0 1px 4px rgba(31, 100, 191, 0.1)'
           }}>
-            <Download size={isMobile ? 16 : 20} />
+            <Download size={isMobile ? 16 : 20} color="#1F64BF" />
           </Box>
-          <Box>
+          <Box sx={{ position: 'relative', zIndex: 3 }}>
             <Typography 
               variant={isMobile ? 'subtitle1' : 'h6'} 
               fontWeight={700}
@@ -1021,16 +1110,19 @@ const KonvaDesignViewer = ({
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap',
-                textShadow: '0 2px 4px rgba(0,0,0,0.3)'
+                color: COLOR_PALETTE.text,
+                fontFamily: "'Mona Sans'"
               }}
             >
               Vista Previa del Diseño
             </Typography>
             {design?.name && !isMobile && (
               <Typography variant="body2" sx={{ 
-                opacity: 0.9,
+                opacity: 0.7,
                 fontSize: '0.875rem',
-                fontWeight: 500
+                fontWeight: 500,
+                color: COLOR_PALETTE.textSecondary,
+                fontFamily: "'Mona Sans'"
               }}>
                 {design.name}
               </Typography>
@@ -1042,22 +1134,47 @@ const KonvaDesignViewer = ({
           onClick={handleClose}
           size={isMobile ? 'small' : 'medium'}
           sx={{ 
-            color: COLOR_PALETTE.white,
-            background: GRADIENTS_3D.glass,
-            backdropFilter: 'blur(10px)',
-            border: `1px solid rgba(255,255,255,0.2)`,
-            transition: TRANSITIONS.fast,
+            position: 'absolute',
+            right: isMobile ? '16px' : '24px',
+            top: isMobile ? '16px' : '24px',
+            width: isMobile ? '32px' : '40px',
+            height: isMobile ? '32px' : '40px',
+            background: 'linear-gradient(135deg,rgb(239, 242, 255) 0%,rgb(239, 242, 255) 100%)',
+            color: COLOR_PALETTE.text,
+            borderRadius: '12px',
+            transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+            boxShadow: '0 1px 4px rgba(31, 100, 191, 0.1)',
+            zIndex: 10,
+            overflow: 'hidden',
+            '&::before': {
+              content: '""',
+              position: 'absolute',
+              top: 0,
+              left: '-100%',
+              width: '100%',
+              height: '100%',
+              background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent)',
+              transition: 'left 0.6s ease',
+              zIndex: 1,
+            },
+            '& > *': {
+              position: 'relative',
+              zIndex: 2,
+            },
             '&:hover': { 
-              background: GRADIENTS_3D.glassHover,
-              transform: 'scale(1.05)',
-              boxShadow: SHADOWS_3D.light
+              background: 'linear-gradient(135deg,rgb(180, 179, 247) 0%,rgb(188, 179, 247) 100%)',
+              transform: 'translateY(-1px)',
+              boxShadow: '0 2px 8px rgba(31, 100, 191, 0.2)',
+              '&::before': {
+                left: '100%',
+              },
             },
             '&:active': {
-              transform: 'scale(0.95)'
+              transform: 'scale(0.95)',
             }
           }}
         >
-          <CloseIcon size={isMobile ? 18 : 20} />
+          <CloseIcon size={isMobile ? 18 : 20} color="#000000" />
         </IconButton>
       </DialogTitle>
 
@@ -1069,7 +1186,8 @@ const KonvaDesignViewer = ({
           background: GRADIENTS_3D.surface,
           height: '100%',
           position: 'relative',
-          zIndex: 2
+          zIndex: 2,
+          fontFamily: "'Mona Sans'"
         }}
       >
         {/* Área del canvas */}
@@ -1083,7 +1201,7 @@ const KonvaDesignViewer = ({
             p: isMobile ? 2 : isTablet ? 3 : 4,
             position: 'relative',
             minHeight: isMobile ? '300px' : '500px',
-            background: 'linear-gradient(135deg, rgba(255,255,255,0.02) 0%, transparent 50%, rgba(255,255,255,0.01) 100%)'
+            background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 50%, rgba(255,255,255,0.05) 100%)'
           }}
         >
           {isLoading && (
@@ -1164,23 +1282,10 @@ const KonvaDesignViewer = ({
             style={{
               border: `1px solid ${COLOR_PALETTE.border}`,
               borderRadius: BORDERS.radius.large,
-              boxShadow: SHADOWS_3D.floating,
-              backgroundColor: COLOR_PALETTE.white,
+              backgroundColor: '#F2F2F2', // Gris suave en lugar de blanco puro
               opacity: isLoading ? 0.5 : 1,
               transition: TRANSITIONS.normal,
-              position: 'relative',
-              '&::before': {
-                content: '""',
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 50%, rgba(255,255,255,0.05) 100%)',
-                borderRadius: 'inherit',
-                pointerEvents: 'none',
-                zIndex: 1
-              }
+              position: 'relative'
             }}
           >
             <Layer ref={layerRef}>
@@ -1332,7 +1437,9 @@ const KonvaDesignViewer = ({
           <Box 
             sx={{ 
               borderTop: `1px solid ${COLOR_PALETTE.border}`,
-              background: GRADIENTS_3D.surface,
+              background: 'rgba(255, 255, 255, 0.05)',
+              backdropFilter: 'blur(15px)',
+              WebkitBackdropFilter: 'blur(15px)',
               p: isMobile ? 2 : 3,
               position: 'relative',
               '&::before': {
@@ -1352,7 +1459,8 @@ const KonvaDesignViewer = ({
                   <Typography variant="body2" sx={{ 
                     color: COLOR_PALETTE.textSecondary,
                     fontWeight: 600,
-                    mb: 0.5
+                    mb: 0.5,
+                    fontFamily: "'Mona Sans'"
                   }}>
                     Producto: {product.name}
                   </Typography>
@@ -1361,7 +1469,8 @@ const KonvaDesignViewer = ({
                   <Typography variant="caption" sx={{ 
                     color: COLOR_PALETTE.textSecondary,
                     display: 'block',
-                    mb: 0.5
+                    mb: 0.5,
+                    fontFamily: "'Mona Sans'"
                   }}>
                     {design.elements.length} elemento(s) de diseño
                   </Typography>
@@ -1370,7 +1479,8 @@ const KonvaDesignViewer = ({
                   <Typography variant="caption" sx={{ 
                     color: COLOR_PALETTE.textSecondary,
                     display: 'block',
-                    mb: 0.5
+                    mb: 0.5,
+                    fontFamily: "'Mona Sans'"
                   }}>
                     Diseño: {design.name}
                   </Typography>
@@ -1379,7 +1489,8 @@ const KonvaDesignViewer = ({
                   <Typography variant="caption" sx={{ 
                     color: COLOR_PALETTE.textSecondary,
                     display: 'block',
-                    mb: 0.5
+                    mb: 0.5,
+                    fontFamily: "'Mona Sans'"
                   }}>
                     Cliente: {design.user.name}
                   </Typography>
@@ -1387,7 +1498,8 @@ const KonvaDesignViewer = ({
                 {design?.status && (
                   <Typography variant="caption" sx={{ 
                     color: COLOR_PALETTE.textSecondary,
-                    display: 'block'
+                    display: 'block',
+                    fontFamily: "'Mona Sans'"
                   }}>
                     Estado: {design.status}
                   </Typography>
@@ -1404,24 +1516,60 @@ const KonvaDesignViewer = ({
                     disabled={isLoading || error}
                     size={isMobile ? 'small' : 'medium'}
                     sx={{ 
-                      borderRadius: BORDERS.radius.large,
-                      background: GRADIENTS_3D.success,
-                      boxShadow: SHADOWS_3D.button,
-                      border: `1px solid rgba(255,255,255,0.1)`,
+                      borderRadius: '12px',
+                      padding: '12px 24px',
+                      fontSize: '0.875rem',
                       fontWeight: 600,
                       textTransform: 'none',
-                      transition: TRANSITIONS.fast,
+                      fontFamily: "'Mona Sans'",
+                      transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                      position: 'relative',
+                      overflow: 'hidden',
+                      minWidth: '140px',
+                      background: 'linear-gradient(135deg, #1F64BF 0%, #032CA6 50%, #040DBF 100%)',
+                      color: '#ffffff',
+                      boxShadow: '0 2px 8px rgba(31, 100, 191, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
+                      border: '1px solid rgba(255, 255, 255, 0.25)',
+                      // Efecto de brillo animado
+                      '&::before': {
+                        content: '""',
+                        position: 'absolute',
+                        top: 0,
+                        left: '-100%',
+                        width: '100%',
+                        height: '100%',
+                        background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent)',
+                        transition: 'left 0.5s ease',
+                        zIndex: 1,
+                      },
+                      '& > *': {
+                        position: 'relative',
+                        zIndex: 2,
+                      },
                       '&:hover': {
-                        background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
-                        transform: 'translateY(-2px)',
-                        boxShadow: SHADOWS_3D.buttonHover
+                        background: 'linear-gradient(135deg, #032CA6 0%, #1F64BF 50%, #032CA6 100%)',
+                        boxShadow: '0 3px 12px rgba(31, 100, 191, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.3)',
+                        transform: 'translateY(-1px)',
+                        '&::before': {
+                          left: '100%',
+                        }
                       },
                       '&:active': {
-                        transform: 'translateY(0)'
+                        transform: 'translateY(0)',
+                        boxShadow: '0 1px 4px rgba(31, 100, 191, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
                       },
                       '&:disabled': {
-                        opacity: 0.6,
-                        transform: 'none'
+                        opacity: 0.5,
+                        transform: 'none',
+                        cursor: 'not-allowed',
+                        '&::before': {
+                          display: 'none',
+                        }
+                      },
+                      '@media (max-width: 600px)': {
+                        minWidth: '120px',
+                        justifyContent: 'center',
+                        width: '100%',
                       }
                     }}
                   >
@@ -1433,7 +1581,7 @@ const KonvaDesignViewer = ({
                     open={Boolean(downloadMenuAnchor)}
                     onClose={handleDownloadMenuClose}
                     sx={{
-                      zIndex: 6000 // Mayor que el modal principal (5000)
+                      zIndex: 10000 // Mucho mayor que el modal principal (5000)
                     }}
                     PaperProps={{
                       sx: {
@@ -1444,7 +1592,7 @@ const KonvaDesignViewer = ({
                         boxShadow: SHADOWS_3D.floating,
                         mt: 1,
                         minWidth: 200,
-                        zIndex: 6000 // Asegurar que el contenido también tenga el z-index correcto
+                        zIndex: 10000 // Asegurar que el contenido también tenga el z-index correcto
                       }
                     }}
                   >

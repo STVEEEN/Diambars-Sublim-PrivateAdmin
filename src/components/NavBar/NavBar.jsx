@@ -1035,6 +1035,19 @@ const Navbar = () => {
   const { logout, user } = useAuth();
   const theme = useTheme();
 
+  // Función para optimizar URLs de Cloudinary (igual que en Dashboard)
+  const getOptimizedImageUrl = (url) => {
+    if (!url) return null;
+    
+    // Si es una URL de Cloudinary, aplicar optimizaciones
+    if (url.includes('cloudinary.com')) {
+      // Aplicar transformaciones para optimización
+      return url.replace('/upload/', '/upload/w_150,h_150,c_fill,f_auto,q_auto/');
+    }
+    
+    return url;
+  };
+
   const isXs = useMediaQuery(`(max-width: ${customBreakpoints.sm - 1}px)`);
   const isSm = useMediaQuery(`(min-width: ${customBreakpoints.sm}px) and (max-width: ${customBreakpoints.md - 1}px)`);
   const isMd = useMediaQuery(`(min-width: ${customBreakpoints.md}px) and (max-width: ${customBreakpoints.lg - 1}px)`);
@@ -1239,7 +1252,10 @@ const Navbar = () => {
             <RightControls>
               {!ismobile && (
                 <UserContainer onClick={handleUserMenuClick}>
-                  <StyledAvatar>
+                  <StyledAvatar 
+                    src={getOptimizedImageUrl(user?.profilePicture) || '/default-avatar.png'}
+                    alt={`Foto de perfil de ${user?.name || 'Usuario'}`}
+                  >
                     {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
                   </StyledAvatar>
                   {!isLg && !isMd && (
@@ -1424,7 +1440,11 @@ const Navbar = () => {
             },
           }}>
             <Box display="flex" alignItems="center" gap={2} width="100%">
-              <StyledAvatar sx={{ width: 56, height: 56, fontSize: 22, flexShrink: 0 }}>
+              <StyledAvatar 
+                src={getOptimizedImageUrl(user?.profilePicture) || '/default-avatar.png'}
+                alt={`Foto de perfil de ${user?.name || 'Usuario'}`}
+                sx={{ width: 56, height: 56, fontSize: 22, flexShrink: 0 }}
+              >
                 {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
               </StyledAvatar>
               <Box flex={1} minWidth={0}>
@@ -1649,7 +1669,11 @@ const Navbar = () => {
                   <Box sx={{ p: 1 }}>
                     <Box sx={{ p: 2, borderBottom: "1px solid rgba(226, 232, 240, 0.6)", mb: 1 }}>
                       <Box display="flex" alignItems="center" gap={2}>
-                        <StyledAvatar sx={{ width: 48, height: 48, fontSize: 18 }}>
+                        <StyledAvatar 
+                          src={getOptimizedImageUrl(user?.profilePicture) || '/default-avatar.png'}
+                          alt={`Foto de perfil de ${user?.name || 'Usuario'}`}
+                          sx={{ width: 48, height: 48, fontSize: 18 }}
+                        >
                           {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
                         </StyledAvatar>
                         <Box>
