@@ -449,18 +449,22 @@ const ActionsGrid = styled(Box)(({ theme }) => ({
   display: 'grid',
   gap: '24px',
   gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+  marginBottom: '48px', // Aumentar espaciado inferior
   // Breakpoints estándar de MUI: xs: 0, sm: 600, md: 900, lg: 1200, xl: 1536
   [theme.breakpoints.down('lg')]: { 
     gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', 
-    gap: '20px' 
+    gap: '20px',
+    marginBottom: '40px'
   },
   [theme.breakpoints.down('md')]: { 
     gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', 
-    gap: '18px' 
+    gap: '18px',
+    marginBottom: '36px'
   },
   [theme.breakpoints.down('sm')]: { 
     gridTemplateColumns: '1fr', 
-    gap: '16px' 
+    gap: '16px',
+    marginBottom: '32px'
   }
 }));
 

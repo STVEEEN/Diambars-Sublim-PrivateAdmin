@@ -133,7 +133,7 @@ const ReportsPageContainer = styled(Box)({
 
 const ReportsContentWrapper = styled(Box)(({ theme }) => ({
   width: '100%',
-  maxWidth: '1660px',
+  maxWidth: '1650px',
   margin: '0 auto',
   paddingTop: '120px',
   paddingBottom: '40px',
@@ -141,25 +141,20 @@ const ReportsContentWrapper = styled(Box)(({ theme }) => ({
   paddingRight: '32px',
   minHeight: 'calc(100vh - 120px)',
   fontFamily: "'Mona Sans'",
-  [theme.breakpoints.down('xl')]: {
-    maxWidth: '1460px',
+  [theme.breakpoints.down('lg')]: {
+    paddingTop: '110px',
     paddingLeft: '28px',
     paddingRight: '28px',
   },
-  [theme.breakpoints.down('lg')]: {
-    maxWidth: '1260px',
+  [theme.breakpoints.down('md')]: {
+    paddingTop: '100px',
     paddingLeft: '24px',
     paddingRight: '24px',
   },
-  [theme.breakpoints.down('md')]: {
-    paddingTop: '110px',
+  [theme.breakpoints.down('sm')]: {
+    paddingTop: '90px',
     paddingLeft: '20px',
     paddingRight: '20px',
-  },
-  [theme.breakpoints.down('sm')]: {
-    paddingTop: '100px',
-    paddingLeft: '16px',
-    paddingRight: '16px',
   }
 }));
 
@@ -1190,208 +1185,192 @@ const ReportsPage = React.memo(() => {
           </ReportsHeaderContent>
         </ReportsHeaderSection>
 
-        {/* Grid de estadísticas principales - Responsive con MUI Grid */}
-        <Grid container spacing={{ xs: 2, sm: 3, md: 4 }} sx={{ mb: 4 }}>
+        {/* Grid de estadísticas principales - Estructura perfectamente alineada como CatalogManagement */}
+        <ReportsStatsGrid>
           {/* Ingresos Totales */}
-          <Grid item xs={12} sm={6} md={3}>
-            <ReportsStatCard variant="primary">
-              <ReportsStatHeader>
-                <Box>
-                  <ReportsStatValue variant="primary">
-                    {formatCurrency(stats.totalRevenue)}
-                  </ReportsStatValue>
-                  <ReportsStatLabel variant="primary">
-                    Ingresos Totales
-                  </ReportsStatLabel>
-                </Box>
-                <ReportsStatIconContainer variant="primary">
-                  <TrendUp size={24} weight="duotone" />
-                </ReportsStatIconContainer>
-              </ReportsStatHeader>
-              <ReportsStatChange variant="primary" trend="up">
-                <TrendUp size={14} weight="bold" />
-                <ReportsStatTrendText variant="primary" trend="up">
-                  +12% este mes
-                </ReportsStatTrendText>
-              </ReportsStatChange>
-            </ReportsStatCard>
-          </Grid>
+          <ReportsStatCard variant="primary">
+            <ReportsStatHeader>
+              <Box>
+                <ReportsStatValue variant="primary">
+                  {formatCurrency(stats.totalRevenue)}
+                </ReportsStatValue>
+                <ReportsStatLabel variant="primary">
+                  Ingresos Totales
+                </ReportsStatLabel>
+              </Box>
+              <ReportsStatIconContainer variant="primary">
+                <TrendUp size={24} weight="duotone" />
+              </ReportsStatIconContainer>
+            </ReportsStatHeader>
+            <ReportsStatChange variant="primary" trend="up">
+              <TrendUp size={14} weight="bold" />
+              <ReportsStatTrendText variant="primary" trend="up">
+                +12% este mes
+              </ReportsStatTrendText>
+            </ReportsStatChange>
+          </ReportsStatCard>
 
           {/* Total de Órdenes */}
-          <Grid item xs={12} sm={6} md={3}>
-            <ReportsStatCard variant="secondary">
-              <ReportsStatHeader>
-                <Box>
-                  <ReportsStatValue variant="secondary">
-                    {stats.totalOrders}
-                  </ReportsStatValue>
-                  <ReportsStatLabel variant="secondary">
-                    Total de Órdenes
-                  </ReportsStatLabel>
-                </Box>
-                <ReportsStatIconContainer variant="secondary">
-                  <ChartBar size={24} weight="duotone" />
-                </ReportsStatIconContainer>
-              </ReportsStatHeader>
-              <ReportsStatChange variant="secondary" trend="up">
-                <TrendUp size={14} weight="bold" />
-                <ReportsStatTrendText variant="secondary" trend="up">
-                  +8% este mes
-                </ReportsStatTrendText>
-              </ReportsStatChange>
-            </ReportsStatCard>
-          </Grid>
+          <ReportsStatCard variant="secondary">
+            <ReportsStatHeader>
+              <Box>
+                <ReportsStatValue variant="secondary">
+                  {stats.totalOrders}
+                </ReportsStatValue>
+                <ReportsStatLabel variant="secondary">
+                  Total de Órdenes
+                </ReportsStatLabel>
+              </Box>
+              <ReportsStatIconContainer variant="secondary">
+                <ChartBar size={24} weight="duotone" />
+              </ReportsStatIconContainer>
+            </ReportsStatHeader>
+            <ReportsStatChange variant="secondary" trend="up">
+              <TrendUp size={14} weight="bold" />
+              <ReportsStatTrendText variant="secondary" trend="up">
+                +8% este mes
+              </ReportsStatTrendText>
+            </ReportsStatChange>
+          </ReportsStatCard>
 
           {/* Ticket Promedio */}
-          <Grid item xs={12} sm={6} md={3}>
-            <ReportsStatCard variant="secondary">
-              <ReportsStatHeader>
-                <Box>
-                  <ReportsStatValue variant="secondary">
-                    {formatCurrency(stats.averageOrderValue)}
-                  </ReportsStatValue>
-                  <ReportsStatLabel variant="secondary">
-                    Ticket Promedio
-                  </ReportsStatLabel>
-                </Box>
-                <ReportsStatIconContainer variant="secondary">
-                  <Users size={24} weight="duotone" />
-                </ReportsStatIconContainer>
-              </ReportsStatHeader>
-              <ReportsStatChange variant="secondary" trend="up">
-                <TrendUp size={14} weight="bold" />
-                <ReportsStatTrendText variant="secondary" trend="up">
-                  +5% este mes
-                </ReportsStatTrendText>
-              </ReportsStatChange>
-            </ReportsStatCard>
-          </Grid>
+          <ReportsStatCard variant="secondary">
+            <ReportsStatHeader>
+              <Box>
+                <ReportsStatValue variant="secondary">
+                  {formatCurrency(stats.averageOrderValue)}
+                </ReportsStatValue>
+                <ReportsStatLabel variant="secondary">
+                  Ticket Promedio
+                </ReportsStatLabel>
+              </Box>
+              <ReportsStatIconContainer variant="secondary">
+                <Users size={24} weight="duotone" />
+              </ReportsStatIconContainer>
+            </ReportsStatHeader>
+            <ReportsStatChange variant="secondary" trend="up">
+              <TrendUp size={14} weight="bold" />
+              <ReportsStatTrendText variant="secondary" trend="up">
+                +5% este mes
+              </ReportsStatTrendText>
+            </ReportsStatChange>
+          </ReportsStatCard>
 
           {/* Clientes Únicos */}
-          <Grid item xs={12} sm={6} md={3}>
-            <ReportsStatCard variant="secondary">
-              <ReportsStatHeader>
-                <Box>
-                  <ReportsStatValue variant="secondary">
-                    {stats.totalUniqueCustomers}
-                  </ReportsStatValue>
-                  <ReportsStatLabel variant="secondary">
-                    Clientes Únicos
-                  </ReportsStatLabel>
-                </Box>
-                <ReportsStatIconContainer variant="secondary">
-                  <Package size={24} weight="duotone" />
-                </ReportsStatIconContainer>
-              </ReportsStatHeader>
-              <ReportsStatChange variant="secondary" trend="up">
-                <TrendUp size={14} weight="bold" />
-                <ReportsStatTrendText variant="secondary" trend="up">
-                  +20 nuevos
-                </ReportsStatTrendText>
-              </ReportsStatChange>
-            </ReportsStatCard>
-          </Grid>
+          <ReportsStatCard variant="secondary">
+            <ReportsStatHeader>
+              <Box>
+                <ReportsStatValue variant="secondary">
+                  {stats.totalUniqueCustomers}
+                </ReportsStatValue>
+                <ReportsStatLabel variant="secondary">
+                  Clientes Únicos
+                </ReportsStatLabel>
+              </Box>
+              <ReportsStatIconContainer variant="secondary">
+                <Package size={24} weight="duotone" />
+              </ReportsStatIconContainer>
+            </ReportsStatHeader>
+            <ReportsStatChange variant="secondary" trend="up">
+              <TrendUp size={14} weight="bold" />
+              <ReportsStatTrendText variant="secondary" trend="up">
+                +20 nuevos
+              </ReportsStatTrendText>
+            </ReportsStatChange>
+          </ReportsStatCard>
 
           {/* Productos Activos */}
-          <Grid item xs={12} sm={6} md={3}>
-            <ReportsStatCard variant="secondary">
-              <ReportsStatHeader>
-                <Box>
-                  <ReportsStatValue variant="secondary">
-                    {stats.activeProducts}
-                  </ReportsStatValue>
-                  <ReportsStatLabel variant="secondary">
-                    Productos Activos
-                  </ReportsStatLabel>
-                </Box>
-                <ReportsStatIconContainer variant="secondary">
-                  <Package size={24} weight="duotone" />
-                </ReportsStatIconContainer>
-              </ReportsStatHeader>
-              <ReportsStatChange variant="secondary" trend="up">
-                <TrendUp size={14} weight="bold" />
-                <ReportsStatTrendText variant="secondary" trend="up">
-                  {stats.totalProducts} total
-                </ReportsStatTrendText>
-              </ReportsStatChange>
-            </ReportsStatCard>
-          </Grid>
+          <ReportsStatCard variant="secondary">
+            <ReportsStatHeader>
+              <Box>
+                <ReportsStatValue variant="secondary">
+                  {stats.activeProducts}
+                </ReportsStatValue>
+                <ReportsStatLabel variant="secondary">
+                  Productos Activos
+                </ReportsStatLabel>
+              </Box>
+              <ReportsStatIconContainer variant="secondary">
+                <Package size={24} weight="duotone" />
+              </ReportsStatIconContainer>
+            </ReportsStatHeader>
+            <ReportsStatChange variant="secondary" trend="up">
+              <TrendUp size={14} weight="bold" />
+              <ReportsStatTrendText variant="secondary" trend="up">
+                {stats.totalProducts} total
+              </ReportsStatTrendText>
+            </ReportsStatChange>
+          </ReportsStatCard>
 
           {/* Usuarios Activos */}
-          <Grid item xs={12} sm={6} md={3}>
-            <ReportsStatCard variant="secondary">
-              <ReportsStatHeader>
-                <Box>
-                  <ReportsStatValue variant="secondary">
-                    {stats.activeUsers}
-                  </ReportsStatValue>
-                  <ReportsStatLabel variant="secondary">
-                    Usuarios Activos
-                  </ReportsStatLabel>
-                </Box>
-                <ReportsStatIconContainer variant="secondary">
-                  <Users size={24} weight="duotone" />
-                </ReportsStatIconContainer>
-              </ReportsStatHeader>
-              <ReportsStatChange variant="secondary" trend="up">
-                <TrendUp size={14} weight="bold" />
-                <ReportsStatTrendText variant="secondary" trend="up">
-                  {stats.totalUsers} total
-                </ReportsStatTrendText>
-              </ReportsStatChange>
-            </ReportsStatCard>
-          </Grid>
+          <ReportsStatCard variant="secondary">
+            <ReportsStatHeader>
+              <Box>
+                <ReportsStatValue variant="secondary">
+                  {stats.activeUsers}
+                </ReportsStatValue>
+                <ReportsStatLabel variant="secondary">
+                  Usuarios Activos
+                </ReportsStatLabel>
+              </Box>
+              <ReportsStatIconContainer variant="secondary">
+                <Users size={24} weight="duotone" />
+              </ReportsStatIconContainer>
+            </ReportsStatHeader>
+            <ReportsStatChange variant="secondary" trend="up">
+              <TrendUp size={14} weight="bold" />
+              <ReportsStatTrendText variant="secondary" trend="up">
+                {stats.totalUsers} total
+              </ReportsStatTrendText>
+            </ReportsStatChange>
+          </ReportsStatCard>
 
           {/* Empleados Activos */}
-          <Grid item xs={12} sm={6} md={3}>
-            <ReportsStatCard variant="secondary">
-              <ReportsStatHeader>
-                <Box>
-                  <ReportsStatValue variant="secondary">
-                    {stats.activeEmployees}
-                  </ReportsStatValue>
-                  <ReportsStatLabel variant="secondary">
-                    Empleados Activos
-                  </ReportsStatLabel>
-                </Box>
-                <ReportsStatIconContainer variant="secondary">
-                  <User size={24} weight="duotone" />
-                </ReportsStatIconContainer>
-              </ReportsStatHeader>
-              <ReportsStatChange variant="secondary" trend="up">
-                <TrendUp size={14} weight="bold" />
-                <ReportsStatTrendText variant="secondary" trend="up">
-                  {stats.totalEmployees} total
-                </ReportsStatTrendText>
-              </ReportsStatChange>
-            </ReportsStatCard>
-          </Grid>
+          <ReportsStatCard variant="secondary">
+            <ReportsStatHeader>
+              <Box>
+                <ReportsStatValue variant="secondary">
+                  {stats.activeEmployees}
+                </ReportsStatValue>
+                <ReportsStatLabel variant="secondary">
+                  Empleados Activos
+                </ReportsStatLabel>
+              </Box>
+              <ReportsStatIconContainer variant="secondary">
+                <User size={24} weight="duotone" />
+              </ReportsStatIconContainer>
+            </ReportsStatHeader>
+            <ReportsStatChange variant="secondary" trend="up">
+              <TrendUp size={14} weight="bold" />
+              <ReportsStatTrendText variant="secondary" trend="up">
+                {stats.totalEmployees} total
+              </ReportsStatTrendText>
+            </ReportsStatChange>
+          </ReportsStatCard>
 
           {/* Diseños Pendientes */}
-          <Grid item xs={12} sm={6} md={3}>
-            <ReportsStatCard variant="secondary">
-              <ReportsStatHeader>
-                <Box>
-                  <ReportsStatValue variant="secondary">
-                    {stats.pendingDesigns}
-                  </ReportsStatValue>
-                  <ReportsStatLabel variant="secondary">
-                    Diseños Pendientes
-                  </ReportsStatLabel>
-                </Box>
-                <ReportsStatIconContainer variant="secondary">
-                  <ChartLine size={24} weight="duotone" />
-                </ReportsStatIconContainer>
-              </ReportsStatHeader>
-              <ReportsStatChange variant="secondary" trend="down">
-                <TrendUp size={14} weight="bold" />
-                <ReportsStatTrendText variant="secondary" trend="down">
-                  {stats.totalDesigns} total
-                </ReportsStatTrendText>
-              </ReportsStatChange>
-            </ReportsStatCard>
-          </Grid>
-        </Grid>
+          <ReportsStatCard variant="secondary">
+            <ReportsStatHeader>
+              <Box>
+                <ReportsStatValue variant="secondary">
+                  {stats.pendingDesigns}
+                </ReportsStatValue>
+                <ReportsStatLabel variant="secondary">
+                  Diseños Pendientes
+                </ReportsStatLabel>
+              </Box>
+              <ReportsStatIconContainer variant="secondary">
+                <ChartLine size={24} weight="duotone" />
+              </ReportsStatIconContainer>
+            </ReportsStatHeader>
+            <ReportsStatChange variant="secondary" trend="down">
+              <TrendUp size={14} weight="bold" />
+              <ReportsStatTrendText variant="secondary" trend="down">
+                {stats.totalDesigns} total
+              </ReportsStatTrendText>
+            </ReportsStatChange>
+          </ReportsStatCard>
+        </ReportsStatsGrid>
 
         {/* Sección de gráficas principales */}
         <Grid container spacing={{ xs: 2, sm: 3, md: 4 }} sx={{ mb: 4 }}>
