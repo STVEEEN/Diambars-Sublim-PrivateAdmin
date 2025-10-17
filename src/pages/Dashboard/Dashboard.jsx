@@ -911,7 +911,10 @@ const Dashboard = () => {
                 color: '#64748b', 
                 margin: '0 0 24px 0',
                 fontWeight: 500,
-                [theme.breakpoints.down('md')]: { fontSize: '1.2rem', textAlign: 'center' },
+                textAlign: 'left',
+                alignSelf: 'flex-start',
+                width: '100%',
+                [theme.breakpoints.down('md')]: { fontSize: '1.2rem', textAlign: 'left' },
                 [theme.breakpoints.down('sm')]: { fontSize: '1.1rem' }
               }}>
                 Panel de control administrativo - Sistema DIAMBARS
