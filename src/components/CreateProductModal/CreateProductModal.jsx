@@ -49,6 +49,10 @@ Swal.mixin({
 
 // ================ ESTILOS (mantener los mismos) ================
 const ModalOverlay = styled(Box)({
+  '@keyframes viewerBackdropFadeIn': {
+    '0%': { opacity: 0 },
+    '100%': { opacity: 1 }
+  },
   position: 'fixed',
   top: 0,
   left: 0,
@@ -59,6 +63,7 @@ const ModalOverlay = styled(Box)({
   justifyContent: 'center',
   alignItems: 'center',
   zIndex: 1400,
+  animation: 'viewerBackdropFadeIn 220ms ease-out',
   // No interferir con la scrollbar del body
   '&': {
     '--scrollbar-width': '12px', // Ancho de la scrollbar personalizada
@@ -66,6 +71,10 @@ const ModalOverlay = styled(Box)({
 });
 
 const ModalContainer = styled(Box)(({ theme }) => ({
+  '@keyframes viewerSlideInUp': {
+    '0%': { opacity: 0, transform: 'translateY(12px) scale(0.985)' },
+    '100%': { opacity: 1, transform: 'translateY(0) scale(1)' }
+  },
   backgroundColor: '#ffffff',
   borderRadius: '12px',
   boxShadow: '0 10px 25px rgba(0, 0, 0, 0.2)',
@@ -74,7 +83,8 @@ const ModalContainer = styled(Box)(({ theme }) => ({
   maxHeight: '95vh',
   display: 'flex',
   flexDirection: 'column',
-  overflow: 'visible', // Cambiado de 'hidden' a 'visible' para permitir dropdowns
+  overflow: 'hidden', // Recorta el contenido; los dropdowns usan disablePortal y z-index alto
+  animation: 'viewerSlideInUp 220ms cubic-bezier(0.4, 0, 0.2, 1)',
   [theme.breakpoints.down('sm')]: {
     width: '100%',
     maxHeight: '100vh',
@@ -124,11 +134,13 @@ const TabButton = styled(Button)(({ theme }) => ({
 
 const ModalContent = styled(Box)(({ theme }) => ({
   padding: '24px',
-  overflowY: 'visible', // Cambiado de 'auto' a 'visible' para permitir dropdowns
+  overflowY: 'auto', // Permitir scroll interno del contenido
+  overflowX: 'hidden',
   flex: 1,
   display: 'flex',
   flexDirection: 'column',
   gap: '32px',
+  WebkitOverflowScrolling: 'touch',
   [theme.breakpoints.down('sm')]: {
     padding: '16px',
     gap: '24px',
@@ -563,17 +575,35 @@ const CreateProductModal = ({
     }
   }, [categoriesError]);
 
-  // ✅ MANTENER SCROLLBAR SIEMPRE VISIBLE
+  // ✅ BLOQUEAR SCROLL DE FONDO CUANDO EL MODAL ESTÁ ABIERTO
   useEffect(() => {
     if (isOpen) {
-      // Solo asegurar que no se oculte la scrollbar
-      document.documentElement.style.overflowY = 'scroll';
-      document.documentElement.style.overflowX = 'hidden';
-      
+      const scrollY = window.scrollY;
+
+      // Guardar estilos actuales
+      const prevOverflowHtml = document.documentElement.style.overflow || '';
+      const prevOverflowBody = document.body.style.overflow || '';
+      const prevPositionBody = document.body.style.position || '';
+      const prevWidthBody = document.body.style.width || '';
+      const prevTopBody = document.body.style.top || '';
+
+      // Aplicar lock de scroll
+      document.documentElement.style.overflow = 'hidden';
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+      document.body.style.top = `-${scrollY}px`;
+
+      // Limpieza
       return () => {
-        // Restaurar configuración por defecto
-        document.documentElement.style.overflowY = 'scroll'; // Mantener siempre visible
-        document.documentElement.style.overflowX = 'hidden';
+        document.documentElement.style.overflow = prevOverflowHtml || '';
+        document.body.style.overflow = prevOverflowBody || '';
+        document.body.style.position = prevPositionBody || '';
+        document.body.style.width = prevWidthBody || '';
+        document.body.style.top = prevTopBody || '';
+        window.scrollTo(0, scrollY);
+        // Forzar reflow
+        void document.body.offsetHeight;
       };
     }
   }, [isOpen]);

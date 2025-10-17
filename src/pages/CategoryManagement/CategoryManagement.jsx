@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Swal from 'sweetalert2';
 import useCategories from '../../hooks/useCategories';
 import {
@@ -1023,6 +1023,34 @@ const CategoryManagement = () => {
       order: 0
     });
   };
+
+  // Bloqueo de scroll cuando el modal de categorías está abierto
+  useEffect(() => {
+    if (showModal) {
+      const scrollY = window.scrollY;
+      const prevOverflowHtml = document.documentElement.style.overflow || '';
+      const prevOverflowBody = document.body.style.overflow || '';
+      const prevPositionBody = document.body.style.position || '';
+      const prevWidthBody = document.body.style.width || '';
+      const prevTopBody = document.body.style.top || '';
+
+      document.documentElement.style.overflow = 'hidden';
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+      document.body.style.top = `-${scrollY}px`;
+
+      return () => {
+        document.documentElement.style.overflow = prevOverflowHtml || '';
+        document.body.style.overflow = prevOverflowBody || '';
+        document.body.style.position = prevPositionBody || '';
+        document.body.style.width = prevWidthBody || '';
+        document.body.style.top = prevTopBody || '';
+        window.scrollTo(0, scrollY);
+        void document.body.offsetHeight;
+      };
+    }
+  }, [showModal]);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;

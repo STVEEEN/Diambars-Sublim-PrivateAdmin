@@ -111,20 +111,40 @@ const EditorHeader = styled(Box, {
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between',
-  padding: theme.spacing(3, 4),
-  background: 'linear-gradient(135deg, rgba(248, 250, 252, 0.8) 0%, rgba(241, 245, 249, 0.6) 100%)',
-  borderBottom: '1px solid rgba(226, 232, 240, 0.8)',
+  padding: '32px',
+  background: 'rgba(255, 255, 255, 0.05)',
+  backdropFilter: 'blur(25px)',
+  WebkitBackdropFilter: 'blur(25px)',
+  color: '#010326',
+  borderBottom: '2px solid rgba(31, 100, 191, 0.3)',
   borderRadius: '24px 24px 0 0',
+  border: '1px solid rgba(255, 255, 255, 0.3)',
+  boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.5), inset 0 -1px 0 rgba(255, 255, 255, 0.1)',
+  overflow: 'hidden',
   position: 'relative',
   zIndex: 1,
-  '&::after': {
+  '&::before': {
     content: '""',
     position: 'absolute',
-    bottom: 0,
+    top: 0,
     left: 0,
     right: 0,
     height: '1px',
-    background: 'linear-gradient(90deg, transparent 0%, rgba(59, 130, 246, 0.3) 50%, transparent 100%)',
+    background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8), transparent)',
+    zIndex: 1,
+  },
+  '&::after': {
+    content: '""',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '1px',
+    height: '100%',
+    background: 'linear-gradient(180deg, rgba(255, 255, 255, 0.8), transparent, rgba(255, 255, 255, 0.3))',
+    zIndex: 1,
+  },
+  [theme.breakpoints.down('md')]: {
+    padding: '28px',
   },
 }));
 
@@ -136,6 +156,140 @@ const EditorTitle = styled(Typography)(({ theme }) => ({
   fontSize: '1.25rem',
   color: '#1e293b',
   textShadow: '0 1px 2px rgba(0, 0, 0, 0.1)',
+}));
+
+// Botón de cierre con el mismo estilo del CreateDesignModal
+const EditorCloseButton = styled(IconButton)(({ theme }) => ({
+  position: 'absolute',
+  right: '24px',
+  top: '24px',
+  width: '40px',
+  height: '40px',
+  background: 'linear-gradient(135deg,rgb(239, 242, 255) 0%,rgb(239, 242, 255) 100%)',
+  color: 'black',
+  borderRadius: '12px',
+  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+  boxShadow: '0 1px 4px rgba(31, 100, 191, 0.1)',
+  zIndex: 10,
+  overflow: 'hidden',
+  '&::before': {
+    content: '""',
+    position: 'absolute',
+    top: 0,
+    left: '-100%',
+    width: '100%',
+    height: '100%',
+    background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent)',
+    transition: 'left 0.6s ease',
+    zIndex: 1,
+  },
+  '& > *': {
+    position: 'relative',
+    zIndex: 2,
+  },
+  '&:hover': {
+    background: 'linear-gradient(135deg,rgb(180, 179, 247) 0%,rgb(188, 179, 247) 100%)',
+    transform: 'translateY(-1px)',
+    boxShadow: '0 2px 8px rgba(31, 100, 191, 0.2)',
+    '&::before': {
+      left: '100%',
+    },
+  },
+  '&:active': {
+    transform: 'scale(0.95)',
+  },
+  [theme.breakpoints.down('md')]: {
+    right: '20px',
+    top: '20px',
+    width: '36px',
+    height: '36px',
+  },
+  [theme.breakpoints.down('sm')]: {
+    right: '16px',
+    top: '16px',
+    width: '32px',
+    height: '32px',
+  }
+}));
+
+// Botones de acciones (Cancelar/Guardar) con el mismo estilo que CreateDesignModal
+const EditorActionButton = styled(Button)(({ theme, variant: buttonVariant }) => ({
+  borderRadius: '12px',
+  padding: '12px 24px',
+  fontSize: '0.875rem',
+  fontWeight: 600,
+  textTransform: 'none',
+  fontFamily: "'Mona Sans'",
+  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+  position: 'relative',
+  overflow: 'hidden',
+  minWidth: '140px',
+  borderWidth: '1px',
+  borderStyle: 'solid',
+  borderColor: 'transparent',
+  '&::before': {
+    content: '""',
+    position: 'absolute',
+    top: 0,
+    left: '-100%',
+    width: '100%',
+    height: '100%',
+    background: buttonVariant === 'contained'
+      ? 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent)'
+      : 'linear-gradient(90deg, transparent, rgba(31, 100, 191, 0.15), transparent)',
+    transition: 'left 0.5s ease',
+    zIndex: 1,
+  },
+  '& > *': {
+    position: 'relative',
+    zIndex: 2,
+  },
+  ...(buttonVariant === 'contained' ? {
+    background: 'linear-gradient(135deg, #1F64BF 0%, #032CA6 50%, #040DBF 100%)',
+    color: '#ffffff',
+    boxShadow: '0 2px 8px rgba(31, 100, 191, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
+    borderColor: 'rgba(255, 255, 255, 0.25)',
+    '&:hover': {
+      background: 'linear-gradient(135deg, #032CA6 0%, #1F64BF 50%, #032CA6 100%)',
+      boxShadow: '0 3px 12px rgba(31, 100, 191, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.3)',
+      transform: 'translateY(-1px)',
+      '&::before': { left: '100%' }
+    },
+    '&:active': {
+      transform: 'translateY(0)',
+      boxShadow: '0 1px 4px rgba(31, 100, 191, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
+    }
+  } : {
+    background: 'rgba(255, 255, 255, 0.15)',
+    backdropFilter: 'blur(15px)',
+    WebkitBackdropFilter: 'blur(15px)',
+    color: '#64748b',
+    borderColor: 'rgba(255, 255, 255, 0.4)',
+    boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 1px 4px rgba(1, 3, 38, 0.03)',
+    '&:hover': {
+      background: 'rgba(31, 100, 191, 0.12)',
+      color: '#032CA6',
+      borderColor: 'rgba(31, 100, 191, 0.3)',
+      boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 2px 8px rgba(31, 100, 191, 0.1)',
+      transform: 'translateY(-1px)',
+      '&::before': { left: '100%' }
+    },
+    '&:active': {
+      transform: 'translateY(0)',
+      boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 1px 2px rgba(1, 3, 38, 0.03)'
+    }
+  }),
+  '&:disabled': {
+    opacity: 0.5,
+    transform: 'none',
+    cursor: 'not-allowed',
+    '&::before': { display: 'none' }
+  },
+  [theme.breakpoints.down('sm')]: {
+    minWidth: '120px',
+    justifyContent: 'center',
+    width: '100%'
+  }
 }));
 
 const Toolbar = styled(Box, {
@@ -164,26 +318,62 @@ const ToolbarGroup = styled(Box)(({ theme }) => ({
   border: '1px solid rgba(226, 232, 240, 0.5)',
 }));
 
-const ToolButton = styled(Button)(({ theme }) => ({
+const ToolButton = styled(Button)(({ theme, variant: buttonVariant, color }) => ({
   minWidth: 'auto',
-  padding: theme.spacing(1.5, 2.5),
-  borderRadius: '10px',
-  fontSize: '0.875rem',
+  padding: theme.spacing(1.25, 2),
+  borderRadius: '12px',
+  fontSize: '0.85rem',
   textTransform: 'none',
   gap: theme.spacing(1),
-  fontWeight: 500,
+  fontWeight: 600,
   transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-  '&:hover': {
-    transform: 'translateY(-1px)',
-    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+  position: 'relative',
+  overflow: 'hidden',
+  borderWidth: '1px',
+  borderStyle: 'solid',
+  borderColor: 'transparent',
+  '&::before': {
+    content: '""',
+    position: 'absolute',
+    top: 0,
+    left: '-100%',
+    width: '100%',
+    height: '100%',
+    background: buttonVariant === 'contained'
+      ? 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent)'
+      : 'linear-gradient(90deg, transparent, rgba(31, 100, 191, 0.15), transparent)',
+    transition: 'left 0.5s ease',
+    zIndex: 1,
   },
-  '&.MuiButton-contained': {
-    background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+  '& > *': { position: 'relative', zIndex: 2 },
+  ...(buttonVariant === 'contained' ? {
+    background: 'linear-gradient(135deg, #1F64BF 0%, #032CA6 50%, #040DBF 100%)',
+    color: '#ffffff',
+    boxShadow: '0 2px 8px rgba(31, 100, 191, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
+    borderColor: 'rgba(255, 255, 255, 0.25)',
     '&:hover': {
-      background: 'linear-gradient(135deg, #2563eb 0%, #1e40af 100%)',
+      background: 'linear-gradient(135deg, #032CA6 0%, #1F64BF 50%, #032CA6 100%)',
+      boxShadow: '0 3px 12px rgba(31, 100, 191, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.3)',
+      transform: 'translateY(-1px)',
+      '&::before': { left: '100%' }
     },
-  },
+    '&:active': { transform: 'translateY(0)' }
+  } : {
+    background: 'rgba(255, 255, 255, 0.15)',
+    backdropFilter: 'blur(15px)',
+    WebkitBackdropFilter: 'blur(15px)',
+    color: color === 'error' ? '#b91c1c' : '#64748b',
+    borderColor: color === 'error' ? 'rgba(239, 68, 68, 0.35)' : 'rgba(255, 255, 255, 0.4)',
+    boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 1px 4px rgba(1, 3, 38, 0.03)',
+    '&:hover': {
+      background: color === 'error' ? 'rgba(239, 68, 68, 0.12)' : 'rgba(31, 100, 191, 0.12)',
+      color: color === 'error' ? '#991b1b' : '#032CA6',
+      borderColor: color === 'error' ? 'rgba(239, 68, 68, 0.45)' : 'rgba(31, 100, 191, 0.3)',
+      boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 2px 8px rgba(31, 100, 191, 0.1)',
+      transform: 'translateY(-1px)',
+      '&::before': { left: '100%' }
+    },
+  }),
 }));
 
 const EditorContent = styled(Box, {
@@ -203,7 +393,12 @@ const CanvasContainer = styled(Box, {
   slot: 'MainCanvasWrapper'
 })(({ theme }) => ({
   flex: 1,
-  background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+  background: `
+    radial-gradient(ellipse at 25% 15%, rgba(31, 100, 191, 0.12) 0%, transparent 60%),
+    radial-gradient(ellipse at 75% 25%, rgba(3, 44, 166, 0.10) 0%, transparent 65%),
+    radial-gradient(ellipse at 20% 75%, rgba(4, 13, 191, 0.08) 0%, transparent 70%),
+    #ffffff
+  `,
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
@@ -220,9 +415,9 @@ const CanvasContainer = styled(Box, {
     right: 0,
     bottom: 0,
     background: `
-      radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
-      radial-gradient(circle at 80% 20%, rgba(16, 185, 129, 0.1) 0%, transparent 50%),
-      radial-gradient(circle at 40% 40%, rgba(139, 92, 246, 0.05) 0%, transparent 50%)
+      radial-gradient(circle at 20% 80%, rgba(31, 100, 191, 0.10) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(3, 44, 166, 0.08) 0%, transparent 50%),
+      radial-gradient(circle at 40% 40%, rgba(4, 13, 191, 0.06) 0%, transparent 50%)
     `,
     pointerEvents: 'none',
   },
@@ -642,15 +837,45 @@ const KonvaAreaEditor = ({
   return (
     <EditorOverlay>
       <EditorContainer>
-        {/* Header */}
+        {/* Header con animación de "mármol" y brillo */}
         <EditorHeader>
+          {/* Glow animado */}
+          <div style={{
+            position: 'absolute',
+            top: '-3px',
+            left: '-3px',
+            right: '-3px',
+            bottom: '-3px',
+            background: 'linear-gradient(135deg, rgba(31, 100, 191, 0.3), rgba(3, 44, 166, 0.2), rgba(4, 13, 191, 0.3), rgba(1, 3, 38, 0.2))',
+            borderRadius: '27px',
+            opacity: 0.3,
+            zIndex: -1,
+            animation: 'flowMove 3s ease-in-out infinite alternate',
+            filter: 'blur(6px)',
+            pointerEvents: 'none'
+          }} />
+
+          {/* Brillo animado */}
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: '-100%',
+            width: '50%',
+            height: '100%',
+            background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent)',
+            transform: 'skewX(-15deg)',
+            animation: 'shineMove 4s ease-in-out infinite',
+            zIndex: 1,
+            pointerEvents: 'none'
+          }} />
+
           <EditorTitle variant="h6">
             <EditIcon size={20} weight="bold" />
             Editor de Áreas de Personalización
           </EditorTitle>
-          <IconButton onClick={onClose} color="inherit">
-            <CloseIcon size={20} />
-          </IconButton>
+          <EditorCloseButton onClick={onClose} aria-label="Cerrar editor">
+            <CloseIcon size={18} />
+          </EditorCloseButton>
         </EditorHeader>
 
         {/* Toolbar */}
@@ -1192,50 +1417,19 @@ const KonvaAreaEditor = ({
           </Box>
           
           <Box sx={{ display: 'flex', gap: 1.5 }}>
-            <Button
+            <EditorActionButton
               variant="outlined"
               onClick={onClose}
-              color="inherit"
-              sx={{
-                borderRadius: EDITOR_THEME.borderRadius.button,
-                borderColor: EDITOR_THEME.colors.border,
-                color: EDITOR_THEME.colors.textSecondary,
-                px: 3,
-                py: 1.5,
-                fontWeight: 500,
-                transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                '&:hover': {
-                  borderColor: EDITOR_THEME.colors.primary,
-                  backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                  transform: 'translateY(-1px)',
-                  boxShadow: EDITOR_THEME.shadows.buttonHover
-                }
-              }}
             >
               Cancelar
-            </Button>
-            <Button
+            </EditorActionButton>
+            <EditorActionButton
               variant="contained"
-              color="primary"
-              startIcon={<SaveIcon size={16} />}
               onClick={handleSave}
-              sx={{
-                borderRadius: EDITOR_THEME.borderRadius.button,
-                background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
-                px: 3,
-                py: 1.5,
-                fontWeight: 500,
-                transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                boxShadow: EDITOR_THEME.shadows.button,
-                '&:hover': {
-                  background: 'linear-gradient(135deg, #2563eb 0%, #1e40af 100%)',
-                  transform: 'translateY(-1px)',
-                  boxShadow: EDITOR_THEME.shadows.buttonHover
-                }
-              }}
+              startIcon={<SaveIcon size={16} />}
             >
               Guardar Áreas
-            </Button>
+            </EditorActionButton>
           </Box>
         </EditorFooter>
       </EditorContainer>

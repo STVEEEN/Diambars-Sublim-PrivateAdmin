@@ -965,6 +965,9 @@ const ActionButton = styled(Button)(({ variant: buttonVariant, theme }) => ({
   position: 'relative',
   overflow: 'hidden',
   minWidth: '140px',
+  borderWidth: '1px',
+  borderStyle: 'solid',
+  borderColor: 'transparent',
   
   // Efecto de brillo animado
   '&::before': {
@@ -990,7 +993,7 @@ const ActionButton = styled(Button)(({ variant: buttonVariant, theme }) => ({
     background: 'linear-gradient(135deg, #1F64BF 0%, #032CA6 50%, #040DBF 100%)',
     color: '#ffffff',
     boxShadow: '0 2px 8px rgba(31, 100, 191, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
-    border: '1px solid rgba(255, 255, 255, 0.25)',
+    borderColor: 'rgba(255, 255, 255, 0.25)',
     '&:hover': {
       background: 'linear-gradient(135deg, #032CA6 0%, #1F64BF 50%, #032CA6 100%)',
       boxShadow: '0 3px 12px rgba(31, 100, 191, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.3)',
@@ -1008,7 +1011,7 @@ const ActionButton = styled(Button)(({ variant: buttonVariant, theme }) => ({
     backdropFilter: 'blur(15px)',
     WebkitBackdropFilter: 'blur(15px)',
     color: '#64748b',
-    border: '1px solid rgba(255, 255, 255, 0.4)',
+    borderColor: 'rgba(255, 255, 255, 0.4)',
     boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 1px 4px rgba(1, 3, 38, 0.03)',
     '&:hover': {
       background: 'rgba(31, 100, 191, 0.12)',

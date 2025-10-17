@@ -78,6 +78,14 @@ import QualityControlPanel from '../../../components/QualityControl/QualityContr
 
 // ================ ESTILOS MODERNOS MEJORADOS ================
 const StyledDialog = styled(Dialog)(({ theme }) => ({
+  '@keyframes viewerBackdropFadeIn': {
+    '0%': { opacity: 0 },
+    '100%': { opacity: 1 }
+  },
+  '@keyframes viewerSlideInUp': {
+    '0%': { opacity: 0, transform: 'translateY(12px) scale(0.985)' },
+    '100%': { opacity: 1, transform: 'translateY(0) scale(1)' }
+  },
   '& .MuiDialog-paper': {
     borderRadius: '24px',
     boxShadow: '0 24px 60px rgba(31, 100, 191, 0.12)',
@@ -88,7 +96,11 @@ const StyledDialog = styled(Dialog)(({ theme }) => ({
     height: '90vh',
     overflow: 'hidden',
     display: 'flex',
-    flexDirection: 'column'
+    flexDirection: 'column',
+    animation: 'viewerSlideInUp 220ms cubic-bezier(0.4, 0, 0.2, 1)'
+  },
+  '& .MuiBackdrop-root': {
+    animation: 'viewerBackdropFadeIn 220ms ease-out'
   }
 }));
 
@@ -111,8 +123,7 @@ const ModernCard = styled(Card)(({ theme }) => ({
   transition: 'all 0.2s ease',
   height: '100%',
   '&:hover': {
-    boxShadow: '0 4px 16px rgba(31, 100, 191, 0.08)',
-    transform: 'translateY(-1px)'
+    boxShadow: '0 4px 16px rgba(31, 100, 191, 0.08)'
   }
 }));
 
@@ -153,7 +164,6 @@ const StatusChip = styled(Chip)(({ status, theme }) => {
     boxShadow: `0 4px 12px ${statusStyles.glow}`,
     transition: 'all 0.3s ease',
     '&:hover': {
-      transform: 'translateY(-2px)',
       boxShadow: `0 6px 20px ${statusStyles.glow}`
     }
   };
@@ -172,14 +182,12 @@ const InfoRow = styled(Box)(({ theme }) => ({
   alignItems: 'flex-start',
   padding: '10px 0',
   borderBottom: `1px solid ${alpha('#1F64BF', 0.05)}`,
-  transition: 'all 0.15s ease',
+  transition: 'background-color 0.15s ease',
   '&:last-child': {
     borderBottom: 'none'
   },
   '&:hover': {
-    backgroundColor: alpha('#1F64BF', 0.02),
-    borderRadius: '8px',
-    padding: '10px 8px'
+    backgroundColor: alpha('#1F64BF', 0.02)
   }
 }));
 
@@ -235,8 +243,7 @@ const ModernButton = styled(Button)(({ variant: buttonVariant }) => {
       boxShadow: '0 4px 16px rgba(31, 100, 191, 0.3)',
       '&:hover': {
         background: 'linear-gradient(135deg, #032CA6 0%, #1F64BF 100%)',
-        boxShadow: '0 6px 24px rgba(31, 100, 191, 0.4)',
-        transform: 'translateY(-2px)'
+        boxShadow: '0 6px 24px rgba(31, 100, 191, 0.4)'
       }
     },
     success: {
@@ -245,8 +252,7 @@ const ModernButton = styled(Button)(({ variant: buttonVariant }) => {
       boxShadow: '0 4px 16px rgba(16, 185, 129, 0.3)',
       '&:hover': {
         background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
-        boxShadow: '0 6px 24px rgba(16, 185, 129, 0.4)',
-        transform: 'translateY(-2px)'
+        boxShadow: '0 6px 24px rgba(16, 185, 129, 0.4)'
       }
     },
     info: {
@@ -255,8 +261,7 @@ const ModernButton = styled(Button)(({ variant: buttonVariant }) => {
       boxShadow: '0 4px 16px rgba(59, 130, 246, 0.3)',
       '&:hover': {
         background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)',
-        boxShadow: '0 6px 24px rgba(59, 130, 246, 0.4)',
-        transform: 'translateY(-2px)'
+        boxShadow: '0 6px 24px rgba(59, 130, 246, 0.4)'
       }
     },
     warning: {
@@ -265,8 +270,7 @@ const ModernButton = styled(Button)(({ variant: buttonVariant }) => {
       boxShadow: '0 4px 16px rgba(249, 115, 22, 0.3)',
       '&:hover': {
         background: 'linear-gradient(135deg, #EA580C 0%, #DC2626 100%)',
-        boxShadow: '0 6px 24px rgba(249, 115, 22, 0.4)',
-        transform: 'translateY(-2px)'
+        boxShadow: '0 6px 24px rgba(249, 115, 22, 0.4)'
       }
     },
     outlined: {
@@ -276,8 +280,7 @@ const ModernButton = styled(Button)(({ variant: buttonVariant }) => {
       border: '2px solid',
       '&:hover': {
         borderColor: '#032CA6',
-        background: alpha('#1F64BF', 0.05),
-        transform: 'translateY(-2px)'
+        background: alpha('#1F64BF', 0.05)
       }
     }
   };
@@ -303,8 +306,7 @@ const ProductItem = styled(Box)(({ theme }) => ({
   background: 'white',
   transition: 'all 0.2s ease',
   '&:hover': {
-    boxShadow: '0 4px 12px rgba(31, 100, 191, 0.08)',
-    transform: 'translateY(-1px)'
+    boxShadow: '0 4px 12px rgba(31, 100, 191, 0.08)'
   }
 }));
 

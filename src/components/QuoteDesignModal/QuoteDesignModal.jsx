@@ -38,6 +38,14 @@ import {
 
 // ================ ESTILOS MODERNOS ================
 const StyledDialog = styled(Dialog)(({ theme }) => ({
+  '@keyframes viewerBackdropFadeIn': {
+    '0%': { opacity: 0 },
+    '100%': { opacity: 1 }
+  },
+  '@keyframes viewerSlideInUp': {
+    '0%': { opacity: 0, transform: 'translateY(12px) scale(0.985)' },
+    '100%': { opacity: 1, transform: 'translateY(0) scale(1)' }
+  },
   zIndex: 1500, // Z-index alto para estar por encima del navbar
   '& .MuiDialog-paper': {
     borderRadius: '24px',
@@ -49,10 +57,12 @@ const StyledDialog = styled(Dialog)(({ theme }) => ({
     maxHeight: '90vh',
     margin: '16px',
     overflow: 'hidden',
-    zIndex: 1501 // Z-index alto en el paper
+    zIndex: 1501, // Z-index alto en el paper
+    animation: 'viewerSlideInUp 220ms cubic-bezier(0.4, 0, 0.2, 1)'
   },
   '& .MuiBackdrop-root': {
-    zIndex: 1499 // Backdrop con z-index alto
+    zIndex: 1499, // Backdrop con z-index alto
+    animation: 'viewerBackdropFadeIn 220ms ease-out'
   }
 }));
 

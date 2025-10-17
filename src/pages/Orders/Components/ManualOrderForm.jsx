@@ -67,13 +67,25 @@ if (typeof document !== 'undefined') {
 
 // ================ ESTILOS MODERNOS ================
 const StyledDialog = styled(Dialog)(({ theme }) => ({
+  '@keyframes viewerBackdropFadeIn': {
+    '0%': { opacity: 0 },
+    '100%': { opacity: 1 }
+  },
+  '@keyframes viewerSlideInUp': {
+    '0%': { opacity: 0, transform: 'translateY(12px) scale(0.985)' },
+    '100%': { opacity: 1, transform: 'translateY(0) scale(1)' }
+  },
   '& .MuiDialog-paper': {
     borderRadius: '16px',
     boxShadow: '0 24px 64px rgba(1, 3, 38, 0.12)',
     maxWidth: '900px',
     zIndex: 1300,
     width: '90%',
-    maxHeight: '90vh'
+    maxHeight: '90vh',
+    animation: 'viewerSlideInUp 220ms cubic-bezier(0.4, 0, 0.2, 1)'
+  },
+  '& .MuiBackdrop-root': {
+    animation: 'viewerBackdropFadeIn 220ms ease-out'
   }
 }));
 

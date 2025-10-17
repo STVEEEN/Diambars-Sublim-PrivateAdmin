@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
 User, 
 EnvelopeSimple, 
@@ -33,7 +33,8 @@ alpha,
 Paper,
 Modal,
 Backdrop,
-CircularProgress
+CircularProgress,
+Fade
 } from '@mui/material';
 
 // Estilos globales para las animaciones
@@ -113,6 +114,17 @@ const GlobalStyles = () => (
     left: 150%;
   }
 }
+
+/* Animaciones de entrada estilo pública (shippingAddresses) */
+@keyframes viewerBackdropFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes viewerSlideInUp {
+  0% { opacity: 0; transform: translateY(12px) scale(0.985); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
 `}
 </style>
 );
@@ -123,6 +135,7 @@ const ModernModalBackdrop = styled(Backdrop)({
 background: 'rgba(1, 3, 38, 0.2)',
 backdropFilter: 'blur(8px)',
 WebkitBackdropFilter: 'blur(8px)',
+animation: 'viewerBackdropFadeIn 220ms ease-out'
 });
 
 const ModernModalContainer = styled(Box)(({ theme }) => ({
@@ -154,6 +167,7 @@ maxHeight: '90vh',
 overflow: 'hidden',
 position: 'relative',
 fontFamily: "'Mona Sans'",
+animation: 'viewerSlideInUp 220ms cubic-bezier(0.4, 0, 0.2, 1)',
 [theme.breakpoints.down('lg')]: {
 maxWidth: '800px',
 },
@@ -678,6 +692,9 @@ transition: 'all 0.3s cubic-bezier(0.23, 1, 0.320, 1)',
 position: 'relative',
 overflow: 'hidden',
 minWidth: '120px',
+  borderWidth: '1px',
+  borderStyle: 'solid',
+  borderColor: 'transparent',
 
 // Efecto de brillo animado
 '&::before': {
@@ -703,7 +720,7 @@ zIndex: 2,
 background: 'linear-gradient(135deg, #1F64BF 0%, #032CA6 50%, #040DBF 100%)',
 color: '#ffffff',
 boxShadow: '0 2px 8px rgba(31, 100, 191, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
-border: '1px solid rgba(255, 255, 255, 0.25)',
+    borderColor: 'rgba(255, 255, 255, 0.25)',
 '&:hover': {
 background: 'linear-gradient(135deg, #032CA6 0%, #1F64BF 50%, #032CA6 100%)',
 boxShadow: '0 3px 12px rgba(31, 100, 191, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.3)',
@@ -721,7 +738,7 @@ background: 'rgba(255, 255, 255, 0.15)',
 backdropFilter: 'blur(15px)',
 WebkitBackdropFilter: 'blur(15px)',
 color: '#64748b',
-border: '1px solid rgba(255, 255, 255, 0.4)',
+    borderColor: 'rgba(255, 255, 255, 0.4)',
 boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 1px 4px rgba(1, 3, 38, 0.03)',
 '&:hover': {
 background: 'rgba(31, 100, 191, 0.12)',
@@ -816,6 +833,34 @@ return (
 };
 
 const CreateUserModal = ({ open, onSubmit, onCancel }) => {
+// Bloquear scroll del fondo como en EmployeeModal
+useEffect(() => {
+  if (open) {
+    const scrollY = window.scrollY;
+
+    const prevOverflowBody = document.body.style.overflow || '';
+    const prevPositionBody = document.body.style.position || '';
+    const prevWidthBody = document.body.style.width || '';
+    const prevTopBody = document.body.style.top || '';
+    const prevOverflowHtml = document.documentElement.style.overflow || '';
+
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.width = '100%';
+    document.body.style.top = `-${scrollY}px`;
+
+    return () => {
+      document.documentElement.style.overflow = prevOverflowHtml || '';
+      document.body.style.overflow = prevOverflowBody || '';
+      document.body.style.position = prevPositionBody || '';
+      document.body.style.width = prevWidthBody || '';
+      document.body.style.top = prevTopBody || '';
+      window.scrollTo(0, scrollY);
+      document.body.offsetHeight;
+    };
+  }
+}, [open]);
 const [formData, setFormData] = useState({
 name: '',
 email: '',
@@ -933,12 +978,15 @@ return role ? role.permissions : [];
 if (!open) return null;
 
 return (
-<Modal
+  <Modal
 open={open}
 onClose={onCancel}
 closeAfterTransition
+    disableScrollLock={true}
 BackdropComponent={ModernModalBackdrop}
+BackdropProps={{ timeout: 150 }}
 >
+<Fade in={open} timeout={150}>
 <ModernModalContainer>
   <GlobalStyles />
   <ModernModalCard>
@@ -1323,6 +1371,7 @@ BackdropComponent={ModernModalBackdrop}
     </ModernModalContent>
   </ModernModalCard>
 </ModernModalContainer>
+</Fade>
 </Modal>
 );
 };

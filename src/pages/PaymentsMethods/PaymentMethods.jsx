@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -610,6 +610,34 @@ const PaymentMethods = () => {
     setConfigModalOpen(false);
     setSelectedMethod(null);
   };
+
+  // Bloqueo de scroll cuando el modal de configuración está abierto
+  useEffect(() => {
+    if (configModalOpen) {
+      const scrollY = window.scrollY;
+      const prevOverflowHtml = document.documentElement.style.overflow || '';
+      const prevOverflowBody = document.body.style.overflow || '';
+      const prevPositionBody = document.body.style.position || '';
+      const prevWidthBody = document.body.style.width || '';
+      const prevTopBody = document.body.style.top || '';
+
+      document.documentElement.style.overflow = 'hidden';
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+      document.body.style.top = `-${scrollY}px`;
+
+      return () => {
+        document.documentElement.style.overflow = prevOverflowHtml || '';
+        document.body.style.overflow = prevOverflowBody || '';
+        document.body.style.position = prevPositionBody || '';
+        document.body.style.width = prevWidthBody || '';
+        document.body.style.top = prevTopBody || '';
+        window.scrollTo(0, scrollY);
+        void document.body.offsetHeight;
+      };
+    }
+  }, [configModalOpen]);
 
   const handleSaveMethod = () => {
     if (modalMode === 'create') {

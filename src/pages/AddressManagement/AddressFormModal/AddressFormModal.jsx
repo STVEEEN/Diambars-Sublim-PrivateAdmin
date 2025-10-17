@@ -50,6 +50,14 @@ import AddressMapPicker from '../AddressMapPicker/AddressMapPicker';
 
 // ================ ESTILOS STYLED COMPONENTS ================
 const AddressModalDialog = styled(Dialog)(({ theme }) => ({
+  '@keyframes viewerBackdropFadeIn': {
+    '0%': { opacity: 0 },
+    '100%': { opacity: 1 }
+  },
+  '@keyframes viewerSlideInUp': {
+    '0%': { opacity: 0, transform: 'translateY(12px) scale(0.985)' },
+    '100%': { opacity: 1, transform: 'translateY(0) scale(1)' }
+  },
   '& .MuiDialog-paper': {
     borderRadius: '16px',
     maxWidth: '900px',
@@ -58,6 +66,7 @@ const AddressModalDialog = styled(Dialog)(({ theme }) => ({
     background: 'white',
     boxShadow: '0 24px 48px rgba(0, 0, 0, 0.2)',
     fontFamily: "'Mona Sans'",
+    animation: 'viewerSlideInUp 220ms cubic-bezier(0.4, 0, 0.2, 1)',
     [theme.breakpoints.down('md')]: {
       maxWidth: '95%',
       maxHeight: '95vh',
@@ -69,6 +78,9 @@ const AddressModalDialog = styled(Dialog)(({ theme }) => ({
       margin: 0,
       borderRadius: 0,
     }
+  },
+  '& .MuiBackdrop-root': {
+    animation: 'viewerBackdropFadeIn 220ms ease-out'
   }
 }));
 
@@ -782,9 +794,9 @@ const AddressFormModal = ({
               <TextField
                 {...params}
                 label="Buscar Usuario *"
-                placeholder="Escribe nombre, email o teléfono..."
+                placeholder="Escribe nombre, email o telï¿½fono..."
                 error={!!validationErrors.userId}
-                helperText={validationErrors.userId || "Busca por nombre, email, teléfono o ID"}
+                helperText={validationErrors.userId || "Busca por nombre, email, telï¿½fono o ID"}
                 InputProps={{
                   ...params.InputProps,
                   startAdornment: (
@@ -889,7 +901,7 @@ const AddressFormModal = ({
             )}
             noOptionsText={
               loadingUsers ? "Cargando usuarios..." : 
-              "No se encontraron usuarios. Intenta con otro término de búsqueda."
+              "No se encontraron usuarios. Intenta con otro tï¿½rmino de bï¿½squeda."
             }
             loading={loadingUsers}
             disabled={loadingUsers}

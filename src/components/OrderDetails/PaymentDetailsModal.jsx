@@ -38,6 +38,14 @@ import LocationMap from './LocationMap';
 
 // ================ ESTILOS MODERNOS SUTILES ================
 const StyledDialog = styled(Dialog)(({ theme }) => ({
+  '@keyframes viewerBackdropFadeIn': {
+    '0%': { opacity: 0 },
+    '100%': { opacity: 1 }
+  },
+  '@keyframes viewerSlideInUp': {
+    '0%': { opacity: 0, transform: 'translateY(12px) scale(0.985)' },
+    '100%': { opacity: 1, transform: 'translateY(0) scale(1)' }
+  },
   '& .MuiDialog-paper': {
     borderRadius: '20px',
     boxShadow: '0 8px 32px rgba(31, 100, 191, 0.08)',
@@ -46,7 +54,11 @@ const StyledDialog = styled(Dialog)(({ theme }) => ({
     maxWidth: '900px',
     width: '95%',
     maxHeight: '90vh',
-    overflow: 'hidden'
+    overflow: 'hidden',
+    animation: 'viewerSlideInUp 220ms cubic-bezier(0.4, 0, 0.2, 1)'
+  },
+  '& .MuiBackdrop-root': {
+    animation: 'viewerBackdropFadeIn 220ms ease-out'
   }
 }));
 
@@ -89,14 +101,12 @@ const InfoRow = styled(Box)(({ theme }) => ({
   alignItems: 'center',
   padding: '10px 0',
   borderBottom: `1px solid ${alpha('#1F64BF', 0.05)}`,
-  transition: 'all 0.15s ease',
+  transition: 'background-color 0.15s ease',
   '&:last-child': {
     borderBottom: 'none'
   },
   '&:hover': {
-    backgroundColor: alpha('#1F64BF', 0.02),
-    borderRadius: '8px',
-    padding: '10px 8px'
+    backgroundColor: alpha('#1F64BF', 0.02)
   }
 }));
 
@@ -154,8 +164,7 @@ const ModernButton = styled(Button)(({ theme }) => ({
   transition: 'all 0.2s ease',
   '&:hover': {
     borderColor: '#032CA6',
-    background: alpha('#1F64BF', 0.05),
-    transform: 'translateY(-1px)'
+    background: alpha('#1F64BF', 0.05)
   }
 }));
 
@@ -622,8 +631,7 @@ const PaymentDetailsModal = ({
                               backgroundColor: alpha('#1F64BF', 0.02),
                               transition: 'all 0.2s ease',
                               '&:hover': {
-                                backgroundColor: alpha('#1F64BF', 0.05),
-                                transform: 'translateY(-1px)'
+                                backgroundColor: alpha('#1F64BF', 0.05)
                               }
                             }}>
                               <Typography variant="subtitle2" sx={{ 

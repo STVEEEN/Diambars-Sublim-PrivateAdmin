@@ -617,9 +617,21 @@ const PaymentStatusPanel = ({ orderId, paymentStatus, onRefresh, compact = true 
         sx={{
           zIndex: 9994,
           '& .MuiDialog-paper': {
-            zIndex: 9994
+            zIndex: 9994,
+            animation: 'viewerSlideInUp 220ms cubic-bezier(0.4, 0, 0.2, 1)'
           }
         }}
+      slotProps={{
+        backdrop: {
+          sx: {
+            '@keyframes viewerBackdropFadeIn': {
+              '0%': { opacity: 0 },
+              '100%': { opacity: 1 }
+            },
+            animation: 'viewerBackdropFadeIn 220ms ease-out'
+          }
+        }
+      }}
       >
         <DialogTitle sx={{ fontFamily: "'Mona Sans'", fontWeight: 600 }}>
           Procesar Nuevo Pago
