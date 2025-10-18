@@ -106,7 +106,7 @@ const ProductCard = ({
           />
         ) : (
           <div className="product-image-fallback">
-            <InventoryIcon size={24} weight="duotone" />
+            <InventoryIcon size={20} weight="duotone" />
             <span>Sin imagen</span>
           </div>
         )}
@@ -119,21 +119,21 @@ const ProductCard = ({
               onClick={(e) => handleAction('view', e)}
               title="Ver producto"
             >
-              <EyeIcon size={24} weight="duotone" />
+              <EyeIcon size={20} weight="duotone" />
             </button>
             <button 
               className="product-action-btn product-edit-btn"
               onClick={(e) => handleAction('edit', e)}
               title="Editar producto"
             >
-              <EditIcon size={24} weight="duotone" />
+              <EditIcon size={20} weight="duotone" />
             </button>
             <button 
               className="product-action-btn product-delete-btn"
               onClick={(e) => handleAction('delete', e)}
               title="Eliminar producto"
             >
-              <TrashIcon size={24} weight="duotone" />
+              <TrashIcon size={20} weight="duotone" />
             </button>
           </div>
         </div>
