@@ -1135,10 +1135,17 @@ const Profile = () => {
                     <ProfileTextField
                       type="text"
                       value={profileData.name}
-                      onChange={(e) => handleProfileChange('name', e.target.value)}
-                      placeholder="Tu nombre completo"
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (value.length <= 9) {
+                          handleProfileChange('name', value);
+                        }
+                      }}
+                      placeholder="Tu nombre completo (máx. 9 caracteres)"
                       disabled={loading}
                       fullWidth
+                      inputProps={{ maxLength: 9 }}
+                      helperText={`${profileData.name.length}/9 caracteres`}
                     />
                   </ProfileField>
 

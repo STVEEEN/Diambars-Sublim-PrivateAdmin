@@ -153,10 +153,15 @@ const ModernModalContainer = styled(Box)(({ theme }) => ({
   justifyContent: 'center',
   padding: '20px',
   zIndex: 9999, // Z-index extremadamente alto para asegurar que esté por encima de todo
-  [theme.breakpoints.down('sm')]: {
+  [theme.breakpoints.down('md')]: {
     padding: '16px',
     alignItems: 'flex-start',
-    paddingTop: '20px',
+    paddingTop: '16px',
+  },
+  [theme.breakpoints.down('sm')]: {
+    padding: '8px',
+    alignItems: 'flex-start',
+    paddingTop: '8px',
   }
 }));
 
@@ -171,17 +176,26 @@ const ModernModalCard = styled(Paper)(({ theme }) => ({
   overflow: 'hidden',
   position: 'relative',
   fontFamily: "'Mona Sans'",
+  display: 'flex',
+  flexDirection: 'column',
+  [theme.breakpoints.down('xl')]: {
+    maxWidth: '1100px',
+  },
   [theme.breakpoints.down('lg')]: {
-    maxWidth: '1000px',
+    maxWidth: '950px',
+    maxHeight: '88vh',
   },
   [theme.breakpoints.down('md')]: {
-    maxWidth: '900px',
-    maxHeight: '85vh',
+    maxWidth: '100%',
+    maxHeight: '92vh',
+    borderRadius: '16px',
+    margin: '0 8px',
   },
   [theme.breakpoints.down('sm')]: {
     maxWidth: '100%',
-    maxHeight: '95vh',
-    borderRadius: '16px',
+    maxHeight: '98vh',
+    borderRadius: '12px',
+    margin: '0 4px',
   }
 }));
 
@@ -323,12 +337,13 @@ const ModernModalCloseButton = styled(IconButton)(({ theme }) => ({
 
 const ModernModalContent = styled(Box)(({ theme }) => ({
   padding: 0,
-  maxHeight: 'calc(90vh - 180px)',
+  flex: 1,
   overflowY: 'auto',
   position: 'relative',
   background: 'transparent',
   boxShadow: 'none',
   border: 'none',
+  minHeight: 0, // Importante para flex
 
   '&::-webkit-scrollbar': {
     width: '6px',
@@ -345,10 +360,14 @@ const ModernModalContent = styled(Box)(({ theme }) => ({
     }
   },
   [theme.breakpoints.down('md')]: {
-    maxHeight: 'calc(85vh - 160px)',
+    '&::-webkit-scrollbar': {
+      width: '4px',
+    },
   },
   [theme.breakpoints.down('sm')]: {
-    maxHeight: 'calc(95vh - 140px)',
+    '&::-webkit-scrollbar': {
+      width: '3px',
+    },
   }
 }));
 
@@ -1715,6 +1734,31 @@ const ElementDownloadModal = ({
     onClose();
   }, [onClose]);
 
+  // Bloquear scroll del body cuando el modal está abierto
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.top = '0';
+      document.body.style.left = '0';
+      document.body.style.right = '0';
+    } else {
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.left = '';
+      document.body.style.right = '';
+    }
+
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.left = '';
+      document.body.style.right = '';
+    };
+  }, [open]);
+
   if (!open) return null;
 
   // Renderizar el modal usando un portal para evitar problemas de z-index
@@ -1834,25 +1878,57 @@ const ElementDownloadModal = ({
                     onClick={handleSelectAll}
                     variant="outlined"
                     size="small"
-                    sx={{
+                    sx={(theme) => ({
                       borderRadius: '12px',
                       textTransform: 'none',
                       fontFamily: "'Mona Sans'",
                       fontWeight: 600,
-                      // Fijar ancho para evitar redimensionamiento
-                      minWidth: '140px',
-                      width: 'auto',
-                      flexShrink: 0,
+                      fontSize: '0.875rem',
+                      padding: '12px 20px',
+                      // Copiar exactamente la lógica de DesignManagement pero SIN scale
+                      minWidth: '160px',
                       whiteSpace: 'nowrap',
-                      // Transiciones suaves sin escalado
-                      transition: 'all 0.2s ease',
+                      position: 'relative',
+                      overflow: 'hidden',
+                      borderColor: alpha('#1F64BF', 0.25),
+                      color: '#1F64BF',
+                      boxShadow: '0 2px 8px rgba(31, 100, 191, 0.08)',
+                      transition: 'all 0.3s cubic-bezier(0.23, 1, 0.320, 1)',
+                      // Efecto de brillo animado
+                      '&::before': {
+                        content: '""',
+                        position: 'absolute',
+                        top: 0,
+                        left: '-100%',
+                        width: '100%',
+                        height: '100%',
+                        background: 'linear-gradient(90deg, transparent, rgba(31, 100, 191, 0.1), transparent)',
+                        transition: 'left 0.5s ease',
+                        zIndex: 1,
+                      },
+                      '& .MuiButton-startIcon, & span': {
+                        position: 'relative',
+                        zIndex: 2,
+                      },
                       '&:hover': {
+                        borderColor: '#1F64BF',
+                        // SOLO translateY, SIN scale para evitar redimensionamiento
                         transform: 'translateY(-1px)',
+                        boxShadow: '0 4px 12px rgba(31, 100, 191, 0.12)',
+                        '&::before': {
+                          left: '100%',
+                        }
                       },
                       '&:active': {
                         transform: 'translateY(0)',
+                        transition: 'transform 0.1s ease-out',
+                      },
+                      [theme.breakpoints.down('sm')]: {
+                        minWidth: '140px',
+                        fontSize: '0.8rem',
+                        padding: '10px 16px',
                       }
-                    }}
+                    })}
                   >
                     {selectedElements.size === filteredAndSortedElements.length ? 
                       'Deseleccionar Todo' : 'Seleccionar Todo'
@@ -1882,9 +1958,13 @@ const ElementDownloadModal = ({
                   )}
                 </Box>
 
-                <Grid container spacing={2}>
+                <Grid container spacing={2} sx={(theme) => ({
+                  [theme.breakpoints.down('sm')]: {
+                    spacing: 1,
+                  }
+                })}>
                   {filteredAndSortedElements.map((element) => (
-                    <Grid item xs={12} sm={6} md={4} lg={3} key={element.id}>
+                    <Grid item xs={12} sm={6} md={4} lg={3} xl={2} key={element.id}>
                       <ElementCard
                         selected={selectedElements.has(element.id)}
                         onClick={() => handleElementSelect(element.id)}

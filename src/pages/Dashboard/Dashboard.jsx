@@ -91,6 +91,68 @@ const marbleFlowKeyframes = `
   0% { opacity: 0; }
   100% { opacity: 1; }
 }
+
+@keyframes liquidGlassReflection {
+  0% {
+    background: linear-gradient(180deg,
+      rgba(162, 202, 255, 0.4) 0%,
+      rgba(129, 189, 245, 0.2) 30%,
+      rgba(127, 167, 253, 0.1) 60%,
+      transparent 100%
+    );
+    transform: translateX(0%) scaleX(1);
+  }
+  25% {
+    background: linear-gradient(180deg,
+      rgba(144, 155, 255, 0.5) 0%,
+      rgba(128, 151, 252, 0.3) 25%,
+      rgba(97, 160, 255, 0.15) 50%,
+      transparent 100%
+    );
+    transform: translateX(2%) scaleX(1.02);
+  }
+  50% {
+    background: linear-gradient(180deg,
+      rgba(255, 255, 255, 0.6) 0%,
+      rgba(90, 128, 255, 0.35) 20%,
+      rgba(11, 70, 233, 0.2) 40%,
+      transparent 100%
+    );
+    transform: translateX(-1%) scaleX(0.98);
+  }
+  75% {
+    background: linear-gradient(180deg,
+      rgba(2, 61, 255, 0.45) 0%,
+      rgba(255, 255, 255, 0.25) 35%,
+      rgba(255, 255, 255, 0.12) 65%,
+      transparent 100%
+    );
+    transform: translateX(1%) scaleX(1.01);
+  }
+  100% {
+    background: linear-gradient(180deg,
+      rgba(255, 255, 255, 0.4) 0%,
+      rgba(255, 255, 255, 0.2) 30%,
+      rgba(255, 255, 255, 0.1) 60%,
+      transparent 100%
+    );
+    transform: translateX(0%) scaleX(1);
+  }
+}
+
+@keyframes liquidGlassShimmer {
+  0% {
+    transform: translateX(-100%) skewX(-15deg);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(200%) skewX(-15deg);
+    opacity: 0;
+  }
+}
 `;
 
 // Inyectar keyframes en el documento
@@ -102,7 +164,7 @@ if (typeof document !== 'undefined') {
 
 // ================ STYLED COMPONENTS ================ 
 
-// Container principal - IGUAL AL CATALOG MANAGEMENT
+// Container principal - fondo blanco simple
 const DashboardPageContainer = styled(Box)({
   minHeight: '100vh',
   fontFamily: "'Mona Sans'",
@@ -271,22 +333,56 @@ const DashboardPrimaryButton = styled(Button)(({ theme }) => ({
   [theme.breakpoints.down('sm')]: { padding: '8px 16px', fontSize: '0.85rem' }
 }));
 
-// Welcome container con efecto mármol siempre presente y mouse tracking
+// Welcome container con efectos LIQUID GLASS WWDC 2025
 const WelcomeContainer = styled(DashboardModernCard)(({ theme }) => ({
   padding: '50px',
   marginBottom: '40px',
-  // ESTILOS BÁSICOS COMO STATS CARDS
-  background: 'white',
-  borderRadius: '16px',
-  border: '1px solid rgba(31, 100, 191, 0.08)',
-  boxShadow: '0 2px 16px rgba(1, 3, 38, 0.06)',
-  color: '#000000', // TEXTO NEGRO
+  // BASE LIQUID GLASS - Múltiples capas cristalinas MÁS VISIBLE
+  background: `
+    linear-gradient(135deg, 
+      rgba(255, 255, 255, 0.85) 0%,
+      rgba(255, 255, 255, 0.75) 50%,
+      rgba(255, 255, 255, 0.80) 100%
+    )
+  `,
+  borderRadius: '24px',
+  border: '2px solid #F2F2F2',
+  // SIN SOMBRAS - Solo contorno
+  boxShadow: 'none',
+  backdropFilter: 'blur(60px) saturate(200%)',
+  WebkitBackdropFilter: 'blur(60px) saturate(200%)',
+  color: '#000000',
   position: 'relative',
   overflow: 'hidden',
   cursor: 'default',
+  // LIQUID GLASS TRANSITION
+  transition: 'all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
   
-  // Mouse tracking effect
+  // LIQUID GLASS LAYER 1 - Reflejo superior dinámico
   '&::before': {
+    content: '""',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: '60%',
+    background: `
+      linear-gradient(180deg,
+        rgba(255, 255, 255, 0.4) 0%,
+        rgba(255, 255, 255, 0.2) 30%,
+        rgba(255, 255, 255, 0.1) 60%,
+        transparent 100%
+      )
+    `,
+    borderRadius: '24px 24px 0 0',
+    pointerEvents: 'none',
+    zIndex: 1,
+    // LIQUID GLASS ANIMATION - Reflejo ondulante
+    animation: 'liquidGlassReflection 8s ease-in-out infinite',
+  },
+  
+  // LIQUID GLASS LAYER 2 - Mouse tracking con iluminación cristalina
+  '&::after': {
     content: '""',
     position: 'absolute',
     top: 0,
@@ -295,57 +391,77 @@ const WelcomeContainer = styled(DashboardModernCard)(({ theme }) => ({
     height: '100%',
     background: `
       radial-gradient(
-        600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
-        rgba(31, 100, 191, 0.08) 0%,
-        rgba(31, 100, 191, 0.05) 20%,
-        rgba(31, 100, 191, 0.03) 40%,
-        rgba(31, 100, 191, 0.01) 60%,
-        transparent 80%
+        800px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+        rgba(31, 100, 191, 0.12) 0%,
+        rgba(31, 100, 191, 0.08) 15%,
+        rgba(31, 100, 191, 0.04) 30%,
+        rgba(31, 100, 191, 0.02) 50%,
+        transparent 70%
       )
     `,
     opacity: 0,
-    transition: 'opacity 0.3s ease',
+    transition: 'opacity 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
     pointerEvents: 'none',
-    zIndex: 1,
+    zIndex: 2,
+    borderRadius: '24px',
+    // LIQUID GLASS BLUR EFFECT
+    filter: 'blur(1px)',
   },
   
-  // Efecto de mouse tracking activado
-  '&.mouse-tracking::before': {
+  // LIQUID GLASS HOVER STATE - Transform mínimo y sin sombras
+  '&:hover': {
+    transform: 'translateY(-0.1px) scale(1.001)',
+    boxShadow: 'none',
+    backdropFilter: 'blur(50px) saturate(200%)',
+    WebkitBackdropFilter: 'blur(50px) saturate(200%)',
+  },
+  
+  // LIQUID GLASS MOUSE TRACKING ACTIVATION
+  '&.mouse-tracking::after': {
     opacity: 1,
   },
   
-  // Efecto mármol de fondo
-  '&::after': {
-    content: '""',
-    position: 'absolute',
-    top: '-50%',
-    left: '-50%',
-    width: '200%',
-    height: '200%',
-    // EFECTO MÁRMOL SIEMPRE VISIBLE - VALORES MARBLE POR DEFECTO
-    background: `
-      radial-gradient(ellipse at 15% 30%, rgba(31, 100, 191, 0.08) 0%, transparent 40%),
-      radial-gradient(ellipse at 85% 20%, rgba(3, 44, 166, 0.15) 0%, transparent 45%),
-      radial-gradient(ellipse at 50% 80%, rgba(100, 150, 220, 0.25) 0%, transparent 50%),
-      radial-gradient(ellipse at 25% 70%, rgba(31, 100, 191, 0.05) 0%, transparent 35%),
-      radial-gradient(ellipse at 75% 30%, rgba(3, 44, 166, 0.12) 0%, transparent 40%)
-    `,
-    animation: 'marbleFlow 25s ease-in-out infinite',
-    pointerEvents: 'none',
-    zIndex: 0,
-  },
-  
-  '& > *': { position: 'relative', zIndex: 2 },
+  '& > *': { position: 'relative', zIndex: 3 },
   [theme.breakpoints.down('lg')]: { padding: '40px' },
   [theme.breakpoints.down('md')]: { padding: '32px', marginBottom: '32px' },
   [theme.breakpoints.down('sm')]: { padding: '28px', marginBottom: '28px' }
 }));
+
+// LIQUID GLASS SHIMMER EFFECT - Capa adicional para efecto cristalino MÁS VISIBLE
+const LiquidGlassShimmer = styled(Box)({
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  width: '100%',
+  height: '100%',
+  background: `
+    linear-gradient(
+      45deg,
+      transparent 20%,
+      rgba(255, 255, 255, 0.6) 35%,
+      rgba(255, 255, 255, 0.8) 50%,
+      rgba(255, 255, 255, 0.6) 65%,
+      transparent 80%
+    )
+  `,
+  borderRadius: '24px',
+  pointerEvents: 'none',
+  zIndex: 1,
+  animation: 'liquidGlassShimmer 8s ease-in-out infinite',
+  opacity: 0.8,
+  // LIQUID GLASS SHIMMER TIMING - Más frecuente
+  animationDelay: '1s',
+  // FILTRO ADICIONAL PARA EFECTO CRISTALINO
+  filter: 'blur(0.5px)',
+});
 
 // Welcome content con mejor responsividad
 const WelcomeContent = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
   gap: '32px',
+  position: 'relative',
+  zIndex: 2,
   // Breakpoints estándar de MUI: xs: 0, sm: 600, md: 900, lg: 1200, xl: 1536
   [theme.breakpoints.down('md')]: { 
     flexDirection: 'column', 
@@ -853,20 +969,27 @@ const Dashboard = () => {
     <DashboardPageContainer>
       <DashboardContentWrapper maxWidth="xl" sx={{ maxWidth: '1650px !important' }} disableGutters={false}>
         
-        {/* Container de Bienvenida Unificado con Mouse Tracking - TONOS AZULES COMO CATALOG MANAGEMENT */}
+        {/* Container de Bienvenida Unificado con LIQUID GLASS WWDC 2025 */}
         <WelcomeContainer ref={welcomeContainerRef}>
+          {/* LIQUID GLASS SHIMMER EFFECT */}
+          <LiquidGlassShimmer />
+          
           {/* Reloj y fecha en esquina superior derecha */}
           <Box sx={{ 
             position: 'absolute',
-            top: '24px',
-            right: '24px',
+            top: '20px',
+            right: '20px',
             display: 'flex', 
             alignItems: 'center', 
             gap: '12px', 
-            color: '#64748b',
+            color: '#1e293b',
             fontSize: '1rem',
-            fontWeight: 500,
-            zIndex: 3,
+            fontWeight: 600,
+            zIndex: 10,
+            background: 'rgba(255, 255, 255, 0.9)',
+            padding: '8px 12px',
+            borderRadius: '12px',
+            border: '1px solid rgba(255, 255, 255, 0.8)',
             [theme.breakpoints.down('md')]: { 
               position: 'relative',
               top: 'auto',
@@ -1107,7 +1230,7 @@ const Dashboard = () => {
                   height: 6, 
                   borderRadius: 3, 
                     backgroundColor: '#F2F2F2',
-                    '& .MuiLinearProgress-bar': { backgroundColor: '#040DBF' }
+                    '& .MuiLinearProgress-bar': { backgroundColor: '#1F64BF' }
                 }} 
               />
             </Box>
@@ -1148,7 +1271,7 @@ const Dashboard = () => {
                     height: 6, 
                     borderRadius: 3,
                     backgroundColor: '#F2F2F2',
-                    '& .MuiLinearProgress-bar': { backgroundColor: '#040DBF' }
+                    '& .MuiLinearProgress-bar': { backgroundColor: '#1F64BF' }
                   }} 
                 />
             </Box>
@@ -1230,7 +1353,7 @@ const Dashboard = () => {
                     height: 6, 
                     borderRadius: 3,
                     backgroundColor: '#F2F2F2',
-                    '& .MuiLinearProgress-bar': { backgroundColor: '#040DBF' }
+                    '& .MuiLinearProgress-bar': { backgroundColor: '#1F64BF' }
                   }} 
                 />
             </Box>
@@ -1333,7 +1456,7 @@ const Dashboard = () => {
                 height: 8, 
                 borderRadius: 4,
                 backgroundColor: '#F2F2F2',
-                '& .MuiLinearProgress-bar': { backgroundColor: '#040DBF' }
+                '& .MuiLinearProgress-bar': { backgroundColor: '#1F64BF' }
               }} 
                     />
                   </Box>

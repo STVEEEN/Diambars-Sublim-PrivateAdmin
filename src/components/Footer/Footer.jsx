@@ -34,8 +34,8 @@ import {
   Link
 } from '@mui/material';
 
-// ================ KEYFRAMES PARA ANIMACIÓN DE MÁRMOL ================ 
-const marbleFlowKeyframes = ` 
+// ================ KEYFRAMES PARA LIQUID GLASS WWDC 2025 ================ 
+const liquidGlassKeyframes = ` 
   @keyframes marbleFlow { 
     0% { transform: translate(2%, 2%) rotate(0deg) scale(1); } 
     25% { transform: translate(-8%, -8%) rotate(5deg) scale(1.05); } 
@@ -53,39 +53,129 @@ const marbleFlowKeyframes = `
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
   }
+
+  @keyframes liquidGlassReflection {
+    0% {
+      background: linear-gradient(180deg,
+        rgba(255, 255, 255, 0.3) 0%,
+        rgba(255, 255, 255, 0.15) 30%,
+        rgba(255, 255, 255, 0.08) 60%,
+        transparent 100%
+      );
+      transform: translateX(0%) scaleX(1);
+    }
+    25% {
+      background: linear-gradient(180deg,
+        rgba(255, 255, 255, 0.4) 0%,
+        rgba(255, 255, 255, 0.25) 25%,
+        rgba(255, 255, 255, 0.12) 50%,
+        transparent 100%
+      );
+      transform: translateX(2%) scaleX(1.02);
+    }
+    50% {
+      background: linear-gradient(180deg,
+        rgba(255, 255, 255, 0.5) 0%,
+        rgba(255, 255, 255, 0.3) 20%,
+        rgba(255, 255, 255, 0.15) 40%,
+        transparent 100%
+      );
+      transform: translateX(-1%) scaleX(0.98);
+    }
+    75% {
+      background: linear-gradient(180deg,
+        rgba(255, 255, 255, 0.35) 0%,
+        rgba(255, 255, 255, 0.2) 35%,
+        rgba(255, 255, 255, 0.1) 65%,
+        transparent 100%
+      );
+      transform: translateX(1%) scaleX(1.01);
+    }
+    100% {
+      background: linear-gradient(180deg,
+        rgba(255, 255, 255, 0.3) 0%,
+        rgba(255, 255, 255, 0.15) 30%,
+        rgba(255, 255, 255, 0.08) 60%,
+        transparent 100%
+      );
+      transform: translateX(0%) scaleX(1);
+    }
+  }
+
+  @keyframes liquidGlassShimmer {
+    0% {
+      transform: translateX(-100%) skewX(-15deg);
+      opacity: 0;
+    }
+    50% {
+      opacity: 1;
+    }
+    100% {
+      transform: translateX(200%) skewX(-15deg);
+      opacity: 0;
+    }
+  }
+
+  @keyframes liquidGlassWave {
+    0% {
+      transform: translateY(0px) scaleY(1);
+      opacity: 0.6;
+    }
+    50% {
+      transform: translateY(-5px) scaleY(1.1);
+      opacity: 0.8;
+    }
+    100% {
+      transform: translateY(0px) scaleY(1);
+      opacity: 0.6;
+    }
+  }
 `;
 
 // Inyectar keyframes en el documento
 if (typeof document !== 'undefined') {
   const styleSheet = document.createElement('style');
-  styleSheet.textContent = marbleFlowKeyframes;
+  styleSheet.textContent = liquidGlassKeyframes;
   document.head.appendChild(styleSheet);
 }
 
 // ================ STYLED COMPONENTS ================ 
 
-// Footer principal - FONDO AZUL CON EFECTO MÁRMOL
+// Footer principal con LIQUID GLASS WWDC 2025
 const FooterPrivate = styled(Box)(({ theme }) => ({
-  // Ancho simple como el footer público
   width: '100%',
   fontFamily: "'Mona Sans', sans-serif",
   position: 'relative',
   zIndex: 10,
   
-  // Estilos visuales
-  background: 'linear-gradient(135deg, #1F64BF 0%, #032CA6 100%)',
-  backdropFilter: 'blur(20px)',
-  WebkitBackdropFilter: 'blur(20px)',
-  borderTop: '2px solid rgba(255, 255, 255, 0.15)',
+  // BASE LIQUID GLASS - Fondo translúcido con gradiente azul MÁS OSCURO
+  background: `
+    linear-gradient(135deg, 
+      rgba(15, 50, 95, 0.95) 0%,
+      rgba(2, 22, 83, 0.90) 50%,
+      rgba(2, 8, 95, 0.92) 100%
+    )
+  `,
+  backdropFilter: 'blur(60px) saturate(200%)',
+  WebkitBackdropFilter: 'blur(60px) saturate(200%)',
+  borderTop: '2px solid rgba(255, 255, 255, 0.3)',
+  // LIQUID GLASS SHADOW SYSTEM
+  boxShadow: `
+    0 -2px 8px rgba(0, 0, 0, 0.04),
+    0 -8px 24px rgba(0, 0, 0, 0.06),
+    0 -24px 48px rgba(0, 0, 0, 0.08),
+    inset 0 2px 0 rgba(255, 255, 255, 0.3),
+    inset 0 -2px 0 rgba(255, 255, 255, 0.1)
+  `,
   paddingTop: '40px',
   marginTop: 'auto',
-  marginBottom: '-50px',
-  
-  // Prevenir scroll horizontal
+  marginBottom: '0px',
   overflow: 'hidden',
   boxSizing: 'border-box',
+  // LIQUID GLASS TRANSITION
+  transition: 'all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
   
-  // Efecto mármol de fondo
+  // EFECTO MÁRMOL AZUL OSCURO DESENFOCADO - POR DEBAJO DE ELEMENTOS
   '&::before': {
     content: '""',
     position: 'absolute',
@@ -93,40 +183,32 @@ const FooterPrivate = styled(Box)(({ theme }) => ({
     left: '-50%',
     width: '200%',
     height: '200%',
-    opacity: 0.4,
-    pointerEvents: 'none',
-    zIndex: 0,
     background: `
-      radial-gradient(ellipse at 15% 30%, rgba(2, 32, 95, 0.7) 0%, transparent 40%),
-      radial-gradient(ellipse at 85% 20%, rgba(2, 32, 95, 0.75) 0%, transparent 45%),
-      radial-gradient(ellipse at 50% 80%, rgba(2, 32, 95, 0.65) 0%, transparent 50%),
-      radial-gradient(ellipse at 70% 50%, rgba(2, 32, 95, 0.7) 0%, transparent 35%),
-      radial-gradient(ellipse at 30% 70%, rgba(2, 32, 95, 0.75) 0%, transparent 40%),
-      radial-gradient(ellipse at 90% 90%, rgba(2, 32, 95, 0.65) 0%, transparent 45%),
-      radial-gradient(ellipse at 10% 90%, rgba(2, 32, 95, 0.55) 0%, transparent 30%),
-      linear-gradient(125deg, 
-        rgba(2, 32, 95, 0.65) 0%, 
-        transparent 25%, 
-        rgba(2, 32, 95, 0.75) 50%, 
-        transparent 75%, 
-        rgba(2, 32, 95, 0.7) 100%
-      )
+      radial-gradient(ellipse at 15% 30%, rgba(4, 48, 134, 0.8) 0%, transparent 40%),
+      radial-gradient(ellipse at 85% 20%, rgba(1, 22, 83, 0.8) 0%, transparent 45%),
+      radial-gradient(ellipse at 50% 80%, rgba(3, 8, 109, 0.6) 0%, transparent 50%),
+      radial-gradient(ellipse at 25% 70%, rgba(5, 38, 105, 0.7) 0%, transparent 35%),
+      radial-gradient(ellipse at 75% 30%, rgba(0, 28, 112, 0.69) 0%, transparent 40%)
     `,
-    backgroundSize: '100% 100%',
-    animation: 'marbleFlow 10s ease-in-out infinite',
-    filter: 'blur(1.5px)',
+    pointerEvents: 'none',
+    zIndex: -1,
+    // ANIMACIÓN MÁRMOL LENTA
+    animation: 'marbleFlow 30s ease-in-out infinite',
+    // MUCHÍSIMO BLUR PARA DESENFOQUE
+    filter: 'blur(40px)',
+    opacity: 0.6,
   },
   
-  // Línea superior brillante
+  // LIQUID GLASS LAYER 2 - Línea superior simple (sin animación)
   '&::after': {
     content: '""',
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
-    height: '1px',
-    background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), rgba(226, 232, 240, 0.6), rgba(255, 255, 255, 0.3), transparent)',
-    animation: 'footerGlow 4s ease-in-out infinite',
+    height: '2px',
+    background: 'rgba(255, 255, 255, 0.3)',
+    zIndex: 2,
   },
   
   // Responsive
@@ -134,6 +216,33 @@ const FooterPrivate = styled(Box)(({ theme }) => ({
     paddingTop: '32px',
   }
 }));
+
+// LIQUID GLASS SHIMMER EFFECT para el footer
+const FooterLiquidGlassShimmer = styled(Box)({
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  width: '100%',
+  height: '100%',
+  background: `
+    linear-gradient(
+      45deg,
+      transparent 70%,
+      rgba(220, 230, 245, 0.4) 85%,
+      rgba(235, 240, 250, 0.35) 100%,
+      rgba(220, 230, 245, 0.4) 115%,
+      transparent 130%
+    ) 
+  `,
+  pointerEvents: 'none',
+  zIndex: 3,
+  animation: 'liquidGlassShimmer 15s ease-in-out infinite',
+  opacity: 0.6,
+  animationDelay: '3s',
+  // MUCHÍSIMO BLUR para eliminar aristas
+  filter: 'blur(1000px)',
+  WebkitFilter: 'blur(100px)',
+});
 
 // Container principal del footer
 const FooterContainer = styled(Container)(({ theme }) => ({
@@ -271,13 +380,15 @@ const ContactContainer = styled(Box)(({ theme }) => ({
 const ContactItem = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
-  gap: '12px',
-  padding: '12px 16px',
+  gap: '10px',
+  padding: '10px 14px',
+  // MISMO ESTILO QUE STATUSITEM
   background: 'rgba(255, 255, 255, 0.08)',
   border: '1px solid rgba(255, 255, 255, 0.12)',
-  borderRadius: '12px',
+  borderRadius: '10px',
+  fontSize: '13px',
+  fontWeight: 500,
   transition: 'all 0.3s ease',
-  cursor: 'pointer',
   position: 'relative',
   overflow: 'hidden',
   
@@ -288,15 +399,14 @@ const ContactItem = styled(Box)(({ theme }) => ({
     left: '-100%',
     width: '100%',
     height: '100%',
-    background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent)',
+    background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent)',
     transition: 'left 0.5s ease',
   },
   
   '&:hover': {
     background: 'rgba(255, 255, 255, 0.12)',
     borderColor: 'rgba(255, 255, 255, 0.2)',
-    transform: 'translateX(4px)',
-    boxShadow: '0 2px 8px rgba(255, 255, 255, 0.1)',
+    transform: 'scale(1.02)',
     
     '&::before': {
       left: '100%',
@@ -388,7 +498,12 @@ const NavSection = styled(Box)(({ theme }) => ({
   border: '1px solid rgba(255, 255, 255, 0.12)',
   borderRadius: '12px',
   overflow: 'hidden',
-  transition: 'all 0.3s ease',
+  // MÁXIMA OPTIMIZACIÓN: Transiciones ultra rápidas
+  transition: 'background-color 0.1s ease, border-color 0.1s ease, box-shadow 0.1s ease',
+  // PERFORMANCE: GPU acelerada + contenido compuesto
+  transform: 'translate3d(0, 0, 0)',
+  willChange: 'background-color, border-color, box-shadow',
+  contain: 'layout style paint',
   
   '&:hover': {
     background: 'rgba(255, 255, 255, 0.12)',
@@ -403,8 +518,12 @@ const NavHeader = styled(Box)(({ theme }) => ({
   alignItems: 'center',
   padding: '12px 16px',
   cursor: 'pointer',
-  transition: 'all 0.3s ease',
+  // OPTIMIZACIÓN: Transición más rápida
+  transition: 'background-color 0.15s ease',
   userSelect: 'none',
+  // PERFORMANCE: Activar aceleración GPU
+  transform: 'translate3d(0, 0, 0)',
+  willChange: 'background-color',
   
   '&:hover': {
     background: 'rgba(255, 255, 255, 0.08)',
@@ -434,18 +553,29 @@ const NavToggle = styled(IconButton)(({ theme }) => ({
   borderRadius: '6px',
   background: 'rgba(255, 255, 255, 0.12)',
   color: '#FFFFFF',
-  transition: 'all 0.3s ease',
+  // OPTIMIZACIÓN: Transición más rápida y específica
+  transition: 'background-color 0.15s ease, transform 0.15s ease',
   padding: 0,
+  // PERFORMANCE: Activar aceleración GPU
+  transform: 'translate3d(0, 0, 0) scale(1)',
+  willChange: 'background-color, transform',
   
   '&:hover': {
     background: 'rgba(255, 255, 255, 0.2)',
-    transform: 'scale(1.1)',
+    transform: 'translate3d(0, 0, 0) scale(1.1)',
   }
 }));
 
 const NavLinks = styled(Collapse)(({ theme }) => ({
   background: 'rgba(255, 255, 255, 0.05)',
   borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+  // OPTIMIZACIÓN: Mejorar performance del Collapse
+  '& .MuiCollapse-wrapper': {
+    transform: 'translate3d(0, 0, 0)',
+  },
+  '& .MuiCollapse-wrapperInner': {
+    transform: 'translate3d(0, 0, 0)',
+  }
 }));
 
 const NavLink = styled(Link)(({ theme }) => ({
@@ -455,10 +585,14 @@ const NavLink = styled(Link)(({ theme }) => ({
   textDecoration: 'none',
   fontSize: '13px',
   fontWeight: 500,
-  transition: 'all 0.3s ease',
+  // OPTIMIZACIÓN: Transiciones específicas y más rápidas
+  transition: 'color 0.2s ease, background-color 0.2s ease, padding-left 0.2s ease, font-weight 0.2s ease',
   borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
   position: 'relative',
   overflow: 'hidden',
+  // PERFORMANCE: Activar aceleración GPU
+  transform: 'translate3d(0, 0, 0)',
+  willChange: 'color, background-color, padding-left, font-weight',
   
   '&::before': {
     content: '""',
@@ -468,7 +602,8 @@ const NavLink = styled(Link)(({ theme }) => ({
     width: '100%',
     height: '100%',
     background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent)',
-    transition: 'left 0.5s ease',
+    transition: 'left 0.3s ease',
+    transform: 'translate3d(0, 0, 0)',
   },
   
   '&:hover': {
@@ -732,6 +867,9 @@ const Footer = () => {
 
   return (
     <FooterPrivate component="footer">
+      {/* LIQUID GLASS SHIMMER EFFECT SUTIL */}
+      <FooterLiquidGlassShimmer />
+      
       <FooterContainer>
         
         {/* Sección izquierda - Información de contacto */}
@@ -807,7 +945,14 @@ const Footer = () => {
                   </NavToggle>
                 </NavHeader>
                 
-                <NavLinks in={openDropdowns[key]}>
+                <NavLinks 
+                  in={openDropdowns[key]}
+                  timeout={150}
+                  easing={{
+                    enter: 'cubic-bezier(0.4, 0, 0.2, 1)',
+                    exit: 'cubic-bezier(0.4, 0, 0.6, 1)',
+                  }}
+                >
                   <Box>
                     {section.links.map((link, index) => (
                       <NavLink 
@@ -839,10 +984,6 @@ const Footer = () => {
             <QuickLink href="/profile">
               <Gear size={16} weight="duotone" />
               Mi Perfil
-            </QuickLink>
-            <QuickLink href="/settings">
-              <Shield size={16} weight="duotone" />
-              Configuración
             </QuickLink>
           </QuickLinksContainer>
         </FooterSection>

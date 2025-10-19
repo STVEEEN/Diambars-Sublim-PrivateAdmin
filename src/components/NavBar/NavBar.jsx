@@ -47,6 +47,8 @@ import {
 } from "@phosphor-icons/react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { usePermissions } from "../../utils/permissions";
+import PermissionWrapper from "../PermissionWrapper/PermissionWrapper";
 
 const customBreakpoints = {
   xs: 0,
@@ -932,84 +934,98 @@ const DROPDOWN_MENUS = {
   personal: {
     label: "Personal",
     icon: <Users size={18} weight="duotone" />,
+    permissions: ['canViewEmployees', 'canViewUsers'],
     items: [
       {
         to: "/employees",
         label: "Empleados",
         icon: <UserList size={18} weight="duotone" />,
-        description: "Gestión de personal"
+        description: "Gestión de personal",
+        permission: "canViewEmployees"
       },
       {
         to: "/users",
         label: "Usuarios",
         icon: <Users size={18} weight="duotone" />,
-        description: "Administración de usuarios"
+        description: "Administración de usuarios",
+        permission: "canViewUsers"
       },
     ]
   },
   gestion: {
     label: "Gestión",
     icon: <Folders size={18} weight="duotone" />,
+    permissions: ['canViewProducts', 'canViewCategories', 'canViewAddresses', 'canViewReviews'],
     items: [
       {
         to: "/catalog-management",
         label: "Productos",
         icon: <ChartBar size={18} weight="duotone" />,
-        description: "Gestión de productos y servicios"
+        description: "Gestión de productos y servicios",
+        permission: "canViewProducts"
       },
       {
         to: "/category-management",
         label: "Categorías",
         icon: <Folders size={18} weight="duotone" />,
-        description: "Organización de productos"
+        description: "Organización de productos",
+        permission: "canViewCategories"
       },
       {
         to: "/address-management",
         label: "Direcciones",
         icon: <MapPin size={18} weight="duotone" />,
-        description: "Gestión de direcciones de envío"
+        description: "Gestión de direcciones de envío",
+        permission: "canViewAddresses"
       },
       {
         to: "/ReviewsManagement",
         label: "Reseñas",
         icon: <Star size={18} weight="duotone" />,
-        description: "Opiniones de clientes"
+        description: "Opiniones de clientes",
+        permission: "canViewReviews"
       },
     ]
   },
   herramientas: {
     label: "Herramientas",
     icon: <PaintBrush size={18} weight="duotone" />,
+    permissions: ['canViewDesigns', 'canViewOrders'],
     items: [
       {
         to: "/design-management",
         label: "Editor de Diseños",
         icon: <PaintBrush size={18} weight="duotone" />,
-        description: "Herramientas de diseño"
+        description: "Herramientas de diseño",
+        permission: "canViewDesigns"
       },
       {
         to: "/orders",
         label: "Pedidos",
         icon: <ShoppingCart size={18} weight="duotone" />,
-        description: "Control de pedidos y órdenes"
+        description: "Control de pedidos y órdenes",
+        permission: "canViewOrders"
       },
     ]
   },
   analisis: {
     label: "Análisis",
     icon: <ChartBar size={18} weight="duotone" />,
+    permissions: ['canViewReports', 'canViewPayments'],
     items: [
       {
         to: "/reports",
         label: "Reportes",
         icon: <FileText size={18} weight="duotone" />,
-        description: "Informes detallados"
+        description: "Informes detallados",
+        permission: "canViewReports"
       },
       {
         to: "/payment-methods",
         label: "Métodos de Pago",
         icon: <CreditCard size={18} weight="duotone" />,
-        description: "Gestión de pagos"
+        description: "Gestión de pagos",
+        permission: "canViewPayments"
       },
     ]
   }
@@ -1033,6 +1049,7 @@ const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { logout, user } = useAuth();
+  const { hasPermission, canAccess } = usePermissions();
   const theme = useTheme();
 
   // Función para optimizar URLs de Cloudinary (igual que en Dashboard)
@@ -1186,6 +1203,28 @@ const Navbar = () => {
     return DROPDOWN_MENUS[dropdownKey].items.some(item => isActiveRoute(item.to));
   };
 
+  // Función para verificar si el usuario puede ver un dropdown completo
+  const canViewDropdown = (dropdownKey) => {
+    const dropdown = DROPDOWN_MENUS[dropdownKey];
+    if (!dropdown.permissions) return true; // Si no tiene permisos definidos, mostrar
+    return canAccess(dropdown.permissions);
+  };
+
+  // Función para filtrar items de dropdown basándose en permisos
+  const getFilteredDropdownItems = (dropdownKey) => {
+    const dropdown = DROPDOWN_MENUS[dropdownKey];
+    return dropdown.items.filter(item => {
+      if (!item.permission) return true; // Si no tiene permiso definido, mostrar
+      return hasPermission(item.permission);
+    });
+  };
+
+  // Función para verificar si un dropdown tiene al menos un item visible
+  const hasVisibleItems = (dropdownKey) => {
+    const filteredItems = getFilteredDropdownItems(dropdownKey);
+    return filteredItems.length > 0;
+  };
+
   return (
     <>
       <StyledAppBar scrolled={isScrolled} hidden={isSidebarOpen} ismobile={ismobile} elevation={0}>
@@ -1227,54 +1266,65 @@ const Navbar = () => {
                   </GlassButton>
                 ))}
                 
-                {Object.entries(DROPDOWN_MENUS).map(([key, dropdown]) => (
-                  <GlassButton
-                    key={key}
-                    onClick={(e) => handleDropdownClick(key, e)}
-                    open={dropdownStates[key].open}
-                    hasActiveItems={hasActiveItems(key)}
-                    startIcon={dropdown.icon}
-                    endIcon={
-                      !isMd && (
-                        <span className="dropdown-caret">
-                          {dropdownStates[key].open ? <CaretUp size={14} /> : <CaretDown size={14} />}
-                        </span>
-                      )
-                    }
-                    title={`Ver opciones de ${dropdown.label}`}
-                  >
-                    <span className="dropdown-label">{dropdown.label}</span>
-                  </GlassButton>
-                ))}
+                {Object.entries(DROPDOWN_MENUS).map(([key, dropdown]) => {
+                  const hasAccess = canViewDropdown(key) && hasVisibleItems(key);
+                  return (
+                    <GlassButton
+                      key={key}
+                      onClick={hasAccess ? (e) => handleDropdownClick(key, e) : undefined}
+                      open={hasAccess ? dropdownStates[key].open : false}
+                      hasActiveItems={hasAccess ? hasActiveItems(key) : false}
+                      startIcon={dropdown.icon}
+                      endIcon={
+                        !isMd && (
+                          <span className="dropdown-caret">
+                            {hasAccess && dropdownStates[key].open ? <CaretUp size={14} /> : <CaretDown size={14} />}
+                          </span>
+                        )
+                      }
+                      title={hasAccess ? `Ver opciones de ${dropdown.label}` : `Sin permisos para ${dropdown.label}`}
+                      sx={{
+                        opacity: hasAccess ? 1 : 0.5,
+                        cursor: hasAccess ? 'pointer' : 'not-allowed',
+                        pointerEvents: hasAccess ? 'auto' : 'none',
+                        filter: hasAccess ? 'none' : 'grayscale(0.7)',
+                      }}
+                    >
+                      <span className="dropdown-label">{dropdown.label}</span>
+                    </GlassButton>
+                  );
+                })}
               </NavContainer>
             )}
 
-            <RightControls>
-              {!ismobile && (
-                <UserContainer onClick={handleUserMenuClick}>
-                  <StyledAvatar 
-                    src={getOptimizedImageUrl(user?.profilePicture) || '/default-avatar.png'}
-                    alt={`Foto de perfil de ${user?.name || 'Usuario'}`}
-                  >
-                    {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
-                  </StyledAvatar>
-                  {!isLg && !isMd && (
-                    <Box className="user-info">
-                      <Typography variant="body2" fontWeight={700} color="#010326" fontSize={14}>
-                        {user?.name || 'Usuario'}
-                      </Typography>
-                      <Typography variant="caption" color="#64748b" textTransform="uppercase" fontSize={11}>
-                        {user?.type || 'admin'}
-                      </Typography>
-                    </Box>
-                  )}
-                </UserContainer>
-              )}
+          <RightControls>
+            {!ismobile && (
+              <UserContainer onClick={handleUserMenuClick}>
+                <StyledAvatar 
+                  src={getOptimizedImageUrl(user?.profilePicture) || '/default-avatar.png'}
+                  alt={`Foto de perfil de ${user?.name || 'Usuario'}`}
+                >
+                  {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                </StyledAvatar>
+                {!isLg && !isMd && (
+                  <Box className="user-info">
+                    <Typography variant="body2" fontWeight={700} color="#010326" fontSize={14}>
+                      {user?.name && user.name.length > 13 
+                        ? `${user.name.substring(0, 13)}...` 
+                        : user?.name || 'Usuario'}
+                    </Typography>
+                    <Typography variant="caption" color="#64748b" textTransform="uppercase" fontSize={11}>
+                      {user?.type || 'admin'}
+                    </Typography>
+                  </Box>
+                )}
+              </UserContainer>
+            )}
 
-              <GlassIconButton onClick={toggleSidebar}>
-                <ListIcon size={20} weight="duotone" />
-              </GlassIconButton>
-            </RightControls>
+            <GlassIconButton onClick={toggleSidebar}>
+              <ListIcon size={20} weight="duotone" />
+            </GlassIconButton>
+          </RightControls>
           </MainContent>
         </StyledToolbar>
       </StyledAppBar>
@@ -1510,53 +1560,70 @@ const Navbar = () => {
             </List>
           </Box>
 
-          {Object.entries(DROPDOWN_MENUS).map(([key, dropdown], sectionIndex) => (
-            <Box key={key}>
-              <Typography variant="subtitle2" fontWeight={700} color="#010326" textTransform="uppercase" letterSpacing={1} sx={{ mb: 2, px: 1 }}>
-                {dropdown.label}
-              </Typography>
-              <List sx={{ p: 0 }}>
-                {dropdown.items.map((item, itemIndex) => (
-                  <ListItem key={item.to} disablePadding sx={{ mb: 1 }}>
-                    <MenuItemStyled
-                      component={Link}
-                      to={item.to}
-                      active={isActiveRoute(item.to)}
-                      onClick={toggleSidebar}
-                      sx={{
-                        width: "100%",
-                        py: 2,
-                        animationDelay: `${(sectionIndex + 1) * 0.2 + itemIndex * 0.1}s`,
-                        animation: `${slideInFromTop} 0.4s ease-out`,
-                      }}
-                    >
-                      <ListItemIcon sx={{
-                        color: isActiveRoute(item.to) ? "#FFFFFF" : "#475569",
-                        minWidth: 40,
-                        fontSize: 20,
-                      }}>
-                        {item.icon}
-                      </ListItemIcon>
-                      <ListItemText
-                        primary={item.label}
-                        secondary={item.description}
-                        primaryTypographyProps={{
-                          fontWeight: 700,
-                          fontSize: 16,
-                          color: isActiveRoute(item.to) ? "#FFFFFF" : "#010326",
-                        }}
-                        secondaryTypographyProps={{
-                          fontSize: 13,
-                          fontWeight: 500,
-                          color: isActiveRoute(item.to) ? "rgba(255, 255, 255, 0.8)" : "#64748b",
-                        }}
-                      />
-                    </MenuItemStyled>
-                  </ListItem>
-                ))}
-              </List>
-            </Box>
-          ))}
+          {Object.entries(DROPDOWN_MENUS).map(([key, dropdown], sectionIndex) => {
+            const sectionHasAccess = canViewDropdown(key);
+            const filteredItems = getFilteredDropdownItems(key);
+            
+            // Solo mostrar la sección si tiene acceso y tiene items visibles
+            if (!sectionHasAccess || filteredItems.length === 0) {
+              return null;
+            }
+            
+            return (
+              <Box key={key}>
+                <Typography variant="subtitle2" fontWeight={700} color="#010326" textTransform="uppercase" letterSpacing={1} sx={{ mb: 2, px: 1 }}>
+                  {dropdown.label}
+                </Typography>
+                <List sx={{ p: 0 }}>
+                  {filteredItems.map((item, itemIndex) => {
+                    const itemHasAccess = !item.permission || hasPermission(item.permission);
+                    return (
+                      <ListItem key={item.to} disablePadding sx={{ mb: 1 }}>
+                        <MenuItemStyled
+                          component={itemHasAccess ? Link : 'div'}
+                          to={itemHasAccess ? item.to : undefined}
+                          active={itemHasAccess && isActiveRoute(item.to)}
+                          onClick={itemHasAccess ? toggleSidebar : undefined}
+                          sx={{
+                            width: "100%",
+                            py: 2,
+                            animationDelay: `${(sectionIndex + 1) * 0.2 + itemIndex * 0.1}s`,
+                            animation: `${slideInFromTop} 0.4s ease-out`,
+                            opacity: itemHasAccess ? 1 : 0.5,
+                            cursor: itemHasAccess ? 'pointer' : 'not-allowed',
+                            pointerEvents: itemHasAccess ? 'auto' : 'none',
+                            filter: itemHasAccess ? 'none' : 'grayscale(0.7)',
+                          }}
+                        >
+                          <ListItemIcon sx={{
+                            color: itemHasAccess && isActiveRoute(item.to) ? "#FFFFFF" : "#475569",
+                            minWidth: 40,
+                            fontSize: 20,
+                          }}>
+                            {item.icon}
+                          </ListItemIcon>
+                          <ListItemText
+                            primary={item.label}
+                            secondary={itemHasAccess ? item.description : "Sin permisos"}
+                            primaryTypographyProps={{
+                              fontWeight: 700,
+                              fontSize: 16,
+                              color: itemHasAccess && isActiveRoute(item.to) ? "#FFFFFF" : "#010326",
+                            }}
+                            secondaryTypographyProps={{
+                              fontSize: 13,
+                              fontWeight: 500,
+                              color: itemHasAccess && isActiveRoute(item.to) ? "rgba(255, 255, 255, 0.8)" : "#64748b",
+                            }}
+                          />
+                        </MenuItemStyled>
+                      </ListItem>
+                    );
+                  })}
+                </List>
+              </Box>
+            );
+          })}
 
           <Box sx={{ mt: "auto", pt: 3, borderTop: "1px solid rgba(226, 232, 240, 0.8)" }}>
             <Stack spacing={2}>
@@ -1678,7 +1745,9 @@ const Navbar = () => {
                         </StyledAvatar>
                         <Box>
                           <Typography variant="body2" fontWeight={700} color="#010326" fontSize={15}>
-                            {user?.name || 'Usuario'}
+                            {user?.name && user.name.length > 13 
+                              ? `${user.name.substring(0, 13)}...` 
+                              : user?.name || 'Usuario'}
                           </Typography>
                           <Chip label={user?.type || 'admin'} size="small" sx={{
                             background: "linear-gradient(135deg, #040DBF 0%, #1F64BF 100%)",
@@ -1769,35 +1838,44 @@ const Navbar = () => {
                         {dropdown.label}
                       </Typography>
                       <List dense sx={{ p: 0 }}>
-                        {dropdown.items.map((item) => (
-                          <MenuItemStyled
-                            key={item.to}
-                            component={Link}
-                            to={item.to}
-                            active={isActiveRoute(item.to)}
-                            onClick={() => handleDropdownClose(key)}
-                          >
-                            <ListItemIcon sx={{ 
-                              color: isActiveRoute(item.to) ? "#FFFFFF" : "#475569",
-                              minWidth: 32 
-                            }}>
-                              {item.icon}
-                            </ListItemIcon>
-                            <ListItemText
-                              primary={item.label}
-                              secondary={item.description}
-                              primaryTypographyProps={{
-                                fontWeight: 600,
-                                fontSize: 14,
-                                color: isActiveRoute(item.to) ? "#FFFFFF" : "#010326"
+                        {getFilteredDropdownItems(key).map((item) => {
+                          const itemHasAccess = !item.permission || hasPermission(item.permission);
+                          return (
+                            <MenuItemStyled
+                              key={item.to}
+                              component={itemHasAccess ? Link : 'div'}
+                              to={itemHasAccess ? item.to : undefined}
+                              active={itemHasAccess && isActiveRoute(item.to)}
+                              onClick={itemHasAccess ? () => handleDropdownClose(key) : undefined}
+                              sx={{
+                                opacity: itemHasAccess ? 1 : 0.5,
+                                cursor: itemHasAccess ? 'pointer' : 'not-allowed',
+                                pointerEvents: itemHasAccess ? 'auto' : 'none',
+                                filter: itemHasAccess ? 'none' : 'grayscale(0.7)',
                               }}
-                              secondaryTypographyProps={{
-                                fontSize: 12,
-                                color: isActiveRoute(item.to) ? "rgba(255, 255, 255, 0.8)" : "#64748b"
-                              }}
-                            />
-                          </MenuItemStyled>
-                        ))}
+                            >
+                              <ListItemIcon sx={{ 
+                                color: itemHasAccess && isActiveRoute(item.to) ? "#FFFFFF" : "#475569",
+                                minWidth: 32 
+                              }}>
+                                {item.icon}
+                              </ListItemIcon>
+                              <ListItemText
+                                primary={item.label}
+                                secondary={itemHasAccess ? item.description : "Sin permisos"}
+                                primaryTypographyProps={{
+                                  fontWeight: 600,
+                                  fontSize: 14,
+                                  color: itemHasAccess && isActiveRoute(item.to) ? "#FFFFFF" : "#010326"
+                                }}
+                                secondaryTypographyProps={{
+                                  fontSize: 12,
+                                  color: itemHasAccess && isActiveRoute(item.to) ? "rgba(255, 255, 255, 0.8)" : "#64748b"
+                                }}
+                              />
+                            </MenuItemStyled>
+                          );
+                        })}
                       </List>
                     </Box>
                   </ClickAwayListener>
