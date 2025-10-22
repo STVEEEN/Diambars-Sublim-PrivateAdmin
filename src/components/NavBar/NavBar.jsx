@@ -138,7 +138,7 @@ const GlassButton = styled(Button)(({ theme, active, variant, hasActiveItems, op
     // Solo aplicar estilos visuales cuando está activo, es danger o está open (hover)
     ...(isActive ? {
       color: "#FFFFFF",
-      background: "linear-gradient(135deg, #040DBF 0%, #1F64BF 100%)",
+      background: "linear-gradient(135deg, #040DBF 0%, #c 100%)",
       backdropFilter: "blur(12px)",
       WebkitBackdropFilter: "blur(12px)",
       border: "1px solid rgba(255, 255, 255, 0.25)",

@@ -229,9 +229,9 @@ const FooterLiquidGlassShimmer = styled(Box)({
       45deg,
       transparent 70%,
       rgba(220, 230, 245, 0.4) 85%,
-      rgba(235, 240, 250, 0.35) 100%,
-      rgba(220, 230, 245, 0.4) 115%,
-      transparent 130%
+      rgba(235, 240, 250, 0.35) 115%,
+      rgba(220, 230, 245, 0.4) 125%,
+      transparent 140%
     ) 
   `,
   pointerEvents: 'none',

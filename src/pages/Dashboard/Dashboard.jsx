@@ -346,7 +346,7 @@ const WelcomeContainer = styled(DashboardModernCard)(({ theme }) => ({
     )
   `,
   borderRadius: '24px',
-  border: '2px solid #F2F2F2',
+  border: '1px solid #F2F2F2',
   // SIN SOMBRAS - Solo contorno
   boxShadow: 'none',
   backdropFilter: 'blur(60px) saturate(200%)',
