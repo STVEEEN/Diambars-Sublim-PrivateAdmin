@@ -138,7 +138,7 @@ const GlassButton = styled(Button)(({ theme, active, variant, hasActiveItems, op
     // Solo aplicar estilos visuales cuando está activo, es danger o está open (hover)
     ...(isActive ? {
       color: "#FFFFFF",
-      background: "linear-gradient(135deg, #040DBF 0%, #c 100%)",
+      background: "linear-gradient(135deg, #040DBF 0%, #1F64BF 100%)",
       backdropFilter: "blur(12px)",
       WebkitBackdropFilter: "blur(12px)",
       border: "1px solid rgba(255, 255, 255, 0.25)",
@@ -167,23 +167,11 @@ const GlassButton = styled(Button)(({ theme, active, variant, hasActiveItems, op
     
     "&:hover": {
       transform: "translateY(-1px) scale(1.01)",
-      // Solo efecto de reflejo, con animación más suave
-      ...(isActive ? {
-        background: "linear-gradient(135deg, #1F64BF 0%, #032CA6 100%)",
-        boxShadow: "0 4px 12px rgba(4, 13, 191, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.3)",
-      } : variant === "danger" ? {
-        background: "linear-gradient(135deg, #b91c1c 0%, #991b1b 100%)",
-        boxShadow: "0 4px 12px rgba(220, 38, 38, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.3)",
-      } : isHover ? {
-        color: "#040DBF",
-        background: "rgba(31, 100, 191, 0.15)",
-        boxShadow: "0 2px 8px rgba(31, 100, 191, 0.1)",
-      } : {
-        // Hover minimalista con efecto suave
-        color: "#040DBF",
-        background: "rgba(31, 100, 191, 0.06)",
-        boxShadow: "0 2px 6px rgba(31, 100, 191, 0.05)",
-      }),
+      // Solo efectos sutiles sin cambiar colores base
+      filter: "brightness(1.05)",
+      boxShadow: isActive || variant === "danger" || isHover 
+        ? "0 4px 15px rgba(0, 0, 0, 0.15)" 
+        : "0 2px 8px rgba(0, 0, 0, 0.1)",
     },
     
     [theme.breakpoints.down('lg')]: {
