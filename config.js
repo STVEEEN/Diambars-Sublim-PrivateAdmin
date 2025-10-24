@@ -4,13 +4,13 @@
 const config = {
   // URLs del backend
   development: {
-    apiUrl: '/api', // Proxy de Vite redirige a https://expo2025-8bjn.onrender.com
-    baseUrl: 'http://localhost:5173'
+    apiUrl: '/api', // Proxy de Vite redirige a http://localhost:4000
+    baseUrl: 'http://localhost:4000'
   },
   
   production: {
     apiUrl: 'https://expo2025-8bjn.onrender.com/api',
-    baseUrl: 'https://tu-frontend-en-render.com' // Cambiar por tu URL de frontend en Render
+    baseUrl: 'https://expo2025-8bjn.onrender.com' // Cambiar por tu URL de frontend en Render
   },
   
   // Configuración de la aplicación

@@ -173,8 +173,30 @@ const useProducts = () => {
       
       console.log('🆕 [useProducts] Creando producto:', productData);
       
+      // 🔍 LOGS DETALLADOS PARA IMÁGENES ADICIONALES
+      console.log('🖼️ [useProducts] Verificando imágenes adicionales:', {
+        hasAdditionalImages: !!productData.additionalImages,
+        isArray: Array.isArray(productData.additionalImages),
+        count: productData.additionalImages?.length || 0,
+        files: productData.additionalImages?.map((file, i) => ({
+          index: i,
+          name: file?.name,
+          size: file?.size,
+          type: file?.type,
+          isFile: file instanceof File,
+          constructor: file?.constructor?.name
+        })) || []
+      });
+      
       // Sanitizar datos antes de enviar
       const sanitizedData = productService.sanitizeProductData(productData);
+      
+      // 🔍 VERIFICAR DATOS SANITIZADOS
+      console.log('🧽 [useProducts] Datos sanitizados:', {
+        ...sanitizedData,
+        mainImage: sanitizedData.mainImage ? 'FILE_PRESENT' : 'NO_FILE',
+        additionalImages: sanitizedData.additionalImages?.length || 0
+      });
       
       // Validar datos
       const validation = productService.validateProductData(sanitizedData);

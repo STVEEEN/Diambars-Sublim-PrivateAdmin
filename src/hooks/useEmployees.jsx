@@ -33,6 +33,18 @@ const useEmployees = () => {
       roleDisplay: employee.role ? employee.role.charAt(0).toUpperCase() + employee.role.slice(1) : 'Employee'
     };
     
+    // Debug detallado para empleados inactivos
+    if (employee.active === false) {
+      console.log('🚨 [EMPLEADO INACTIVO ENCONTRADO]:', {
+        id: formattedEmployee.id,
+        name: formattedEmployee.name,
+        originalActive: employee.active,
+        formattedActive: formattedEmployee.active,
+        originalStatus: employee.status,
+        formattedStatus: formattedEmployee.status
+      });
+    }
+    
     console.log('[formatEmployee] Empleado formateado:', {
       id: formattedEmployee.id,
       name: formattedEmployee.name,
@@ -56,6 +68,22 @@ const useEmployees = () => {
       }
 
       const formattedEmployees = data.map(formatEmployee);
+      
+      // Debug: Contar empleados por estado
+      const activeCount = formattedEmployees.filter(e => e.active === true).length;
+      const inactiveCount = formattedEmployees.filter(e => e.active === false).length;
+      
+      console.log('📈 [EMPLEADOS CARGADOS] Resumen:', {
+        total: formattedEmployees.length,
+        activos: activeCount,
+        inactivos: inactiveCount,
+        empleadosInactivos: formattedEmployees.filter(e => e.active === false).map(e => ({
+          name: e.name,
+          active: e.active,
+          status: e.status
+        }))
+      });
+      
       setEmployees(formattedEmployees);
 
     } catch (err) {
@@ -244,33 +272,34 @@ const useEmployees = () => {
   // Funciones de estadísticas
   const getEmployeeStats = useCallback(() => {
     const total = employees.length;
-    const active = employees.filter(e => e.status === 'active').length;
-    const inactive = employees.filter(e => e.status === 'inactive').length;
+    const active = employees.filter(e => e.active === true).length;
+    const inactive = employees.filter(e => e.active === false).length;
     
     // Estadísticas por rol
-    const admins = employees.filter(e => e.role?.toLowerCase() === 'admin').length;
     const managers = employees.filter(e => e.role?.toLowerCase() === 'manager').length;
     const employeesCount = employees.filter(e => e.role?.toLowerCase() === 'employee').length;
     const delivery = employees.filter(e => e.role?.toLowerCase() === 'delivery').length;
-    const production = employees.filter(e => e.role?.toLowerCase() === 'production').length;
 
     return { 
       total, 
       active, 
       inactive,
       roles: {
-        admins,
         managers,
         employees: employeesCount,
-        delivery,
-        production
+        delivery
       }
     };
   }, [employees]);
 
   // Funciones de filtrado útiles
   const getEmployeesByStatus = useCallback((status) => {
-    return employees.filter(employee => employee.status === status);
+    if (status === 'active') {
+      return employees.filter(employee => employee.active === true);
+    } else if (status === 'inactive') {
+      return employees.filter(employee => employee.active === false);
+    }
+    return employees;
   }, [employees]);
 
   const searchEmployees = useCallback((searchTerm) => {

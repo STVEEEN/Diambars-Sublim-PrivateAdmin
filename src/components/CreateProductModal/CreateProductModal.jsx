@@ -621,9 +621,32 @@ const CreateProductModal = ({
       searchTags: product.searchTags || []
     });
 
+    // 🖼️ CARGAR IMAGEN PRINCIPAL
     if (product.images?.main) {
       setImagePreview(product.images.main);
       setCurrentImageForEditor(product.images.main);
+      console.log('✅ [CreateProductModal] Imagen principal cargada:', product.images.main);
+    }
+
+    // 🖼️ CARGAR IMÁGENES ADICIONALES EXISTENTES
+    if (product.images?.additional && Array.isArray(product.images.additional) && product.images.additional.length > 0) {
+      console.log('🖼️ [CreateProductModal] Cargando imágenes adicionales existentes:', {
+        count: product.images.additional.length,
+        urls: product.images.additional
+      });
+      
+      // Establecer las URLs como previews (no como archivos File)
+      setAdditionalPreviews(product.images.additional);
+      
+      // Para edición, marcamos que hay imágenes existentes pero no archivos nuevos
+      setAdditionalImages([]); // Vacío porque son URLs existentes, no archivos nuevos
+      
+      console.log('✅ [CreateProductModal] Imágenes adicionales cargadas como previews');
+    } else {
+      // Limpiar si no hay imágenes adicionales
+      setAdditionalPreviews([]);
+      setAdditionalImages([]);
+      console.log('🗑️ [CreateProductModal] No hay imágenes adicionales para cargar');
     }
 
     setCustomizationAreas(product.customizationAreas || getDefaultAreas());
@@ -700,19 +723,39 @@ const CreateProductModal = ({
 
   const handleAdditionalImagesChange = (e) => {
     const files = Array.from(e.target.files);
-    if (files.length > 5) {
-      setErrors(prev => ({ ...prev, additionalImages: 'Máximo 5 imágenes' }));
+    
+    // Contar imágenes existentes + nuevas
+    const currentPreviewsCount = additionalPreviews.length;
+    const totalCount = currentPreviewsCount + files.length;
+    
+    if (totalCount > 5) {
+      setErrors(prev => ({ ...prev, additionalImages: `Máximo 5 imágenes. Tienes ${currentPreviewsCount} existentes, intentas agregar ${files.length}` }));
       return;
     }
+    
+    console.log('🖼️ [CreateProductModal] Agregando nuevas imágenes adicionales:', {
+      existingPreviews: currentPreviewsCount,
+      newFiles: files.length,
+      totalAfter: totalCount
+    });
 
-    setAdditionalImages(files);
-    const previews = [];
+    // Agregar archivos nuevos a los existentes
+    setAdditionalImages(prev => [...prev, ...files]);
+    
+    // Generar previews para los archivos nuevos
+    const newPreviews = [];
+    let loadedCount = 0;
+    
     files.forEach((file, index) => {
       const reader = new FileReader();
       reader.onload = (e) => {
-        previews[index] = e.target.result;
-        if (previews.length === files.length) {
-          setAdditionalPreviews([...previews]);
+        newPreviews[index] = e.target.result;
+        loadedCount++;
+        
+        // Cuando todas las nuevas previews estén listas, agregarlas
+        if (loadedCount === files.length) {
+          setAdditionalPreviews(prev => [...prev, ...newPreviews]);
+          console.log('✅ [CreateProductModal] Nuevas previews agregadas. Total:', currentPreviewsCount + files.length);
         }
       };
       reader.readAsDataURL(file);
@@ -940,6 +983,61 @@ const CreateProductModal = ({
 
     setIsSubmitting(true);
     try {
+      // 🔍 LOGS DETALLADOS PARA DEBUGGING
+      console.log('🚀 [CreateProductModal] Iniciando envío de producto');
+      console.log('📋 [CreateProductModal] Datos del formulario:', {
+        name: formData.name,
+        basePrice: formData.basePrice,
+        categoryId: formData.categoryId,
+        mainImageExists: !!mainImage,
+        additionalImagesCount: additionalImages?.length || 0,
+        customizationAreasCount: customizationAreas?.length || 0,
+        optionsCount: productOptions?.length || 0
+      });
+      
+      console.log('🖼️ [CreateProductModal] Imagen principal:', {
+        exists: !!mainImage,
+        name: mainImage?.name,
+        size: mainImage?.size ? `${(mainImage.size / 1024).toFixed(2)}KB` : 'N/A',
+        type: mainImage?.type
+      });
+      
+      console.log('🖼️ [CreateProductModal] Imágenes adicionales:', {
+        additionalImagesCount: additionalImages?.length || 0,
+        additionalPreviewsCount: additionalPreviews?.length || 0,
+        editMode: editMode,
+        files: additionalImages?.map((file, index) => ({
+          index: index + 1,
+          name: file?.name,
+          size: file?.size ? `${(file.size / 1024).toFixed(2)}KB` : 'N/A',
+          type: file?.type,
+          isFile: file instanceof File
+        })) || [],
+        previews: additionalPreviews?.map((preview, index) => ({
+          index: index + 1,
+          isUrl: typeof preview === 'string' && preview.startsWith('http'),
+          preview: typeof preview === 'string' ? preview.substring(0, 50) + '...' : 'data:image'
+        })) || []
+      });
+
+      // 🔧 PREPARAR DATOS SEGÚN MODO (CREAR VS EDITAR)
+      let finalAdditionalImages;
+      
+      if (editMode) {
+        // En modo edición: solo enviar archivos nuevos (File objects)
+        // Las URLs existentes se mantienen en el backend automáticamente
+        finalAdditionalImages = additionalImages.filter(img => img instanceof File);
+        console.log('✏️ [CreateProductModal] Modo edición - Solo enviando archivos nuevos:', {
+          totalPreviews: additionalPreviews.length,
+          newFilesToSend: finalAdditionalImages.length,
+          existingUrls: additionalPreviews.filter(p => typeof p === 'string' && p.startsWith('http')).length
+        });
+      } else {
+        // En modo creación: enviar todos los archivos
+        finalAdditionalImages = additionalImages;
+        console.log('🆕 [CreateProductModal] Modo creación - Enviando todos los archivos:', finalAdditionalImages.length);
+      }
+
       const productData = {
         ...formData,
         basePrice: parseFloat(formData.basePrice),
@@ -947,9 +1045,15 @@ const CreateProductModal = ({
         customizationAreas,
         options: productOptions,
         mainImage,
-        additionalImages,
+        additionalImages: finalAdditionalImages,
         searchTags: formData.searchTags
       };
+      
+      console.log('📦 [CreateProductModal] ProductData final:', {
+        ...productData,
+        mainImage: productData.mainImage ? 'FILE_OBJECT' : null,
+        additionalImages: productData.additionalImages?.map(f => f instanceof File ? 'FILE_OBJECT' : 'INVALID') || []
+      });
 
       await onCreateProduct(productData, editMode ? 'edit' : 'create');
       

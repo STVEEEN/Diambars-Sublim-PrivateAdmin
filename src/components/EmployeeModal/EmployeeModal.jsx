@@ -1,5 +1,5 @@
 // src/components/EmployeeModal/EmployeeModal.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   UserPlus, 
   User, 
@@ -680,17 +680,59 @@ const EmployeeModal = ({
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errors, setErrors] = useState({});
+  const [backendErrors, setBackendErrors] = useState({}); // Errores específicos del backend
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [profilePicturePreview, setProfilePicturePreview] = useState(null);
   const [isUploadingPicture, setIsUploadingPicture] = useState(false);
   const [isLoadingEmployee, setIsLoadingEmployee] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
+  // Referencias para hacer scroll a los campos con errores
+  const fieldRefs = {
+    name: useRef(null),
+    email: useRef(null),
+    phoneNumber: useRef(null),
+    dui: useRef(null),
+    address: useRef(null),
+    birthday: useRef(null),
+    hireDate: useRef(null),
+    password: useRef(null),
+    confirmPassword: useRef(null)
+  };
+
   const roles = [
     { value: 'employee', label: 'Empleado', icon: User },
     { value: 'manager', label: 'Gerente', icon: Crown },
     { value: 'delivery', label: 'Repartidor', icon: Truck }
   ];
+
+  // Función para hacer scroll al primer campo con error
+  const scrollToFirstError = (errorFields) => {
+    // Orden de prioridad de los campos (de arriba hacia abajo en el formulario)
+    const fieldOrder = ['name', 'email', 'phoneNumber', 'dui', 'address', 'birthday', 'hireDate', 'password', 'confirmPassword'];
+    
+    // Encontrar el primer campo con error según el orden del formulario
+    const firstErrorField = fieldOrder.find(field => errorFields[field]);
+    
+    if (firstErrorField && fieldRefs[firstErrorField]?.current) {
+      // Hacer scroll suave al campo con error
+      fieldRefs[firstErrorField].current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+        inline: 'nearest'
+      });
+      
+      // Hacer focus al input después de un pequeño delay para que el scroll termine
+      setTimeout(() => {
+        const inputElement = fieldRefs[firstErrorField].current.querySelector('input, textarea');
+        if (inputElement) {
+          inputElement.focus();
+        }
+      }, 500);
+      
+      console.log(`📍 Scroll automático al campo: ${firstErrorField}`);
+    }
+  };
 
   // Manejar scroll del body cuando el modal está abierto
   useEffect(() => {
@@ -826,6 +868,7 @@ const EmployeeModal = ({
       profilePicture: null
     });
     setErrors({});
+    setBackendErrors({}); // Limpiar errores del backend
     setShowPassword(false);
     setShowConfirmPassword(false);
     setProfilePicturePreview(null);
@@ -845,6 +888,14 @@ const EmployeeModal = ({
 
     if (errors[name]) {
       setErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
+
+    // Limpiar errores del backend cuando el usuario modifica el campo
+    if (backendErrors[name]) {
+      setBackendErrors(prev => ({
         ...prev,
         [name]: ''
       }));
@@ -1073,6 +1124,14 @@ const EmployeeModal = ({
     }
 
     setErrors(newErrors);
+    
+    // Si hay errores, hacer scroll al primer campo con error
+    if (Object.keys(newErrors).length > 0) {
+      setTimeout(() => {
+        scrollToFirstError(newErrors);
+      }, 100); // Pequeño delay para que los errores se rendericen primero
+    }
+    
     return Object.keys(newErrors).length === 0;
   };
 
@@ -1145,6 +1204,38 @@ const EmployeeModal = ({
       onClose();
     } catch (error) {
       console.error('Error saving employee:', error);
+      
+      // Capturar errores específicos del backend
+      const errorMessage = error.message || '';
+      
+      // Verificar si es error de correo ya registrado
+      if (errorMessage.includes('correo ya está registrado') || errorMessage.includes('email ya está registrado')) {
+        const newBackendErrors = {
+          email: 'Este correo electrónico ya está registrado'
+        };
+        setBackendErrors(newBackendErrors);
+        
+        // Hacer scroll al campo con error del backend
+        setTimeout(() => {
+          scrollToFirstError(newBackendErrors);
+        }, 100);
+      }
+      // Verificar si es error de DUI ya registrado
+      else if (errorMessage.includes('DUI ya está registrado') || errorMessage.includes('dui ya está registrado')) {
+        const newBackendErrors = {
+          dui: 'Este DUI ya está registrado'
+        };
+        setBackendErrors(newBackendErrors);
+        
+        // Hacer scroll al campo con error del backend
+        setTimeout(() => {
+          scrollToFirstError(newBackendErrors);
+        }, 100);
+      }
+      // Para otros errores, mantener el comportamiento actual (toast)
+      else {
+        // El error ya se muestra como toast en el hook useEmployees
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -1259,7 +1350,7 @@ const EmployeeModal = ({
                           Información Personal
                         </EmployeeModalSectionTitle>
                         
-                        <EmployeeModalField>
+                        <EmployeeModalField ref={fieldRefs.name}>
                           <EmployeeModalLabel>
                             <User size={14} weight="duotone" />
                             Nombre Completo *
@@ -1384,7 +1475,7 @@ const EmployeeModal = ({
                           </Box>
                         </EmployeeModalField>
 
-                        <EmployeeModalField>
+                        <EmployeeModalField ref={fieldRefs.email}>
                           <EmployeeModalLabel>
                             <Envelope size={14} weight="duotone" />
                             Correo Electrónico *
@@ -1394,18 +1485,18 @@ const EmployeeModal = ({
                             name="email"
                             value={formData.email}
                             onChange={handleInputChange}
-                            error={!!errors.email}
+                            error={!!errors.email || !!backendErrors.email}
                             placeholder="juan.perez@empresa.com"
                           />
-                          {errors.email && (
+                          {(errors.email || backendErrors.email) && (
                             <EmployeeModalError>
                               <Warning size={12} weight="fill" />
-                              {errors.email}
+                              {backendErrors.email || errors.email}
                             </EmployeeModalError>
                           )}
                         </EmployeeModalField>
 
-                        <EmployeeModalField>
+                        <EmployeeModalField ref={fieldRefs.phoneNumber}>
                           <EmployeeModalLabel>
                             <Phone size={14} weight="duotone" />
                             Teléfono *
@@ -1426,7 +1517,7 @@ const EmployeeModal = ({
                           )}
                         </EmployeeModalField>
 
-                        <EmployeeModalField>
+                        <EmployeeModalField ref={fieldRefs.dui}>
                           <EmployeeModalLabel>
                             <IdentificationCard size={14} weight="duotone" />
                             DUI *
@@ -1438,20 +1529,28 @@ const EmployeeModal = ({
                             onChange={(e) => {
                               const formatted = formatDui(e.target.value);
                               setFormData(prev => ({ ...prev, dui: formatted }));
+                              
+                              // Limpiar errores del backend cuando el usuario modifica el DUI
+                              if (backendErrors.dui) {
+                                setBackendErrors(prev => ({
+                                  ...prev,
+                                  dui: ''
+                                }));
+                              }
                             }}
-                            error={!!errors.dui}
+                            error={!!errors.dui || !!backendErrors.dui}
                             placeholder="12345678-9"
                             inputProps={{ maxLength: 10 }}
                           />
-                          {errors.dui && (
+                          {(errors.dui || backendErrors.dui) && (
                             <EmployeeModalError>
                               <Warning size={12} weight="fill" />
-                              {errors.dui}
+                              {backendErrors.dui || errors.dui}
                             </EmployeeModalError>
                           )}
                         </EmployeeModalField>
 
-                        <EmployeeModalField>
+                        <EmployeeModalField ref={fieldRefs.address}>
                           <EmployeeModalLabel>
                             <MapPin size={14} weight="duotone" />
                             Dirección *
@@ -1483,7 +1582,7 @@ const EmployeeModal = ({
                           Fechas y Seguridad
                         </EmployeeModalSectionTitle>
 
-                        <EmployeeModalField>
+                        <EmployeeModalField ref={fieldRefs.birthday}>
                           <EmployeeModalLabel>
                             <Calendar size={14} weight="duotone" />
                             Fecha de Nacimiento *
@@ -1503,7 +1602,7 @@ const EmployeeModal = ({
                           )}
                         </EmployeeModalField>
 
-                        <EmployeeModalField>
+                        <EmployeeModalField ref={fieldRefs.hireDate}>
                           <EmployeeModalLabel>
                             <Calendar size={14} weight="duotone" />
                             Fecha de Contratación *
@@ -1523,7 +1622,7 @@ const EmployeeModal = ({
                           )}
                         </EmployeeModalField>
 
-                        <EmployeeModalField>
+                        <EmployeeModalField ref={fieldRefs.password}>
                           <EmployeeModalLabel>
                             <Lock size={14} weight="duotone" />
                             {mode === 'create' ? 'Contraseña *' : 'Nueva Contraseña (opcional)'}
@@ -1558,7 +1657,7 @@ const EmployeeModal = ({
                         </EmployeeModalField>
 
                         {(mode === 'create' || formData.password) && (
-                          <EmployeeModalField>
+                          <EmployeeModalField ref={fieldRefs.confirmPassword}>
                             <EmployeeModalLabel>
                               <Lock size={14} weight="duotone" />
                               Confirmar Contraseña *

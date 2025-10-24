@@ -386,23 +386,71 @@ const ProductService = {
 
       // Nueva imagen principal si se cambió
       if (productData.mainImage && productData.mainImage instanceof File) {
-        formData.append('mainImage', productData.mainImage);
+        const imageValidation = ProductService.validateImageFile(productData.mainImage);
+        if (!imageValidation.isValid) {
+          throw new Error(`Imagen principal inválida: ${imageValidation.error}`);
+        }
+        formData.append('mainImage', productData.mainImage, productData.mainImage.name);
+        console.log('✅ [ProductService.update] Nueva imagen principal agregada:', {
+          name: productData.mainImage.name,
+          size: `${(productData.mainImage.size / 1024).toFixed(2)}KB`
+        });
       }
 
-      // Nuevas imágenes adicionales si se cambiaron
-      if (productData.additionalImages && Array.isArray(productData.additionalImages)) {
+      // ✅ NUEVAS IMÁGENES ADICIONALES - PROCESAMIENTO COMPLETO
+      if (productData.additionalImages && Array.isArray(productData.additionalImages) && productData.additionalImages.length > 0) {
+        console.log('🖼️ [ProductService.update] Procesando imágenes adicionales:', {
+          count: productData.additionalImages.length,
+          files: productData.additionalImages.map((file, i) => ({
+            index: i,
+            name: file?.name,
+            size: file?.size ? `${(file.size / 1024).toFixed(2)}KB` : 'N/A',
+            type: file?.type,
+            isFile: file instanceof File
+          }))
+        });
+        
         if (productData.additionalImages.length > 5) {
           throw new Error('Máximo 5 imágenes adicionales permitidas');
         }
         
-        productData.additionalImages.forEach((file) => {
-          if (file instanceof File) {
-            formData.append('additionalImages', file);
+        // Validar cada imagen adicional
+        productData.additionalImages.forEach((file, index) => {
+          if (!(file instanceof File)) {
+            throw new Error(`Imagen adicional ${index + 1} debe ser un archivo válido`);
           }
+          
+          const imageValidation = ProductService.validateImageFile(file);
+          if (!imageValidation.isValid) {
+            throw new Error(`Imagen adicional ${index + 1} inválida: ${imageValidation.error}`);
+          }
+          
+          formData.append('additionalImages', file, file.name);
+          console.log(`✅ [ProductService.update] Imagen adicional ${index + 1} agregada:`, {
+            name: file.name,
+            size: `${(file.size / 1024).toFixed(2)}KB`,
+            type: file.type
+          });
         });
+        
+        console.log('✅ [ProductService.update] Todas las imágenes adicionales procesadas:', productData.additionalImages.length);
+      } else if (productData.additionalImages && Array.isArray(productData.additionalImages) && productData.additionalImages.length === 0) {
+        console.log('🗑️ [ProductService.update] Eliminando imágenes adicionales (array vacío)');
+        formData.append('removeAdditionalImages', 'true');
       }
 
-      console.log('📤 [ProductService] FormData para actualización preparado');
+      // ✅ LOG DETALLADO DEL FORMDATA PARA ACTUALIZACIÓN
+      const formDataEntries = Array.from(formData.entries());
+      console.log('📤 [ProductService.update] FormData preparado:', {
+        totalEntries: formDataEntries.length,
+        textFields: formDataEntries.filter(([key, value]) => typeof value === 'string').map(([key]) => key),
+        fileFields: formDataEntries.filter(([key, value]) => value instanceof File).map(([key, value]) => ({ 
+          field: key, 
+          filename: value.name,
+          size: `${(value.size / 1024).toFixed(2)}KB`
+        })),
+        hasAdditionalImages: formDataEntries.some(([key]) => key === 'additionalImages')
+      });
 
       const response = await apiClient.put(`${BASE_URL}/${id}`, formData, {
         headers: {

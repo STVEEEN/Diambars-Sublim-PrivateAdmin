@@ -7,9 +7,9 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'https://expo2025-8bjn.onrender.com', // cambiar a http://localhost:4000 para desarrollo
+        target: 'http://localhost:4000', // Backend local para desarrollo
         changeOrigin: true,
-        secure: true, // cambiar a false para desarrollo
+        secure: false, // false para desarrollo local
       }
     }
   },
@@ -18,7 +18,7 @@ export default defineConfig({
     minify: 'esbuild',
     sourcemap: false
   },
-  optimizeDeps: {
+  optimizeDeps: { 
     include: ['konva', 'react-konva']
   },
   define: {

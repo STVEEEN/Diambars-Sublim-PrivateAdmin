@@ -1115,18 +1115,56 @@ const Employees = () => {
   const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
+    console.log('🔍 [FILTRO DEBUG] Iniciando filtrado:', {
+      totalEmployees: employees.length,
+      selectedStatus,
+      selectedRole,
+      searchQuery
+    });
+
+    // Debug: Mostrar estructura de empleados
+    if (employees.length > 0) {
+      console.log('📊 [FILTRO DEBUG] Muestra de empleados:', employees.slice(0, 3).map(emp => ({
+        name: emp.name,
+        active: emp.active,
+        status: emp.status,
+        role: emp.role
+      })));
+    }
+
     let filtered = employees.filter(employee => {
       const matchesSearch = 
         employee.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         employee.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (employee.phone && employee.phone.includes(searchQuery));
+        (employee.phone && employee.phone.includes(searchQuery)) ||
+        (employee.phoneNumber && employee.phoneNumber.includes(searchQuery)) ||
+        (employee.dui && employee.dui.includes(searchQuery)) ||
+        (employee.role && employee.role.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (employee.department && employee.department.toLowerCase().includes(searchQuery.toLowerCase()));
 
       const matchesRole = !selectedRole || employee.role === selectedRole;
       const matchesStatus = !selectedStatus || 
-        (selectedStatus === 'active' && employee.status === 'active') ||
-        (selectedStatus === 'inactive' && employee.status === 'inactive');
+        (selectedStatus === 'active' && employee.active === true) ||
+        (selectedStatus === 'inactive' && employee.active === false);
+
+      // Debug específico para filtro de estado
+      if (selectedStatus) {
+        console.log(`🎯 [FILTRO DEBUG] Empleado ${employee.name}:`, {
+          active: employee.active,
+          selectedStatus,
+          matchesStatus,
+          activeComparison: employee.active === true,
+          inactiveComparison: employee.active === false
+        });
+      }
 
       return matchesSearch && matchesRole && matchesStatus;
+    });
+
+    console.log('✅ [FILTRO DEBUG] Resultado del filtrado:', {
+      filteredCount: filtered.length,
+      inactiveEmployees: employees.filter(e => e.active === false).length,
+      activeEmployees: employees.filter(e => e.active === true).length
     });
 
     filtered.sort((a, b) => {
@@ -1165,8 +1203,8 @@ const Employees = () => {
       {
         id: 'active-employees',
         title: "Empleados Activos",
-        value: employeeStats.active,
-        change: `${((employeeStats.active / employeeStats.total) * 100).toFixed(1)}% activos`,
+        value: employees.filter(e => e.active === true).length,
+        change: `${((employees.filter(e => e.active === true).length / employees.length) * 100).toFixed(1)}% activos`,
         trend: "up",
         icon: CheckCircle,
         variant: "success",
@@ -1183,14 +1221,14 @@ const Employees = () => {
         onClick: () => handleFilterByRole('manager')
       },
       {
-        id: 'managers',
-        title: "Supervisores",
-        value: employeeStats.managers || 0,
-        change: `${employeeStats.managers} con autoridad`,
+        id: 'delivery',
+        title: "Repartidores",
+        value: employeeStats.roles?.delivery || 0,
+        change: `${employeeStats.roles?.delivery || 0} en servicio`,
         trend: "up",
-        icon: Shield,
+        icon: UserMinus,
         variant: "secondary",
-        onClick: () => handleFilterByRole('supervisor')
+        onClick: () => handleFilterByRole('delivery')
       }
     ];
   }, [getEmployeeStats]);
@@ -1430,7 +1468,7 @@ const Employees = () => {
           Teléfono: employee.phone || 'N/A',
           Departamento: employee.department || 'N/A',
           Posición: employee.position || 'N/A',
-          Estado: employee.status === 'active' ? 'Activo' : 'Inactivo',
+          Estado: employee.active === true ? 'Activo' : 'Inactivo',
           'Fecha de Contratación': new Date(employee.hireDate || employee.createdAt).toLocaleDateString('es-ES'),
           Salario: employee.salary ? `$${employee.salary}` : 'N/A'
         }));
@@ -1605,7 +1643,7 @@ const Employees = () => {
           <EmployeesControlsContent>
             <EmployeesSearchSection>
               <EmployeesModernTextField
-                placeholder="Buscar empleados por nombre, email o teléfono..."
+                placeholder="Buscar por nombre, email, teléfono, DUI, rol o departamento..."
                 value={searchQuery}
                 onChange={handleSearchChange}
                 InputProps={{
@@ -1654,16 +1692,16 @@ const Employees = () => {
                       Gerentes
                     </Box>
                   </MenuItem>
-                  <MenuItem value="supervisor">
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <Crown size={14} />
-                      Supervisores
-                    </Box>
-                  </MenuItem>
                   <MenuItem value="employee">
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <User size={14} />
                       Empleados
+                    </Box>
+                  </MenuItem>
+                  <MenuItem value="delivery">
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <UserMinus size={14} />
+                      Repartidores
                     </Box>
                   </MenuItem>
                 </Select>
@@ -1868,7 +1906,7 @@ const Employees = () => {
                       • Crea gerentes con autoridad de supervisión
                     </Typography>
                     <Typography variant="body2" sx={{ color: '#032CA6', mb: 1, fontFamily: "'Mona Sans'" }}>
-                      • Añade supervisores para gestionar equipos
+                      • Añade repartidores y personal de producción
                     </Typography>
                     <Typography variant="body2" sx={{ color: '#032CA6', fontFamily: "'Mona Sans'" }}>
                       • Gestiona estados activo/inactivo según necesidad

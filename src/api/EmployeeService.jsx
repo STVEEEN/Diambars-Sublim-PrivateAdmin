@@ -4,9 +4,12 @@ import apiClient from './ApiClient';
 const BASE_URL = '/employees';
 
 export default {
-  // Obtener todos los empleados activos (requiere Admin/Manager)
-  getAll: async () => {
-    const response = await apiClient.get(BASE_URL);
+  // Obtener todos los empleados (activos e inactivos por defecto - requiere Admin/Manager)
+  getAll: async (includeInactive = true) => {
+    // Por defecto el backend ahora incluye empleados inactivos
+    // Solo agregamos parámetro si queremos excluir inactivos
+    const url = includeInactive ? BASE_URL : `${BASE_URL}?includeInactive=false`;
+    const response = await apiClient.get(url);
     return response;
   },
 
@@ -71,9 +74,9 @@ export default {
     return allEmployees.filter(emp => emp.role?.toLowerCase() === role.toLowerCase());
   },
 
-  // Obtener solo empleados activos (el backend ya filtra por activos)
+  // Obtener solo empleados activos
   getActiveEmployees: async () => {
-    const response = await apiClient.get(BASE_URL);
+    const response = await apiClient.get(`${BASE_URL}?includeInactive=false`);
     return response;
   },
 
