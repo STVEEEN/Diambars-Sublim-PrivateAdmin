@@ -409,7 +409,7 @@ const CategoryStatValue = styled(Typography)(({ variant }) => ({
   fontSize: '1.8rem',
   fontWeight: 700,
   lineHeight: 1.1,
-  marginBottom: '4px',
+  marginBottom: '12px !important',
   color: variant === 'primary' ? 'white' : '#010326',
   fontFamily: "'Mona Sans'"
 }));
@@ -417,6 +417,8 @@ const CategoryStatValue = styled(Typography)(({ variant }) => ({
 const CategoryStatLabel = styled(Typography)(({ variant }) => ({
   fontSize: '0.85rem',
   fontWeight: 500,
+  marginTop: '0 !important',
+  marginLeft: '8px !important',
   opacity: variant === 'primary' ? 0.9 : 0.7,
   color: variant === 'primary' ? 'white' : '#032CA6',
   lineHeight: 1.3,

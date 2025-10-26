@@ -433,24 +433,26 @@ const CatalogStatValue = styled(Typography)(({ variant, theme }) => ({
   fontSize: '2.2rem',
   fontWeight: 700,
   lineHeight: 1.1,
-  marginBottom: '6px',
+  marginBottom: '12px !important',
   color: variant === 'primary' ? 'white' : '#010326',
   fontFamily: "'Mona Sans'",
-  [theme.breakpoints.down('lg')]: { fontSize: '2rem' },
-  [theme.breakpoints.down('md')]: { fontSize: '1.8rem' },
-  [theme.breakpoints.down('sm')]: { fontSize: '1.6rem' }
+  [theme.breakpoints.down('lg')]: { fontSize: '2rem', marginBottom: '10px !important' },
+  [theme.breakpoints.down('md')]: { fontSize: '1.8rem', marginBottom: '10px !important' },
+  [theme.breakpoints.down('sm')]: { fontSize: '1.6rem', marginBottom: '8px !important' }
 }));
 
 const CatalogStatLabel = styled(Typography)(({ variant, theme }) => ({
   fontSize: '0.9rem',
   fontWeight: 500,
+  marginTop: '0 !important',
+  marginLeft: '8px !important',
   opacity: variant === 'primary' ? 0.9 : 0.7,
   color: variant === 'primary' ? 'white' : '#032CA6',
   lineHeight: 1.3,
   fontFamily: "'Mona Sans'",
-  [theme.breakpoints.down('lg')]: { fontSize: '0.875rem' },
-  [theme.breakpoints.down('md')]: { fontSize: '0.8rem' },
-  [theme.breakpoints.down('sm')]: { fontSize: '0.75rem' }
+  [theme.breakpoints.down('lg')]: { fontSize: '0.875rem', marginTop: '0 !important', marginLeft: '6px !important' },
+  [theme.breakpoints.down('md')]: { fontSize: '0.8rem', marginTop: '0 !important', marginLeft: '6px !important' },
+  [theme.breakpoints.down('sm')]: { fontSize: '0.75rem', marginTop: '0 !important', marginLeft: '4px !important' }
 }));
 
 const CatalogStatChange = styled(Box)(({ variant, trend }) => ({
