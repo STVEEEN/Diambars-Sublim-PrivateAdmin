@@ -136,6 +136,16 @@ const useCategories = () => {
         throw new Error("Formato de categorías inválido");
       }
 
+      // Log para verificar tipos de booleanos
+      if (categoriesData.length > 0) {
+        console.log('🔍 [useCategories] Verificando tipos de booleanos en la primera categoría:', {
+          isActive: categoriesData[0].isActive,
+          isActiveType: typeof categoriesData[0].isActive,
+          showOnHomepage: categoriesData[0].showOnHomepage,
+          showOnHomepageType: typeof categoriesData[0].showOnHomepage
+        });
+      }
+
       setCategories(categoriesData);
       setCategoryTree(treeData);
       setFlatCategories(categoriesData);
@@ -266,6 +276,9 @@ const useCategories = () => {
         2,
         1000
       );
+      
+      console.log('✅ [useCategories] Respuesta del backend:', response);
+      console.log('📦 [useCategories] Categoría actualizada:', response?.category || response);
       
       toast.success('✅ Categoría actualizada exitosamente');
       await fetchCategories(true); // Forzar recarga

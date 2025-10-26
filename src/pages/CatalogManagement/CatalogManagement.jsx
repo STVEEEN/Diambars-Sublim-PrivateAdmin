@@ -713,7 +713,7 @@ const CatalogManagement = () => {
   useEffect(() => {
     updateFilters({
       search: searchQuery,
-      isActive: selectedFilter === 'all' ? '' : selectedFilter === 'active',
+      isActive: selectedFilter === 'all' ? '' : selectedFilter === 'active' ? true : false,
       sort: sortOption,
       category: selectedCategory
     });
@@ -863,7 +863,7 @@ const CatalogManagement = () => {
               <CatalogModernTextField fullWidth placeholder="Buscar productos por nombre..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} InputProps={{ startAdornment: (<InputAdornment position="start"><MagnifyingGlass size={18} weight="bold" color="#032CA6" /></InputAdornment>) }} />
             </CatalogSearchSection>
             <CatalogFiltersSection>
-              <CatalogFilterChip active={selectedFilter !== 'all'} onClick={() => setSelectedFilter(selectedFilter === 'all' ? 'active' : 'all')}>
+              <CatalogFilterChip active={selectedFilter !== 'all'}>
                 <Funnel size={16} weight="bold" />
                 <FormControl size="small" sx={{ minWidth: 100 }}>
                   <Select value={selectedFilter} onChange={(e) => setSelectedFilter(e.target.value)} displayEmpty sx={{ border: 'none', fontFamily: "'Mona Sans'", '& .MuiOutlinedInput-notchedOutline': { border: 'none' }, '& .MuiSelect-select': { padding: 0, fontSize: '0.875rem', fontWeight: 500, color: '#010326', fontFamily: "'Mona Sans'" } }}>

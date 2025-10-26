@@ -20,13 +20,19 @@ const useDesigns = () => {
   });
 
   // Estados para filtros y búsqueda
-  const [filters, setFilters] = useState({
-    search: '',
-    status: '',      // 'pending', 'quoted', 'approved', etc.
-    product: '',     // ID del producto
-    user: '',        // ID del usuario/cliente
-    sort: 'createdAt',
-    order: 'desc'
+  // Inicializar con el filtro de pendientes por defecto si está activo
+  const [filters, setFilters] = useState(() => {
+    const autoFilterPending = localStorage.getItem('autoFilterPending');
+    const shouldApplyPending = autoFilterPending !== null ? autoFilterPending === 'true' : true;
+    
+    return {
+      search: '',
+      status: shouldApplyPending ? 'pending' : '',      // 'pending', 'quoted', 'approved', etc.
+      product: '',     // ID del producto
+      user: '',        // ID del usuario/cliente
+      sort: 'createdAt',
+      order: 'desc'
+    };
   });
 
   // ==================== UTILIDADES ====================
@@ -120,19 +126,8 @@ const useDesigns = () => {
         })
         .filter(design => design !== null);
       
-      // Mostrar todos los diseños por defecto (incluyendo cancelados)
-      // Solo filtrar si se especifica un estado específico
-      const finalDesigns = formattedDesigns.filter(design => {
-        // Si no hay filtro de estado específico, mostrar todos
-        if (!queryParams.status || queryParams.status === '') {
-          return true;
-        }
-        
-        // Si hay filtro de estado, aplicar el filtro
-        const shouldInclude = design.status === queryParams.status;
-        
-        return shouldInclude;
-      });
+      // El backend ya aplica los filtros, no filtrar aquí de nuevo
+      const finalDesigns = formattedDesigns;
       
       const processingTime = Date.now() - startTime;
       console.log(`⏱️ [useDesigns] Tiempo de procesamiento: ${processingTime}ms`);
@@ -689,12 +684,23 @@ const updateProductColor = useCallback(async (id, color) => {
 
   // ==================== GESTIÓN DE FILTROS ====================
 
-  // Actualizar filtros
+  // Actualizar filtros solo si realmente cambian
   const updateFilters = useCallback((newFilters) => {
-    setFilters(prev => ({
-      ...prev,
-      ...newFilters
-    }));
+    setFilters(prev => {
+      // Verificar si realmente cambió algo
+      const hasChanges = Object.keys(newFilters).some(key => {
+        return prev[key] !== newFilters[key];
+      });
+      
+      if (!hasChanges) {
+        return prev; // No hacer update si no hay cambios
+      }
+      
+      return {
+        ...prev,
+        ...newFilters
+      };
+    });
   }, []);
 
   // Limpiar filtros

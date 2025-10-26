@@ -1391,6 +1391,15 @@ const CreateProductModal = ({
 </SectionTitle>
                     
                     <Box>
+                      {/* El input de archivo debe estar siempre disponible en el DOM */}
+                      <input
+                        ref={mainImageInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleMainImageChange}
+                        style={{ display: 'none' }}
+                      />
+                      
                       {imagePreview ? (
                         <Box>
                           <ImagePreview src={imagePreview} alt="Preview" />
@@ -1417,13 +1426,6 @@ const CreateProductModal = ({
                         </Box>
                       ) : (
                         <ImageUploadContainer onClick={() => mainImageInputRef.current?.click()}>
-                          <input
-                            ref={mainImageInputRef}
-                            type="file"
-                            accept="image/*"
-                            onChange={handleMainImageChange}
-                            style={{ display: 'none' }}
-                          />
                           <UploadIcon size={32} weight="duotone" />
                           <Typography component="div" variant="body1" mt={1} sx={{ color: '#010326' }}>
                             Arrastra o haz clic para subir

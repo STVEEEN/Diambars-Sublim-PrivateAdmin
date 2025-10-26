@@ -15,7 +15,8 @@ const ProductService = {
         isActive,
         search,
         sort = 'newest',
-        featured
+        featured,
+        includeInactive = false
       } = params;
 
       console.log('🔍 [ProductService] Obteniendo productos con params:', params);
@@ -29,6 +30,7 @@ const ProductService = {
       if (search && search.trim() !== '') queryParams.append('search', search.trim());
       if (sort) queryParams.append('sort', sort);
       if (featured !== undefined && featured !== '') queryParams.append('featured', featured);
+      if (includeInactive) queryParams.append('includeInactive', 'true');
 
       const url = `${BASE_URL}?${queryParams.toString()}`;
       console.log('📡 [ProductService] URL final:', url);

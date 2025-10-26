@@ -834,6 +834,7 @@ const CategoryManagement = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -905,8 +906,14 @@ const CategoryManagement = () => {
   ];
 
   // Usar datos fallback si no hay datos del hook
-  const displayCategories = flatCategories.length > 0 ? flatCategories : fallbackCategories.flatMap(cat => [cat, ...cat.children]);
-  const displayCategoryTree = categoryTree.length > 0 ? categoryTree : fallbackCategories;
+  // Usar useMemo para forzar la recalculación cuando cambien los datos del backend
+  const displayCategories = React.useMemo(() => {
+    return flatCategories.length > 0 ? flatCategories : fallbackCategories.flatMap(cat => [cat, ...cat.children]);
+  }, [flatCategories]);
+
+  const displayCategoryTree = React.useMemo(() => {
+    return categoryTree.length > 0 ? categoryTree : fallbackCategories;
+  }, [categoryTree]);
 
   // Stats calculations
   const stats = [
@@ -986,15 +993,31 @@ const CategoryManagement = () => {
   const handleOpenModal = (category = null) => {
     if (category) {
       setSelectedCategory(category);
+      // Manejar parent - puede ser un string ID, un objeto con _id, o null/undefined
+      let parentId = '';
+      if (category.parent) {
+        if (typeof category.parent === 'string') {
+          parentId = category.parent;
+        } else if (typeof category.parent === 'object' && category.parent._id) {
+          parentId = category.parent._id;
+        }
+      } else {
+        // No tiene parent, mostrar que es categoría principal
+        parentId = '';
+      }
+      
       setFormData({
         name: category.name,
         description: category.description || '',
-        parent: category.parent?._id || '',
+        parent: parentId,
         image: null,
-        isActive: category.isActive,
-        showOnHomepage: category.showOnHomepage || false,
+        isActive: category.isActive === true || category.isActive === 'true' || category.isActive === '1',
+        showOnHomepage: category.showOnHomepage === true || category.showOnHomepage === 'true' || category.showOnHomepage === '1',
         order: category.order || 0
       });
+      
+      // Establecer preview de la imagen existente
+      setImagePreview(category.image || null);
     } else {
       setSelectedCategory(null);
       setFormData({
@@ -1006,6 +1029,7 @@ const CategoryManagement = () => {
         showOnHomepage: false,
         order: 0
       });
+      setImagePreview(null);
     }
     setShowModal(true);
   };
@@ -1013,6 +1037,7 @@ const CategoryManagement = () => {
   const handleCloseModal = () => {
     setShowModal(false);
     setSelectedCategory(null);
+    setImagePreview(null);
     setFormData({
       name: '',
       description: '',
@@ -1054,18 +1079,57 @@ const CategoryManagement = () => {
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
+    
+    // Para Switch de MUI, siempre usar checked si está disponible
+    if (type === 'checkbox' || name === 'isActive' || name === 'showOnHomepage') {
+      // Si se desactiva isActive, también desactivar showOnHomepage
+      if (name === 'isActive' && !checked) {
+        setFormData(prev => ({
+          ...prev,
+          isActive: false,
+          showOnHomepage: false
+        }));
+      } else {
+        setFormData(prev => ({
+          ...prev,
+          [name]: checked
+        }));
+      }
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
   };
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
+    if (file) {
+      setFormData(prev => ({
+        ...prev,
+        image: file
+      }));
+      
+      // Crear preview de la imagen
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemoveImage = () => {
     setFormData(prev => ({
       ...prev,
-      image: file
+      image: null
     }));
+    setImagePreview(null);
+    // Limpiar el input de archivo
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -1089,8 +1153,13 @@ const CategoryManagement = () => {
     submitData.append('name', formData.name.trim());
     submitData.append('description', formData.description.trim());
     submitData.append('parent', formData.parent || null);
-    submitData.append('isActive', formData.isActive);
-    submitData.append('showOnHomepage', formData.showOnHomepage);
+    
+    // Convertir booleanos explícitamente - manejar true/false y strings 'true'/'false'
+    const isActiveValue = formData.isActive === true || formData.isActive === 'true' || formData.isActive === '1';
+    const showOnHomepageValue = formData.showOnHomepage === true || formData.showOnHomepage === 'true' || formData.showOnHomepage === '1';
+    
+    submitData.append('isActive', String(isActiveValue));
+    submitData.append('showOnHomepage', String(showOnHomepageValue));
     submitData.append('order', formData.order);
     
     if (formData.image) {
@@ -1107,7 +1176,7 @@ const CategoryManagement = () => {
       handleCloseModal();
       
     } catch (error) {
-      console.error('Error al guardar categoría:', error);
+      console.error('❌ [CategoryManagement] Error al guardar categoría:', error);
       const errorMessage = error.response?.data?.message || error.message || 'Error desconocido';
       
       await Swal.fire({
@@ -1174,7 +1243,7 @@ const CategoryManagement = () => {
     return (
       <CategoryGrid>
         {sortedCategories.map((category) => (
-          <CategoryCard key={category._id}>
+          <CategoryCard key={`${category._id}-${category.isActive}-${category.showOnHomepage}`}>
             <CategoryCardImage>
               {category.image ? (
                 <img 
@@ -1287,7 +1356,7 @@ const CategoryManagement = () => {
       const isExpanded = expandedCategories[category._id];
 
       return (
-        <Box key={category._id}>
+        <Box key={`${category._id}-${category.isActive}-${category.showOnHomepage}`}>
           <TreeNode depth={depth}>
             <TreeToggle 
               onClick={() => hasChildren && toggleExpand(category._id)}
@@ -1402,10 +1471,10 @@ const CategoryManagement = () => {
           </Box>
         </Box>
 
-        <Box>
-          {sortedCategories.map((category) => (
-            <Box 
-              key={category._id}
+                 <Box>
+           {sortedCategories.map((category) => (
+             <Box 
+               key={`${category._id}-${category.isActive}-${category.showOnHomepage}`}
               sx={{ 
                 padding: '20px',
                 borderBottom: `1px solid ${alpha('#1F64BF', 0.04)}`,
@@ -1639,7 +1708,6 @@ const CategoryManagement = () => {
             <CategoryFiltersSection>
               <CategoryFilterChip 
                 active={filterActive !== 'all'}
-                onClick={() => setFilterActive(filterActive === 'all' ? 'active' : 'all')}
               >
                 <Funnel size={16} weight="bold" />
                 <FormControl size="small" sx={{ minWidth: 120 }}>
@@ -1852,12 +1920,19 @@ const CategoryManagement = () => {
                       <FormSelect
                         fullWidth
                         name="parent"
-                        value={formData.parent}
+                        value={formData.parent || ''}
                         onChange={handleInputChange}
+                        displayEmpty
                       >
-                        <MenuItem value="">Sin padre (Categoría Principal)</MenuItem>
+                        <MenuItem value="">
+                          <em>Sin padre (Categoría Principal)</em>
+                        </MenuItem>
                         {displayCategories
-                          .filter(cat => cat._id !== selectedCategory?._id && !cat.parent)
+                          .filter(cat => {
+                            const catId = cat._id;
+                            const hasNoParent = !cat.parent || (typeof cat.parent === 'string' && cat.parent === '') || (typeof cat.parent === 'object' && !cat.parent._id);
+                            return catId !== selectedCategory?._id && hasNoParent;
+                          })
                           .map(cat => (
                             <MenuItem key={cat._id} value={cat._id}>
                               {cat.name}
@@ -1885,25 +1960,80 @@ const CategoryManagement = () => {
                       <FormLabel>
                         Imagen de la categoría {!selectedCategory && '*'}
                       </FormLabel>
-                      <FileUploadArea onClick={() => fileInputRef.current?.click()}>
-                        <input
-                          type="file"
-                          ref={fileInputRef}
-                          onChange={handleImageChange}
-                          accept="image/*"
-                          style={{ display: 'none' }}
-                          required={!selectedCategory}
-                        />
-                        <Box sx={{ color: '#1F64BF', marginBottom: '12px' }}>
-                          <Image size={32} weight="duotone" />
+                      
+                      {/* El input de archivo debe estar siempre disponible en el DOM */}
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleImageChange}
+                        accept="image/*"
+                        style={{ display: 'none' }}
+                        required={!selectedCategory}
+                      />
+                      
+                      {imagePreview ? (
+                        <Box sx={{ position: 'relative', width: '100%', marginBottom: '12px' }}>
+                          <img 
+                            src={imagePreview} 
+                            alt="Preview" 
+                            style={{ 
+                              width: '100%', 
+                              maxHeight: '200px', 
+                              objectFit: 'cover', 
+                              borderRadius: '8px',
+                              border: `2px solid ${alpha('#1F64BF', 0.2)}`
+                            }} 
+                          />
+                          <IconButton
+                            onClick={handleRemoveImage}
+                            sx={{
+                              position: 'absolute',
+                              top: '8px',
+                              right: '8px',
+                              background: 'rgba(239, 68, 68, 0.9)',
+                              color: 'white',
+                              '&:hover': {
+                                background: 'rgba(239, 68, 68, 1)'
+                              }
+                            }}
+                          >
+                            <X size={16} />
+                          </IconButton>
                         </Box>
-                        <Typography sx={{ color: '#010326', fontWeight: 500, marginBottom: '4px' }}>
-                          <span style={{ color: '#1F64BF' }}>Haz clic para subir</span> o arrastra y suelta
-                        </Typography>
-                        <Typography sx={{ color: '#64748b', fontSize: '0.8rem' }}>
-                          PNG, JPG, GIF hasta 5MB
-                        </Typography>
-                      </FileUploadArea>
+                      ) : (
+                        <FileUploadArea onClick={() => fileInputRef.current?.click()}>
+                          <Box sx={{ color: '#1F64BF', marginBottom: '12px' }}>
+                            <Image size={32} weight="duotone" />
+                          </Box>
+                          <Typography sx={{ color: '#010326', fontWeight: 500, marginBottom: '4px' }}>
+                            <span style={{ color: '#1F64BF' }}>Haz clic para subir</span> o arrastra y suelta
+                          </Typography>
+                          <Typography sx={{ color: '#64748b', fontSize: '0.8rem' }}>
+                            PNG, JPG, GIF hasta 5MB
+                          </Typography>
+                        </FileUploadArea>
+                      )}
+                      
+                      {imagePreview && (
+                        <Button
+                          onClick={() => fileInputRef.current?.click()}
+                          variant="outlined"
+                          startIcon={<Image size={16} />}
+                          size="small"
+                          sx={{
+                            marginTop: '8px',
+                            borderColor: '#1F64BF',
+                            color: '#1F64BF',
+                            textTransform: 'none',
+                            '&:hover': {
+                              borderColor: '#032CA6',
+                              background: alpha('#1F64BF', 0.05)
+                            }
+                          }}
+                        >
+                          Cambiar imagen
+                        </Button>
+                      )}
                     </FormGroup>
                   </FormRow>
 
@@ -1930,9 +2060,27 @@ const CategoryManagement = () => {
                             checked={formData.showOnHomepage}
                             onChange={handleInputChange}
                             color="primary"
+                            disabled={!formData.isActive}
                           />
                         }
-                        label="Mostrar en página principal"
+                        label={
+                          <Box>
+                            <Typography component="span">Mostrar en página principal</Typography>
+                            {!formData.isActive && (
+                              <Typography 
+                                component="span" 
+                                sx={{ 
+                                  display: 'block', 
+                                  fontSize: '0.75rem', 
+                                  color: '#F59E0B',
+                                  marginTop: '2px'
+                                }}
+                              >
+                                *Requiere que la categoría esté activa
+                              </Typography>
+                            )}
+                          </Box>
+                        }
                       />
                     </FormGroup>
                   </FormRow>

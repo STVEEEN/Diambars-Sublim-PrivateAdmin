@@ -88,7 +88,8 @@ const useProducts = () => {
       // Combinar parámetros con filtros actuales
       const queryParams = {
         ...filters,
-        ...params
+        ...params,
+        includeInactive: true // Incluir productos inactivos por defecto
       };
       
       const response = await productService.getAll(queryParams);
@@ -97,10 +98,10 @@ const useProducts = () => {
         throw new Error("Formato de respuesta inválido");
       }
 
-      // Formatear productos y filtrar solo los activos
+      // Formatear productos (incluyendo activos e inactivos)
       const formattedProducts = response.data.products
         .map(formatProduct)
-        .filter(product => product !== null && product.isActive === true);
+        .filter(product => product !== null);
       
       setProducts(formattedProducts);
       

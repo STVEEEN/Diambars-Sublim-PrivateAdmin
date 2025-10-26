@@ -19,7 +19,9 @@ import {
   Skeleton,
   Tooltip,
   Badge,
-  IconButton
+  IconButton,
+  Switch,
+  FormControlLabel
 } from '@mui/material';
 import {
   Palette,
@@ -46,7 +48,9 @@ import {
   SortDescending,
   PencilSimple,
   Copy,
-  Trash
+  Trash,
+  ToggleLeft,
+  ToggleRight
 } from '@phosphor-icons/react';
 
 // Importar componentes personalizados  
@@ -818,6 +822,39 @@ const DesignFilterControl = styled(FormControl)(({ theme }) => ({
   }
 }));
 
+const DesignAutoFilterChip = styled(Box)(({ theme, active }) => ({
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '8px',
+  padding: '8px 14px',
+  borderRadius: '12px',
+  background: active 
+    ? alpha('#F59E0B', 0.1)
+    : alpha('#1F64BF', 0.08),
+  border: `1px solid ${active ? alpha('#F59E0B', 0.2) : alpha('#1F64BF', 0.15)}`,
+  cursor: 'pointer',
+  transition: 'all 0.3s cubic-bezier(0.23, 1, 0.320, 1)',
+  fontFamily: "'Mona Sans'",
+  '&:hover': {
+    background: active 
+      ? alpha('#F59E0B', 0.15)
+      : alpha('#1F64BF', 0.12),
+    borderColor: active 
+      ? alpha('#F59E0B', 0.3)
+      : alpha('#1F64BF', 0.25),
+    transform: 'translateY(-1px)',
+    boxShadow: active 
+      ? '0 2px 8px rgba(245, 158, 11, 0.15)'
+      : '0 2px 8px rgba(31, 100, 191, 0.1)',
+  },
+  [theme.breakpoints.down('sm')]: {
+    padding: '6px 12px',
+    '& .MuiFormControlLabel-label': {
+      fontSize: '0.8rem',
+    }
+  }
+}));
+
 const DesignSortControl = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
@@ -1079,8 +1116,19 @@ const DesignManagement = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showQuoteModal, setShowQuoteModal] = useState(false);
   const [showViewerModal, setShowViewerModal] = useState(false);
+  // Estado para el filtro automático de pendientes (cargado desde localStorage)
+  const [autoFilterPending, setAutoFilterPending] = useState(() => {
+    const saved = localStorage.getItem('autoFilterPending');
+    return saved !== null ? saved === 'true' : true; // Por defecto activado
+  });
+  
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState('');
+  // Inicializar con el filtro de pendientes si el toggle está activo
+  const [selectedStatus, setSelectedStatus] = useState(() => {
+    const saved = localStorage.getItem('autoFilterPending');
+    const shouldApply = saved !== null ? saved === 'true' : true;
+    return shouldApply ? 'pending' : '';
+  });
   const [selectedProduct, setSelectedProduct] = useState('');
   const [selectedUser, setSelectedUser] = useState('');
   const [sortOption, setSortOption] = useState('createdAt');
@@ -1092,21 +1140,34 @@ const DesignManagement = () => {
 
   // ==================== EFECTOS ====================
   
-  // Actualizar filtros cuando cambien los valores locales
+  // Guardar la preferencia del filtro automático en localStorage
+  useEffect(() => {
+    localStorage.setItem('autoFilterPending', autoFilterPending.toString());
+  }, [autoFilterPending]);
+  
+  // Actualizar filtros inmediatamente solo cuando realmente cambien
+  useEffect(() => {
+    updateFilters({
+      status: selectedStatus,
+      product: selectedProduct,
+      user: selectedUser,
+      sort: sortOption,
+      order: sortOrder
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedStatus, selectedProduct, selectedUser, sortOption, sortOrder]);
+  
+  // Debounce solo para búsqueda de texto
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       updateFilters({
-        search: searchQuery,
-        status: selectedStatus,
-        product: selectedProduct,
-        user: selectedUser,
-        sort: sortOption,
-        order: sortOrder
+        search: searchQuery
       });
     }, 300);
 
     return () => clearTimeout(timeoutId);
-  }, [searchQuery, selectedStatus, selectedProduct, selectedUser, sortOption, sortOrder, updateFilters]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery]);
 
   // Cargar datos iniciales
   useEffect(() => {
@@ -1182,7 +1243,14 @@ const DesignManagement = () => {
   };
 
   const handleStatusChange = (event) => {
-    setSelectedStatus(event.target.value);
+    const newStatus = event.target.value;
+    setSelectedStatus(newStatus);
+    
+    // Si el usuario selecciona manualmente un estado diferente a 'pending', 
+    // desactivar el filtro automático para darle control completo
+    if (autoFilterPending && newStatus !== 'pending') {
+      setAutoFilterPending(false);
+    }
   };
 
   const handleProductChange = (event) => {
@@ -1200,11 +1268,16 @@ const DesignManagement = () => {
 
   const handleClearFilters = () => {
     setSearchQuery('');
-    setSelectedStatus('');
     setSelectedProduct('');
     setSelectedUser('');
     setSortOption('createdAt');
     setSortOrder('desc');
+    // Si el toggle está activo, mantener el filtro de pendientes
+    if (autoFilterPending) {
+      setSelectedStatus('pending');
+    } else {
+      setSelectedStatus('');
+    }
     clearFilters();
   };
 
@@ -1784,14 +1857,58 @@ const DesignManagement = () => {
 
             {/* Filtros avanzados */}
             <DesignFiltersSection>
+              {/* Toggle de filtro automático de pendientes */}
+              <Tooltip 
+                title={autoFilterPending ? "Mostrando solo diseños pendientes (activo)" : "Mostrando todos los diseños (inactivo)"}
+                arrow
+                placement="top"
+              >
+                <DesignAutoFilterChip 
+                  active={autoFilterPending}
+                  onClick={() => {
+                    const newValue = !autoFilterPending;
+                    setAutoFilterPending(newValue);
+                    // Si se activa el toggle, aplicar filtro de pendientes
+                    if (newValue) {
+                      setSelectedStatus('pending');
+                    } else {
+                      setSelectedStatus('');
+                    }
+                  }}
+                >
+                  <Clock 
+                    size={18} 
+                    weight={autoFilterPending ? "fill" : "regular"} 
+                    color={autoFilterPending ? "#F59E0B" : "#1F64BF"} 
+                  />
+                  <Typography 
+                    variant="body2" 
+                    sx={{ 
+                      fontWeight: 600,
+                      color: autoFilterPending ? '#F59E0B' : '#032CA6',
+                      fontSize: '0.875rem',
+                      fontFamily: "'Mona Sans'"
+                    }}
+                  >
+                    Pendientes
+                  </Typography>
+                  {autoFilterPending ? (
+                    <ToggleRight size={20} weight="fill" color="#F59E0B" />
+                  ) : (
+                    <ToggleLeft size={20} weight="regular" color="#1F64BF" />
+                  )}
+                </DesignAutoFilterChip>
+              </Tooltip>
+              
               <DesignFilterControl size="small">
                 <Select
                   value={selectedStatus}
                   onChange={handleStatusChange}
                   displayEmpty
+                  disabled={autoFilterPending} // Deshabilitar cuando el toggle está activo
                   startAdornment={
                     <InputAdornment position="start">
-                      <Funnel size={16} weight="bold" color="#032CA6" />
+                      <Funnel size={16} weight="bold" color={autoFilterPending ? "#F59E0B" : "#032CA6"} />
                     </InputAdornment>
                   }
                   MenuProps={{
@@ -1925,8 +2042,8 @@ const DesignManagement = () => {
               </DesignFilterControl>
 
               {/* Botón para limpiar filtros */}
-              {(searchQuery || selectedStatus || selectedProduct || selectedUser) && (
-                <Tooltip title="Limpiar todos los filtros">
+              {(searchQuery || (!autoFilterPending && selectedStatus) || selectedProduct || selectedUser) && (
+                <Tooltip title={autoFilterPending ? "Limpiar otros filtros (mantendrá pendientes)" : "Limpiar todos los filtros"}>
                   <Button
                     onClick={handleClearFilters}
                     startIcon={<Broom size={16} weight="bold" />}

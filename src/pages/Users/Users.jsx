@@ -1570,12 +1570,6 @@ const Users = () => {
                   }}
                 >
                   <MenuItem value="">Todos los roles</MenuItem>
-                  <MenuItem value="admin">
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <Shield size={14} />
-                      Administradores
-                    </Box>
-                  </MenuItem>
                   <MenuItem value="premium">
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <Crown size={14} />
