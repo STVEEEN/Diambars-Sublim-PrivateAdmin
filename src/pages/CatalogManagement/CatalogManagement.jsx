@@ -309,9 +309,30 @@ const CatalogStatsGrid = styled(Box)(({ theme }) => ({
   gap: '24px',
   gridTemplateColumns: 'repeat(4, 1fr)',
   [theme.breakpoints.down(1400)]: { gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px' },
-  [theme.breakpoints.down('lg')]: { gridTemplateColumns: 'repeat(2, 1fr)', gap: '18px' },
-  [theme.breakpoints.down('md')]: { gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' },
-  [theme.breakpoints.down('sm')]: { gridTemplateColumns: 'repeat(2, 1fr)', gap: '14px' },
+  [theme.breakpoints.down('lg')]: { 
+    display: 'flex',
+    overflowX: 'auto',
+    overflowY: 'hidden',
+    gap: '16px',
+    scrollSnapType: 'x mandatory',
+    scrollBehavior: 'smooth',
+    WebkitOverflowScrolling: 'touch',
+    msOverflowStyle: '-ms-autohiding-scrollbar',
+    gridTemplateColumns: 'none',
+    paddingLeft: '0px',
+    paddingRight: '0px',
+    '&::-webkit-scrollbar': {
+      height: '4px',
+      display: 'none'
+    },
+    '&::-webkit-scrollbar-track': {
+      background: 'transparent'
+    },
+    '&::-webkit-scrollbar-thumb': {
+      background: alpha('#1F64BF', 0.3),
+      borderRadius: '10px'
+    }
+  },
   [theme.breakpoints.down(550)]: { 
     display: 'flex',
     overflowX: 'auto',
@@ -404,7 +425,17 @@ const CatalogStatCard = styled(CatalogModernCard)(({ theme, variant }) => {
     boxShadow: '0 2px 12px rgba(1, 3, 38, 0.04)',
     ...selectedVariant,
     
-    // Estilos para carrusel móvil
+    // Estilos para carrusel con 2 cards visibles (entre 550px y lg ~1200px)
+    [`@media (max-width: ${theme.breakpoints.values.lg}px) and (min-width: 551px)`]: {
+      width: 'calc(50% - 8px)',
+      minWidth: 'calc(50% - 8px)',
+      maxWidth: 'calc(50% - 8px)',
+      flexShrink: 0,
+      scrollSnapAlign: 'start',
+      scrollSnapStop: 'always'
+    },
+    
+    // Estilos para carrusel con 1 card (550px o menos)
     [theme.breakpoints.down(550)]: {
       width: '100%',
       minWidth: '100%',
@@ -713,13 +744,13 @@ const CatalogFilterChip = styled(Box)(({ theme, active }) => ({
     maxWidth: 'calc(33.333% - 8px)',
     width: 'auto',
     '& > svg[data-filter-icon]': {
-      width: '20px !important',
-      height: '20px !important'
+      width: '16px !important',
+      height: '16px !important'
     },
     '& svg[data-caret-down]': {
       display: 'block',
-      width: '14px !important',
-      height: '14px !important'
+      width: '12px !important',
+      height: '12px !important'
     },
     '& .MuiFormControl-root': {
       position: 'absolute',
@@ -741,12 +772,12 @@ const CatalogFilterChip = styled(Box)(({ theme, active }) => ({
     maxWidth: 'calc(33.333% - 8px)',
     width: 'auto',
     '& > svg[data-filter-icon]': {
-      width: '24px !important',
-      height: '24px !important'
+      width: '18px !important',
+      height: '18px !important'
     },
     '& svg[data-caret-down]': {
-      width: '16px !important',
-      height: '16px !important'
+      width: '14px !important',
+      height: '14px !important'
     },
     '& .MuiFormControl-root': {
       position: 'absolute',
@@ -855,7 +886,7 @@ const CatalogStatsDotsContainer = styled(Box)(({ theme }) => ({
   alignItems: 'center',
   gap: '8px',
   marginTop: '16px',
-  [theme.breakpoints.up(550)]: { display: 'none' }
+  [theme.breakpoints.up('lg')]: { display: 'none' }
 }));
 
 const CatalogStatsDot = styled(Box)(({ active, theme }) => ({
@@ -975,9 +1006,21 @@ const CatalogManagement = () => {
     const grid = statsGridRef.current;
     if (!grid || stats.length === 0) return;
 
-    const cardWidth = grid.offsetWidth;
+    const getCardWidth = () => {
+      const containerWidth = grid.offsetWidth;
+      const windowWidth = window.innerWidth;
+      const isMobile = windowWidth <= 550;
+      
+      if (isMobile) {
+        // Una card por vez (100% del ancho)
+        return containerWidth;
+      } else {
+        // Dos cards por vez (50% del ancho cada una + gap)
+        return (containerWidth + 16) / 2;
+      }
+    };
+    
     const totalCards = stats.length;
-    const maxScroll = cardWidth * (totalCards - 1);
     
     let lastScrollLeft = grid.scrollLeft;
     let isScrolling = false;
@@ -985,6 +1028,13 @@ const CatalogManagement = () => {
     const handleScroll = () => {
       if (!grid || isScrolling) return;
       
+      const cardWidth = getCardWidth();
+      const windowWidth = window.innerWidth;
+      const isMobile = windowWidth <= 550;
+      // Cuando hay 2 cards visibles, maxScroll es totalCards - 2 (3 posiciones para 4 cards: 0, 1, 2)
+      // Cuando hay 1 card visible, maxScroll es totalCards - 1 (4 posiciones para 4 cards: 0, 1, 2, 3)
+      const maxIndex = isMobile ? totalCards - 1 : totalCards - 2;
+      const maxScroll = cardWidth * maxIndex;
       const scrollLeft = grid.scrollLeft;
       const scrollDelta = scrollLeft - lastScrollLeft;
       
@@ -1096,13 +1146,29 @@ const CatalogManagement = () => {
     const container = e.target;
     if (!container || stats.length === 0) return;
     
-    const cardWidth = container.offsetWidth;
+    const containerWidth = container.offsetWidth;
     const scrollLeft = container.scrollLeft;
     const totalCards = stats.length;
     
-    // Calcular el índice actual
+    // Detectar si estamos en modo 2 cards (550px < pantalla ≤ 1200px) o 1 card (≤550px)
+    const windowWidth = window.innerWidth;
+    const isMobile = windowWidth <= 550;
+    let cardWidth;
+    let maxIndex;
+    
+    if (isMobile) {
+      // Una card por vez (100% del ancho) - 4 dots (0-3)
+      cardWidth = containerWidth;
+      maxIndex = totalCards - 1; // 3 (para 4 cards)
+    } else {
+      // Dos cards por vez (50% del ancho cada una + gap) - 3 dots (0-2)
+      cardWidth = (containerWidth + 16) / 2; // containerWidth/2 + gap/2
+      maxIndex = totalCards - 2; // 2 (para 4 cards, posiciones: 0-1, 1-2, 2-3)
+    }
+    
+    // Calcular el índice actual basado en el ancho de card
     const currentIndex = Math.round(scrollLeft / cardWidth);
-    setActiveStatsIndex(Math.max(0, Math.min(currentIndex, totalCards - 1)));
+    setActiveStatsIndex(Math.max(0, Math.min(currentIndex, maxIndex)));
   };
 
   if (loading && !hasProducts) {
@@ -1156,15 +1222,30 @@ const CatalogManagement = () => {
             ))}
           </CatalogStatsGrid>
           <CatalogStatsDotsContainer>
-            {stats.map((_, index) => (
-              <CatalogStatsDot key={index} active={activeStatsIndex === index} onClick={() => {
-                const grid = statsGridRef.current;
-                if (grid && grid.scrollTo) {
-                  const cardWidth = grid.offsetWidth;
-                  grid.scrollTo({ left: index * cardWidth, behavior: 'smooth' });
-                }
-              }} />
-            ))}
+            {(() => {
+              const windowWidth = typeof window !== 'undefined' ? window.innerWidth : 1200;
+              const isMobile = windowWidth <= 550;
+              // Si hay 2 cards visibles, mostrar solo totalCards - 1 dots (3 para 4 cards)
+              // Si hay 1 card visible, mostrar totalCards dots (4 para 4 cards)
+              const dotsToShow = isMobile ? stats.length : stats.length - 1;
+              
+              return Array.from({ length: dotsToShow }, (_, index) => (
+                <CatalogStatsDot 
+                  key={index} 
+                  active={activeStatsIndex === index} 
+                  onClick={() => {
+                    const grid = statsGridRef.current;
+                    if (grid && grid.scrollTo) {
+                      const containerWidth = grid.offsetWidth;
+                      const windowWidth = window.innerWidth;
+                      const isMobile = windowWidth <= 550;
+                      const cardWidth = isMobile ? containerWidth : (containerWidth + 16) / 2;
+                      grid.scrollTo({ left: index * cardWidth, behavior: 'smooth' });
+                    }
+                  }} 
+                />
+              ));
+            })()}
           </CatalogStatsDotsContainer>
         </CatalogStatsContainer>
 
@@ -1175,8 +1256,8 @@ const CatalogManagement = () => {
             </CatalogSearchSection>
             <CatalogFiltersSection>
               <CatalogFilterChip active={selectedFilter !== 'all'}>
-                <Funnel size={16} weight="bold" data-filter-icon />
-                <CaretDown size={14} weight="bold" data-caret-down style={{ opacity: 0.6 }} />
+                <Funnel size={14} weight="bold" data-filter-icon />
+                <CaretDown size={12} weight="bold" data-caret-down style={{ opacity: 0.6 }} />
                 <FormControl size="small" sx={{ width: '100%', height: '100%', '& .MuiOutlinedInput-root': { width: '100%', height: '100%' } }}>
                   <Select value={selectedFilter} onChange={(e) => setSelectedFilter(e.target.value)} displayEmpty sx={{ width: '100%', height: '100%', border: 'none', fontFamily: "'Mona Sans'", '& .MuiOutlinedInput-notchedOutline': { border: 'none' }, '& .MuiSelect-select': { padding: 0, fontSize: '0.875rem', fontWeight: 500, color: '#010326', fontFamily: "'Mona Sans'", width: '100%', height: '100%', display: 'flex', alignItems: 'center' }, '& .MuiSelect-icon': { display: 'none' } }}>
                     <MenuItem value="all">Todos</MenuItem><MenuItem value="active">Activos</MenuItem><MenuItem value="inactive">Inactivos</MenuItem>
@@ -1184,8 +1265,8 @@ const CatalogManagement = () => {
                 </FormControl>
               </CatalogFilterChip>
               <CatalogFilterChip active={selectedCategory !== ''}>
-                <Package size={16} weight="bold" data-filter-icon />
-                <CaretDown size={14} weight="bold" data-caret-down style={{ opacity: 0.6 }} />
+                <Package size={14} weight="bold" data-filter-icon />
+                <CaretDown size={12} weight="bold" data-caret-down style={{ opacity: 0.6 }} />
                 <FormControl size="small" sx={{ width: '100%', height: '100%', '& .MuiOutlinedInput-root': { width: '100%', height: '100%' } }}>
                   <Select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)} displayEmpty disabled={loadingCategories || categoriesError} sx={{ width: '100%', height: '100%', border: 'none', fontFamily: "'Mona Sans'", '& .MuiOutlinedInput-notchedOutline': { border: 'none' }, '& .MuiSelect-select': { padding: 0, fontSize: '0.875rem', fontWeight: 500, color: '#010326', fontFamily: "'Mona Sans'", width: '100%', height: '100%', display: 'flex', alignItems: 'center' }, '& .MuiSelect-icon': { display: 'none' } }}>
                     <MenuItem value="">{loadingCategories ? 'Cargando...' : categoriesError ? 'Error' : 'Categorías'}</MenuItem>
@@ -1194,8 +1275,8 @@ const CatalogManagement = () => {
                 </FormControl>
               </CatalogFilterChip>
               <CatalogFilterChip active={sortOption !== 'newest'}>
-                <ChartLine size={16} weight="bold" data-filter-icon />
-                <CaretDown size={14} weight="bold" data-caret-down style={{ opacity: 0.6 }} />
+                <ChartLine size={14} weight="bold" data-filter-icon />
+                <CaretDown size={12} weight="bold" data-caret-down style={{ opacity: 0.6 }} />
                 <FormControl size="small" sx={{ width: '100%', height: '100%', '& .MuiOutlinedInput-root': { width: '100%', height: '100%' } }}>
                   <Select value={sortOption} onChange={(e) => setSortOption(e.target.value)} sx={{ width: '100%', height: '100%', border: 'none', fontFamily: "'Mona Sans'", '& .MuiOutlinedInput-notchedOutline': { border: 'none' }, '& .MuiSelect-select': { padding: 0, fontSize: '0.875rem', fontWeight: 500, color: '#010326', fontFamily: "'Mona Sans'", width: '100%', height: '100%', display: 'flex', alignItems: 'center' }, '& .MuiSelect-icon': { display: 'none' } }}>
                     <MenuItem value="newest">Más nuevos</MenuItem><MenuItem value="oldest">Más antiguos</MenuItem><MenuItem value="name_asc">A-Z</MenuItem><MenuItem value="name_desc">Z-A</MenuItem><MenuItem value="price_asc">Precio ↑</MenuItem><MenuItem value="price_desc">Precio ↓</MenuItem>
