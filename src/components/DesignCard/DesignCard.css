@@ -8,7 +8,9 @@
   border-radius: 20px;
   border: 1px solid rgba(255, 255, 255, 0.4);
   overflow: hidden;
-  transition: all 0.4s cubic-bezier(0.23, 1, 0.320, 1);
+  /* Optimize transition - only animate transform and opacity for better performance */
+  transition: transform 0.4s cubic-bezier(0.23, 1, 0.320, 1),
+              box-shadow 0.4s cubic-bezier(0.23, 1, 0.320, 1);
   box-shadow: 
     0 8px 32px rgba(0, 0, 0, 0.08),
     inset 0 1px 0 rgba(255, 255, 255, 0.6),
@@ -120,7 +122,9 @@
   justify-content: center;
   opacity: 0;
   visibility: hidden;
-  transition: all 0.4s cubic-bezier(0.23, 1, 0.320, 1);
+  /* Optimize transition - only animate opacity for better performance */
+  transition: opacity 0.4s cubic-bezier(0.23, 1, 0.320, 1),
+              visibility 0.4s cubic-bezier(0.23, 1, 0.320, 1);
   z-index: 10;
   border-radius: 20px 20px 0 0;
 }
@@ -137,7 +141,8 @@
   width: 100%;
   padding: 20px;
   transform: translateY(30px);
-  transition: all 0.4s cubic-bezier(0.23, 1, 0.320, 1);
+  /* Optimize transition - only animate transform */
+  transition: transform 0.4s cubic-bezier(0.23, 1, 0.320, 1);
 }
 
 .design-overlay-visible .design-action-buttons {
@@ -166,7 +171,11 @@
   font-size: 0.875rem;
   font-weight: 600;
   text-transform: none;
-  transition: all 0.3s cubic-bezier(0.23, 1, 0.320, 1);
+  /* Optimize transition - specify exact properties */
+  transition: transform 0.3s cubic-bezier(0.23, 1, 0.320, 1),
+              background-color 0.3s cubic-bezier(0.23, 1, 0.320, 1),
+              border-color 0.3s cubic-bezier(0.23, 1, 0.320, 1),
+              box-shadow 0.3s cubic-bezier(0.23, 1, 0.320, 1);
   cursor: pointer;
   position: relative;
   overflow: hidden;
@@ -195,7 +204,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s cubic-bezier(0.23, 1, 0.320, 1);
+  /* Optimize transition - specify exact properties */
+  transition: transform 0.3s cubic-bezier(0.23, 1, 0.320, 1),
+              background-color 0.3s cubic-bezier(0.23, 1, 0.320, 1),
+              border-color 0.3s cubic-bezier(0.23, 1, 0.320, 1),
+              box-shadow 0.3s cubic-bezier(0.23, 1, 0.320, 1);
   cursor: pointer;
   position: relative;
   overflow: hidden;
@@ -396,6 +409,7 @@
   text-overflow: ellipsis;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   min-height: 2.6em;
 }
@@ -644,6 +658,7 @@
   .design-card-name {
     font-size: 1rem;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
     min-height: 2.4em;
   }
 
@@ -720,6 +735,7 @@
   .design-card-name {
     font-size: 0.95rem;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
     min-height: 2.4em;
   }
 
@@ -840,19 +856,81 @@
     0 0 0 4px rgba(31, 100, 191, 0.15);
 }
 
-/* ================ OPTIMIZACIONES ================ */
+/* ================ PERFORMANCE OPTIMIZATIONS ================ */
 
+/* GPU Acceleration - Force hardware acceleration */
 .design-card-container {
   contain: layout style paint;
+  /* Use translateZ(0) to create a new compositing layer */
+  transform: translateZ(0);
+  /* Improve rendering performance */
+  backface-visibility: hidden;
+  /* Only set will-change on hover to avoid constant repaints */
+}
+
+.design-card-container:hover {
   will-change: transform, backdrop-filter;
 }
 
+/* Optimize image rendering */
 .design-card-image {
+  /* Create separate compositing layer for smooth transforms */
+  transform: translateZ(0);
+  backface-visibility: hidden;
   will-change: transform;
 }
 
+/* Optimize action buttons */
 .design-action-btn {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+.design-action-btn:hover {
   will-change: transform, backdrop-filter;
+}
+
+/* Optimize overlay animations */
+.design-actions-overlay {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  /* Only use will-change when visible */
+}
+
+.design-overlay-visible {
+  will-change: opacity, visibility;
+}
+
+/* Optimize image wrapper */
+.design-image-wrapper {
+  contain: layout style paint;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Optimize glow effect */
+.design-card-glow {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  will-change: opacity;
+}
+
+/* Optimize status badge */
+.design-status-badge {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Optimize client section */
+.design-client-section {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Optimize card info section */
+.design-card-info {
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 /* ================ MEJORAS VISUALES ================ */
@@ -872,6 +950,9 @@
   opacity: 0;
   transition: opacity 0.4s ease;
   border-radius: 24px 24px 0 0;
+  /* GPU optimization */
+  transform: translateZ(0);
+  will-change: opacity;
 }
 
 .design-card-container:hover::before {

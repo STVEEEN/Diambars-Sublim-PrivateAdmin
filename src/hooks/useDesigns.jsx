@@ -19,6 +19,20 @@ const useDesigns = () => {
     prevPage: null
   });
 
+  // Estado para estadísticas globales (independiente de paginación)
+  const [stats, setStats] = useState({
+    total: 0,
+    pending: 0,
+    quoted: 0,
+    approved: 0,
+    rejected: 0,
+    completed: 0,
+    drafts: 0,
+    totalRevenue: 0,
+    conversionRate: 0
+  });
+  const [loadingStats, setLoadingStats] = useState(false);
+
   // Estados para filtros y búsqueda
   // Inicializar con el filtro de pendientes por defecto si está activo
   const [filters, setFilters] = useState(() => {
@@ -627,60 +641,47 @@ const updateProductColor = useCallback(async (id, color) => {
 
   // ==================== ESTADÍSTICAS Y ANÁLISIS ====================
 
-  // Obtener estadísticas de diseños
+  // Fetch estadísticas globales desde el backend (independiente de paginación)
+  const fetchStats = useCallback(async () => {
+    try {
+      setLoadingStats(true);
+      
+      const response = await DesignService.getStats();
+      
+      if (response.success && response.data) {
+        const statsData = response.data;
+        
+        // Mapear datos del backend al formato esperado
+        const formattedStats = {
+          total: statsData.overview?.total || 0,
+          pending: statsData.overview?.pending || 0,
+          quoted: statsData.overview?.quoted || 0,
+          approved: statsData.overview?.approved || 0,
+          rejected: statsData.overview?.rejected || 0,
+          completed: statsData.overview?.completed || 0,
+          drafts: statsData.overview?.drafts || 0,
+          totalRevenue: statsData.revenue?.total || 0,
+          conversionRate: statsData.performance?.conversionRate || 0
+        };
+        
+        setStats(formattedStats);
+        return formattedStats;
+      }
+      
+      return stats;
+    } catch (error) {
+      console.error('[useDesigns] Error obteniendo estadísticas:', error);
+      // No mostrar error al usuario, solo mantener stats actuales
+      return stats;
+    } finally {
+      setLoadingStats(false);
+    }
+  }, [stats]);
+
+  // Obtener estadísticas de diseños (devuelve las stats del estado)
   const getDesignStats = useCallback(() => {
-    const total = designs.length;
-    const pending = designs.filter(d => d.status === 'pending').length;
-    const quoted = designs.filter(d => d.status === 'quoted').length;
-    const approved = designs.filter(d => d.status === 'approved').length;
-    const rejected = designs.filter(d => d.status === 'rejected').length;
-    const completed = designs.filter(d => d.status === 'completed').length;
-    const drafts = designs.filter(d => d.status === 'draft').length;
-    
-    const totalRevenue = designs
-      .filter(d => d.status === 'approved' || d.status === 'completed')
-      .reduce((sum, design) => sum + (design.price || 0), 0);
-    
-    const avgPrice = quoted > 0 ? 
-      designs.filter(d => d.price > 0).reduce((sum, d) => sum + d.price, 0) / designs.filter(d => d.price > 0).length 
-      : 0;
-
-    // Top 5 diseños por precio
-    const topDesignsByPrice = [...designs]
-      .filter(d => d.price > 0)
-      .sort((a, b) => b.price - a.price)
-      .slice(0, 5);
-
-    // Diseños más recientes
-    const recentDesigns = [...designs]
-      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-      .slice(0, 5);
-
-    // Complejidad promedio
-    const complexityDistribution = designs.reduce((acc, design) => {
-      acc[design.complexity] = (acc[design.complexity] || 0) + 1;
-      return acc;
-    }, {});
-
-    // Tasa de conversión (cotizados -> aprobados)
-    const conversionRate = quoted > 0 ? ((approved / quoted) * 100) : 0;
-
-    return { 
-      total, 
-      pending, 
-      quoted, 
-      approved, 
-      rejected, 
-      completed,
-      drafts,
-      totalRevenue,
-      avgPrice,
-      topDesignsByPrice,
-      recentDesigns,
-      complexityDistribution,
-      conversionRate
-    };
-  }, [designs]);
+    return stats;
+  }, [stats]);
 
   // ==================== GESTIÓN DE FILTROS ====================
 
@@ -777,6 +778,11 @@ const updateProductColor = useCallback(async (id, color) => {
     fetchDesigns({ limit: pagination.limit });
   }, [filters.search, filters.status, filters.product, filters.user, filters.sort, filters.order, pagination.limit]);
 
+  // Cargar estadísticas globales al montar el componente
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
   // Limpiar error después de un tiempo
   useEffect(() => {
     if (error) {
@@ -818,6 +824,8 @@ const updateProductColor = useCallback(async (id, color) => {
 
     // Estadísticas y análisis
     getDesignStats,
+    fetchStats,
+    loadingStats,
 
     // Gestión de filtros
     updateFilters,

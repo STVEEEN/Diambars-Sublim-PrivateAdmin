@@ -43,7 +43,6 @@ import {
   ChartLine,
   Calendar,
   FileText,
-  Download,
   SortAscending,
   SortDescending,
   PencilSimple,
@@ -286,8 +285,8 @@ const DesignPrimaryActionButton = styled(Button)(({ theme }) => ({
   fontWeight: 600,
   textTransform: 'none',
   fontFamily: "'Mona Sans'",
-  boxShadow: '0 2px 12px rgba(31, 100, 191, 0.18)',
-  transition: 'all 0.3s cubic-bezier(0.23, 1, 0.320, 1)',
+  boxShadow: '0 4px 16px rgba(31, 100, 191, 0.24)',
+  transition: 'all 0.3s ease',
   minWidth: '160px',
   whiteSpace: 'nowrap',
   position: 'relative',
@@ -301,62 +300,31 @@ const DesignPrimaryActionButton = styled(Button)(({ theme }) => ({
     height: '100%',
     background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent)',
     transition: 'left 0.5s ease',
-    zIndex: 1,
+    zIndex: 0
   },
-  '& .MuiButton-startIcon, & span': {
-    position: 'relative',
-    zIndex: 2,
-  },
+  '& > *': { position: 'relative', zIndex: 1 },
   '&:hover': {
-    boxShadow: '0 4px 16px rgba(31, 100, 191, 0.24)',
-    transform: 'translateY(-1px) scale(1.02)',
-    '&::before': {
-      left: '100%',
-    }
+    background: 'linear-gradient(135deg, #032CA6 0%, #1F64BF 100%)',
+    boxShadow: '0 6px 24px rgba(31, 100, 191, 0.32)',
+    transform: 'translateY(-1px)',
+    '&::before': { left: '100%' }
   },
-  '&:active': {
-    transform: 'translateY(0)',
-    transition: 'transform 0.1s ease-out',
-  },
-  '&:disabled': {
-    background: alpha('#1F64BF', 0.3),
-    color: alpha('#ffffff', 0.7),
-    boxShadow: 'none',
-    transform: 'none',
-    '&::before': {
-      display: 'none',
-    }
-  },
-  [theme.breakpoints.down('lg')]: {
-    minWidth: '140px',
-    padding: '12px 24px',
-    fontSize: '0.875rem',
-  },
-  [theme.breakpoints.down('md')]: {
-    minWidth: 'auto',
-    flex: 1,
-  },
-  [theme.breakpoints.down('sm')]: {
-    minWidth: 'auto',
-    padding: '12px 20px',
-    fontSize: '0.85rem',
-  }
+  '&:active': { transform: 'translateY(0)' },
+  [theme.breakpoints.down('lg')]: { minWidth: '140px', padding: '12px 24px', fontSize: '0.875rem' },
+  [theme.breakpoints.down('md')]: { minWidth: 'auto', flex: 1 },
+  [theme.breakpoints.down('sm')]: { minWidth: 'auto', padding: '12px 20px', fontSize: '0.85rem' }
 }));
 
-const DesignSecondaryActionButton = styled(Button)(({ theme }) => ({
-  borderRadius: '12px',
-  padding: '14px 24px',
-  fontSize: '0.9rem',
-  fontWeight: 600,
-  textTransform: 'none',
-  fontFamily: "'Mona Sans'",
-  borderColor: alpha('#1F64BF', 0.25),
+const DesignSecondaryActionButton = styled(IconButton)(({ theme }) => ({
+  background: alpha('#1F64BF', 0.08),
   color: '#1F64BF',
-  minWidth: '140px',
+  borderRadius: '12px',
+  width: '52px',
+  height: '52px',
+  transition: 'all 0.3s ease',
+  flexShrink: 0,
   position: 'relative',
   overflow: 'hidden',
-  transition: 'all 0.3s cubic-bezier(0.23, 1, 0.320, 1)',
-  boxShadow: '0 2px 8px rgba(31, 100, 191, 0.08)',
   '&::before': {
     content: '""',
     position: 'absolute',
@@ -364,40 +332,19 @@ const DesignSecondaryActionButton = styled(Button)(({ theme }) => ({
     left: '-100%',
     width: '100%',
     height: '100%',
-    background: 'linear-gradient(90deg, transparent, rgba(31, 100, 191, 0.1), transparent)',
+    background: 'linear-gradient(90deg, transparent, rgba(31, 100, 191, 0.2), transparent)',
     transition: 'left 0.5s ease',
-    zIndex: 1,
+    zIndex: 0
   },
-  '& .MuiButton-startIcon, & span': {
-    position: 'relative',
-    zIndex: 2,
-  },
+  '& > *': { position: 'relative', zIndex: 1 },
   '&:hover': {
-    borderColor: '#1F64BF',
-    transform: 'translateY(-1px) scale(1.02)',
-    boxShadow: '0 4px 12px rgba(31, 100, 191, 0.12)',
-    '&::before': {
-      left: '100%',
-    }
+    background: alpha('#1F64BF', 0.12),
+    transform: 'translateY(-1px)',
+    '&::before': { left: '100%' }
   },
-  '&:active': {
-    transform: 'translateY(0)',
-    transition: 'transform 0.1s ease-out',
-  },
-  [theme.breakpoints.down('lg')]: {
-    minWidth: '120px',
-    padding: '12px 20px',
-    fontSize: '0.875rem',
-  },
-  [theme.breakpoints.down('md')]: {
-    minWidth: 'auto',
-    flex: 1,
-  },
-  [theme.breakpoints.down('sm')]: {
-    minWidth: 'auto',
-    padding: '12px 16px',
-    fontSize: '0.85rem',
-  }
+  [theme.breakpoints.down('lg')]: { width: '48px', height: '48px' },
+  [theme.breakpoints.down('md')]: { width: '48px', height: '48px' },
+  [theme.breakpoints.down('sm')]: { width: '48px', height: '48px' }
 }));
 
 // CONTENEDOR UNIFICADO DISEÑOS
@@ -494,7 +441,6 @@ const DesignStatCard = styled(DesignModernCard)(({ theme, variant }) => {
     position: 'relative',
     overflow: 'hidden',
     boxSizing: 'border-box',
-    cursor: 'pointer',
     transition: 'all 0.3s cubic-bezier(0.23, 1, 0.320, 1)',
     boxShadow: '0 2px 12px rgba(1, 3, 38, 0.04)',
     ...selectedVariant,
@@ -547,7 +493,6 @@ const DesignStatCard = styled(DesignModernCard)(({ theme, variant }) => {
     },
 
     '&:hover': {
-      transform: 'translateY(-1px) scale(1.02)',
       boxShadow: '0 4px 20px rgba(1, 3, 38, 0.08)',
       '&::before': {
         opacity: 1,
@@ -555,11 +500,6 @@ const DesignStatCard = styled(DesignModernCard)(({ theme, variant }) => {
       '&::after': {
         left: '100%',
       }
-    },
-
-    '&:active': {
-      transform: 'translateY(0)',
-      transition: 'transform 0.1s ease-out',
     },
 
     '& > *': {
@@ -1202,8 +1142,7 @@ const DesignManagement = () => {
         change: "+15% este mes",
         trend: "up",
         icon: Palette,
-        variant: "primary",
-        onClick: () => handleFilterByStatus('')
+        variant: "primary"
       },
       {
         id: 'pending-designs',
@@ -1212,8 +1151,7 @@ const DesignManagement = () => {
         change: designStats.pending > 0 ? `${designStats.pending} requieren atención` : 'Al día',
         trend: designStats.pending > 0 ? "warning" : "up",
         icon: Clock,
-        variant: designStats.pending > 0 ? "warning" : "secondary",
-        onClick: () => handleFilterByStatus('pending')
+        variant: designStats.pending > 0 ? "warning" : "secondary"
       },
       {
         id: 'approved-designs',
@@ -1222,8 +1160,7 @@ const DesignManagement = () => {
         change: `${designStats.conversionRate.toFixed(1)}% tasa de conversión`,
         trend: "up",
         icon: CheckCircle,
-        variant: "success",
-        onClick: () => handleFilterByStatus('approved')
+        variant: "success"
       },
       {
         id: 'total-revenue',
@@ -1236,8 +1173,7 @@ const DesignManagement = () => {
         change: "Solo diseños aprobados",
         trend: "up",
         icon: Money,
-        variant: "secondary",
-        onClick: () => handleFilterByStatus('approved')
+        variant: "secondary"
       }
     ];
   }, [getDesignStats]);
@@ -1645,62 +1581,6 @@ const DesignManagement = () => {
     refetch();
   };
 
-  // ==================== MANEJADORES DE EXPORTACIÓN ====================
-  
-  const handleExportData = async () => {
-    try {
-      const { value: format } = await Swal.fire({
-        title: 'Exportar datos',
-        text: 'Selecciona el formato de exportación',
-        input: 'select',
-        inputOptions: {
-          'csv': 'Archivo CSV',
-          'pdf': 'Reporte PDF',
-          'excel': 'Archivo Excel'
-        },
-        inputPlaceholder: 'Seleccionar formato',
-        showCancelButton: true,
-        confirmButtonColor: '#1F64BF',
-        cancelButtonColor: '#6b7280',
-        confirmButtonText: 'Exportar',
-        cancelButtonText: 'Cancelar',
-        inputValidator: (value) => {
-          if (!value) {
-            return 'Debes seleccionar un formato';
-          }
-        }
-      });
-
-      if (format) {
-        Swal.fire({
-          title: 'Exportando...',
-          text: `Generando archivo ${format.toUpperCase()}`,
-          icon: 'info',
-          showConfirmButton: false,
-          timer: 2000,
-          timerProgressBar: true
-        });
-        
-        setTimeout(() => {
-          Swal.fire({
-            title: 'Exportación completada',
-            text: 'El archivo se ha descargado exitosamente',
-            icon: 'success',
-            confirmButtonColor: '#1F64BF'
-          });
-        }, 2000);
-      }
-    } catch (error) {
-      console.error('Error exportando datos:', error);
-      Swal.fire({
-        title: 'Error',
-        text: 'No se pudo exportar los datos',
-        icon: 'error',
-        confirmButtonColor: '#EF4444'
-      });
-    }
-  };
-
   // ==================== RENDER DE LOADING INICIAL ====================
   
   if (loading && !hasDesigns && designs.length === 0) {
@@ -1734,7 +1614,6 @@ const DesignManagement = () => {
           <DesignHeaderContent>
             <DesignHeaderInfo>
               <DesignMainTitle sx={{ fontWeight: '700 !important' }} className="force-bold" style={{ fontWeight: '700 !important' }}>
-                <Palette size={32} weight="duotone" />
                 Gestión de Diseños
               </DesignMainTitle>
               <DesignMainDescription sx={{ fontWeight: '700 !important' }} className="force-bold" style={{ fontWeight: '700 !important' }}>
@@ -1743,31 +1622,21 @@ const DesignManagement = () => {
             </DesignHeaderInfo>
             
             <DesignHeaderActions>
-              <DesignSecondaryActionButton
-                variant="outlined"
-                onClick={handleRefresh}
-                disabled={loading || actionLoading}
-                startIcon={loading ? <CircularProgress size={16} /> : <ArrowsClockwise size={20} weight="bold" />}
-              >
-                {loading ? 'Actualizando...' : 'Actualizar'}
-              </DesignSecondaryActionButton>
-              
-              <DesignSecondaryActionButton
-                variant="outlined"
-                onClick={handleExportData}
-                disabled={!hasDesigns || loading}
-                startIcon={<Download size={20} weight="bold" />}
-              >
-                Exportar
-              </DesignSecondaryActionButton>
-              
               <DesignPrimaryActionButton
                 onClick={handleCreateDesign}
                 disabled={loading || actionLoading}
-                startIcon={<Plus size={20} weight="bold" />}
+                startIcon={<Plus size={18} weight="bold" />}
               >
                 Nuevo Diseño
               </DesignPrimaryActionButton>
+              
+              <DesignSecondaryActionButton
+                onClick={handleRefresh}
+                disabled={loading || actionLoading}
+                title="Refrescar diseños"
+              >
+                {loading ? <CircularProgress size={20} /> : <ArrowsClockwise size={20} weight="bold" />}
+              </DesignSecondaryActionButton>
             </DesignHeaderActions>
           </DesignHeaderContent>
         </DesignHeaderSection>
@@ -1810,7 +1679,6 @@ const DesignManagement = () => {
               <DesignStatCard 
                 key={stat.id} 
                 variant={stat.variant}
-                onClick={stat.onClick}
               >
                 <DesignStatHeader>
                   <Box>
@@ -2110,7 +1978,6 @@ const DesignManagement = () => {
                 alignItems: 'center',
                 gap: 1
               }}>
-                <GridNine size={24} weight="duotone" />
                 <Box component="span">Diseños</Box>
                 
                 <Chip 
@@ -2126,15 +1993,6 @@ const DesignManagement = () => {
                 />
               </Box>
             </DesignSectionTitle>
-
-            {/* Información de resultados */}
-            {hasDesigns && (
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                <Typography variant="body2" sx={{ color: '#032CA6', opacity: 0.8, fontFamily: "'Mona Sans'" }}>
-                  {loading ? 'Actualizando...' : `${designs.length} resultado${designs.length !== 1 ? 's' : ''}`}
-                </Typography>
-              </Box>
-            )}
           </DesignSectionHeader>
 
           {/* Estado de carga durante refetch */}
@@ -2237,16 +2095,42 @@ const DesignManagement = () => {
                 </DesignPrimaryActionButton>
                 
                 {(searchQuery || selectedStatus || selectedProduct || selectedUser) && (
-                  <DesignSecondaryActionButton
-                    variant="outlined"
+                  <Button
                     onClick={handleClearFilters}
-                    startIcon={<Broom size={20} weight="bold" />}
+                    startIcon={<Broom size={16} weight="bold" />}
                     sx={{
+                      textTransform: 'none',
+                      borderRadius: '8px',
+                      fontSize: '0.875rem',
+                      fontWeight: 600,
+                      color: '#032CA6',
+                      backgroundColor: alpha('#032CA6', 0.1),
+                      padding: '8px 12px',
+                      minWidth: 'auto',
+                      fontFamily: "'Mona Sans'",
+                      position: 'relative',
+                      overflow: 'hidden',
+                      '&::before': {
+                        content: '""',
+                        position: 'absolute',
+                        top: 0,
+                        left: '-100%',
+                        width: '100%',
+                        height: '100%',
+                        background: 'linear-gradient(90deg, transparent, rgba(3, 44, 166, 0.15), transparent)',
+                        transition: 'left 0.5s ease',
+                        zIndex: 0
+                      },
+                      '& > *': { position: 'relative', zIndex: 1 },
+                      '&:hover': {
+                        backgroundColor: alpha('#032CA6', 0.15),
+                        '&::before': { left: '100%' }
+                      },
                       minWidth: { xs: '100%', sm: 'auto' }
                     }}
                   >
-                    Limpiar Filtros
-                  </DesignSecondaryActionButton>
+                    Limpiar
+                  </Button>
                 )}
               </Box>
 

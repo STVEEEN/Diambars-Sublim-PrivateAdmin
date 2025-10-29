@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Swal from 'sweetalert2';
 import {
   Box,
@@ -29,7 +29,8 @@ import {
   GridNine,
   Broom,
   Star,
-  ChartLine
+  ChartLine,
+  CaretDown
 } from '@phosphor-icons/react';
 
 import ProductCard from '../../components/ProductCard/ProductCard';
@@ -268,7 +269,39 @@ const CatalogStatsGrid = styled(Box)(({ theme }) => ({
   [theme.breakpoints.down('lg')]: { gridTemplateColumns: 'repeat(2, 1fr)', gap: '18px' },
   [theme.breakpoints.down('md')]: { gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' },
   [theme.breakpoints.down('sm')]: { gridTemplateColumns: 'repeat(2, 1fr)', gap: '14px' },
-  [theme.breakpoints.down(480)]: { gridTemplateColumns: '1fr', gap: '12px' }
+  [theme.breakpoints.down(480)]: { 
+    display: 'flex',
+    overflowX: 'auto',
+    overflowY: 'hidden',
+    gap: '16px',
+    scrollSnapType: 'x mandatory',
+    scrollBehavior: 'smooth',
+    WebkitOverflowScrolling: 'touch',
+    msOverflowStyle: '-ms-autohiding-scrollbar',
+    paddingLeft: '0px',
+    paddingRight: '0px',
+    '&::before': {
+      content: '""',
+      minWidth: '0px',
+      flexShrink: 0
+    },
+    '&::after': {
+      content: '""',
+      minWidth: '0px',
+      flexShrink: 0
+    },
+    '&::-webkit-scrollbar': {
+      height: '4px',
+      display: 'none'
+    },
+    '&::-webkit-scrollbar-track': {
+      background: 'transparent'
+    },
+    '&::-webkit-scrollbar-thumb': {
+      background: alpha('#1F64BF', 0.3),
+      borderRadius: '10px'
+    }
+  }
 }));
 
 const CatalogStatCard = styled(CatalogModernCard)(({ theme, variant }) => {
@@ -324,10 +357,19 @@ const CatalogStatCard = styled(CatalogModernCard)(({ theme, variant }) => {
     position: 'relative',
     overflow: 'hidden',
     boxSizing: 'border-box',
-    cursor: 'pointer',
     transition: 'all 0.3s cubic-bezier(0.23, 1, 0.320, 1)',
     boxShadow: '0 2px 12px rgba(1, 3, 38, 0.04)',
     ...selectedVariant,
+    
+    // Estilos para carrusel móvil
+    [theme.breakpoints.down(480)]: {
+      width: '100%',
+      minWidth: '100%',
+      maxWidth: '100%',
+      flexShrink: 0,
+      scrollSnapAlign: 'start',
+      scrollSnapStop: 'always'
+    },
     
     '&::before': {
       content: '""',
@@ -377,7 +419,6 @@ const CatalogStatCard = styled(CatalogModernCard)(({ theme, variant }) => {
     },
 
     '&:hover': {
-      transform: 'translateY(-1px) scale(1.02)',
       boxShadow: '0 4px 20px rgba(1, 3, 38, 0.08)',
       '&::before': {
         opacity: 1,
@@ -385,11 +426,6 @@ const CatalogStatCard = styled(CatalogModernCard)(({ theme, variant }) => {
       '&::after': {
         left: '100%',
       }
-    },
-
-    '&:active': {
-      transform: 'translateY(0)',
-      transition: 'transform 0.1s ease-out',
     },
 
     '& > *': {
@@ -549,18 +585,24 @@ const CatalogFiltersSection = styled(Box)(({ theme }) => ({
   [theme.breakpoints.down('md')]: { 
     flexWrap: 'wrap',
     justifyContent: 'stretch',
-    flex: '1 1 auto'
+    flex: 'none',
+    width: '100%',
+    minWidth: '100%'
   },
   [theme.breakpoints.down('sm')]: { 
     gap: '12px',
-    flexDirection: 'column',
-    flex: '1 1 auto'
+    flexDirection: 'row',
+    flexWrap: 'nowrap',
+    flex: 'none',
+    width: '100%',
+    minWidth: '100%'
   }
 }));
 
 const CatalogFilterChip = styled(Box)(({ theme, active }) => ({
   display: 'flex',
   alignItems: 'center',
+  justifyContent: 'center',
   gap: '8px',
   padding: '0 14px',
   height: '48px',
@@ -577,6 +619,31 @@ const CatalogFilterChip = styled(Box)(({ theme, active }) => ({
   flex: '0 0 auto',
   minWidth: '140px',
   maxWidth: '180px',
+  position: 'relative',
+  '& > svg[data-filter-icon]': {
+    flexShrink: 0
+  },
+  '& svg[data-caret-down]': {
+    flexShrink: 0,
+    display: 'none'
+  },
+  '& .MuiFormControl-root': {
+    width: 'auto',
+    position: 'relative',
+    '& .MuiSelect-select': {
+      paddingRight: '28px !important',
+      cursor: 'pointer !important'
+    },
+    '& .MuiSelect-icon': {
+      display: 'block'
+    }
+  },
+  [theme.breakpoints.up('md')]: {
+    '& .MuiFormControl-root': {
+      width: 'auto',
+      position: 'relative'
+    }
+  },
   '&:hover': { 
     background: active ? alpha('#1F64BF', 0.15) : 'white', 
     transform: 'translateY(-1px)',
@@ -595,14 +662,59 @@ const CatalogFilterChip = styled(Box)(({ theme, active }) => ({
     maxWidth: 'none'
   },
   [theme.breakpoints.down('sm')]: { 
-    padding: '0 16px', 
-    fontSize: '0.9rem',
-    height: '48px'
+    padding: '0 8px', 
+    fontSize: '0.85rem',
+    height: '48px',
+    flex: '1 1 calc(33.333% - 8px)',
+    minWidth: '0',
+    maxWidth: 'calc(33.333% - 8px)',
+    width: 'auto',
+    '& > svg[data-filter-icon]': {
+      width: '20px !important',
+      height: '20px !important'
+    },
+    '& svg[data-caret-down]': {
+      display: 'block',
+      width: '14px !important',
+      height: '14px !important'
+    },
+    '& .MuiFormControl-root': {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      opacity: 0,
+      pointerEvents: 'auto',
+      cursor: 'pointer'
+    }
   },
   '@media (max-width: 600px)': {
-    height: '48px',
-    padding: '0 16px',
-    fontSize: '0.9rem'
+    height: '56px',
+    padding: '0 8px',
+    fontSize: '0.8rem',
+    flex: '1 1 calc(33.333% - 8px)',
+    minWidth: '0',
+    maxWidth: 'calc(33.333% - 8px)',
+    width: 'auto',
+    '& > svg[data-filter-icon]': {
+      width: '24px !important',
+      height: '24px !important'
+    },
+    '& svg[data-caret-down]': {
+      width: '16px !important',
+      height: '16px !important'
+    },
+    '& .MuiFormControl-root': {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      opacity: 0,
+      pointerEvents: 'auto',
+      cursor: 'pointer'
+    }
   }
 }));
 
@@ -694,6 +806,77 @@ const CatalogEmptyStateDescription = styled(Typography)(({ theme }) => ({
 const CatalogLoadingContainer = styled(Box)({ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', gap: '24px' });
 const CatalogLoadingOverlay = styled(CatalogModernCard)({ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px', padding: '24px', marginBottom: '24px', background: alpha('#1F64BF', 0.04) });
 
+const CatalogStatsDotsContainer = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
+  gap: '8px',
+  marginTop: '16px',
+  [theme.breakpoints.up(480)]: { display: 'none' }
+}));
+
+const CatalogStatsDot = styled(Box)(({ active, theme }) => ({
+  width: active ? '24px' : '8px',
+  height: '8px',
+  borderRadius: '4px',
+  background: active ? '#1F64BF' : alpha('#1F64BF', 0.2),
+  transition: 'all 0.3s ease',
+  cursor: 'pointer'
+}));
+
+const ClearFiltersButton = styled(Button)(({ theme }) => ({
+  textTransform: 'none',
+  borderRadius: '8px',
+  fontSize: '0.875rem',
+  fontWeight: 600,
+  color: '#032CA6',
+  backgroundColor: alpha('#032CA6', 0.1),
+  padding: '8px 12px',
+  minWidth: 'auto',
+  fontFamily: "'Mona Sans'",
+  position: 'relative',
+  overflow: 'hidden',
+  '&::before': {
+    content: '""',
+    position: 'absolute',
+    top: 0,
+    left: '-100%',
+    width: '100%',
+    height: '100%',
+    background: 'linear-gradient(90deg, transparent, rgba(3, 44, 166, 0.15), transparent)',
+    transition: 'left 0.5s ease',
+    zIndex: 0
+  },
+  '& > *': {
+    position: 'relative',
+    zIndex: 1
+  },
+  '&:hover': {
+    backgroundColor: alpha('#032CA6', 0.15),
+    '&::before': {
+      left: '100%'
+    }
+  },
+  '& .MuiButton-startIcon': {
+    margin: 0,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  '& .MuiButton-label > span': {
+    [theme.breakpoints.down('sm')]: {
+      display: 'none'
+    }
+  },
+  '@media (max-width: 600px)': {
+    minWidth: '48px',
+    padding: '8px',
+    '& .MuiButton-label > span': {
+      display: 'none'
+    }
+  }
+}));
+
 const CatalogManagement = () => {
   const theme = useTheme();
   
@@ -711,6 +894,8 @@ const CatalogManagement = () => {
   const [sortOption, setSortOption] = useState('newest');
   const [editingProduct, setEditingProduct] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState('');
+  const [activeStatsIndex, setActiveStatsIndex] = useState(0);
+  const statsGridRef = useRef(null);
 
   useEffect(() => {
     updateFilters({
@@ -741,6 +926,63 @@ const CatalogManagement = () => {
       { id: 'featured-products', title: "Productos Destacados", value: productStats.featured, change: "Productos premium", trend: "up", icon: Star, variant: "secondary" }
     ];
   }, [getProductStats]);
+
+  // Efecto para manejar el loop infinito sin duplicar elementos (mejor rendimiento)
+  useEffect(() => {
+    const grid = statsGridRef.current;
+    if (!grid || stats.length === 0) return;
+
+    const cardWidth = grid.offsetWidth;
+    const totalCards = stats.length;
+    const maxScroll = cardWidth * (totalCards - 1);
+    
+    let lastScrollLeft = grid.scrollLeft;
+    let isScrolling = false;
+
+    const handleScroll = () => {
+      if (!grid || isScrolling) return;
+      
+      const scrollLeft = grid.scrollLeft;
+      const scrollDelta = scrollLeft - lastScrollLeft;
+      
+      // Detectar si estamos en los bordes y crear el loop infinito sin duplicación
+      if (scrollLeft >= maxScroll - 1 && scrollDelta > 0) {
+        // Llegamos al final avanzando, saltar al inicio instantáneamente
+        isScrolling = true;
+        grid.scrollTo({
+          left: 0,
+          behavior: 'instant'
+        });
+        lastScrollLeft = 0;
+        setTimeout(() => { isScrolling = false; }, 50);
+      } else if (scrollLeft <= 1 && scrollDelta < 0) {
+        // Llegamos al inicio retrocediendo, saltar al final instantáneamente
+        isScrolling = true;
+        grid.scrollTo({
+          left: maxScroll,
+          behavior: 'instant'
+        });
+        lastScrollLeft = maxScroll;
+        setTimeout(() => { isScrolling = false; }, 50);
+      } else {
+        lastScrollLeft = scrollLeft;
+      }
+    };
+
+    // Throttle del scroll para mejor rendimiento
+    let scrollTimeout;
+    const throttledHandleScroll = () => {
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(handleScroll, 50);
+    };
+
+    grid.addEventListener('scroll', throttledHandleScroll);
+
+    return () => {
+      grid.removeEventListener('scroll', throttledHandleScroll);
+      clearTimeout(scrollTimeout);
+    };
+  }, [stats.length]);
 
   const handleCreateProduct = () => { setEditingProduct(null); setShowCreateModal(true); };
   const handleCloseModal = () => { setShowCreateModal(false); setEditingProduct(null); };
@@ -807,6 +1049,19 @@ const CatalogManagement = () => {
     }
   };
 
+  const handleStatsScroll = (e) => {
+    const container = e.target;
+    if (!container || stats.length === 0) return;
+    
+    const cardWidth = container.offsetWidth;
+    const scrollLeft = container.scrollLeft;
+    const totalCards = stats.length;
+    
+    // Calcular el índice actual
+    const currentIndex = Math.round(scrollLeft / cardWidth);
+    setActiveStatsIndex(Math.max(0, Math.min(currentIndex, totalCards - 1)));
+  };
+
   if (loading && !hasProducts) {
     return (
       <CatalogPageContainer>
@@ -846,7 +1101,7 @@ const CatalogManagement = () => {
         )}
 
         <CatalogStatsContainer>
-          <CatalogStatsGrid>
+          <CatalogStatsGrid ref={statsGridRef} onScroll={handleStatsScroll}>
             {stats.map((stat) => (
               <CatalogStatCard key={stat.id} variant={stat.variant}>
                 <CatalogStatHeader>
@@ -857,6 +1112,17 @@ const CatalogManagement = () => {
               </CatalogStatCard>
             ))}
           </CatalogStatsGrid>
+          <CatalogStatsDotsContainer>
+            {stats.map((_, index) => (
+              <CatalogStatsDot key={index} active={activeStatsIndex === index} onClick={() => {
+                const grid = statsGridRef.current;
+                if (grid && grid.scrollTo) {
+                  const cardWidth = grid.offsetWidth;
+                  grid.scrollTo({ left: index * cardWidth, behavior: 'smooth' });
+                }
+              }} />
+            ))}
+          </CatalogStatsDotsContainer>
         </CatalogStatsContainer>
 
         <CatalogControlsSection>
@@ -866,32 +1132,35 @@ const CatalogManagement = () => {
             </CatalogSearchSection>
             <CatalogFiltersSection>
               <CatalogFilterChip active={selectedFilter !== 'all'}>
-                <Funnel size={16} weight="bold" />
-                <FormControl size="small" sx={{ minWidth: 100 }}>
-                  <Select value={selectedFilter} onChange={(e) => setSelectedFilter(e.target.value)} displayEmpty sx={{ border: 'none', fontFamily: "'Mona Sans'", '& .MuiOutlinedInput-notchedOutline': { border: 'none' }, '& .MuiSelect-select': { padding: 0, fontSize: '0.875rem', fontWeight: 500, color: '#010326', fontFamily: "'Mona Sans'" } }}>
+                <Funnel size={16} weight="bold" data-filter-icon />
+                <CaretDown size={14} weight="bold" data-caret-down style={{ opacity: 0.6 }} />
+                <FormControl size="small" sx={{ width: '100%', height: '100%', '& .MuiOutlinedInput-root': { width: '100%', height: '100%' } }}>
+                  <Select value={selectedFilter} onChange={(e) => setSelectedFilter(e.target.value)} displayEmpty sx={{ width: '100%', height: '100%', border: 'none', fontFamily: "'Mona Sans'", '& .MuiOutlinedInput-notchedOutline': { border: 'none' }, '& .MuiSelect-select': { padding: 0, fontSize: '0.875rem', fontWeight: 500, color: '#010326', fontFamily: "'Mona Sans'", width: '100%', height: '100%', display: 'flex', alignItems: 'center' }, '& .MuiSelect-icon': { display: 'none' } }}>
                     <MenuItem value="all">Todos</MenuItem><MenuItem value="active">Activos</MenuItem><MenuItem value="inactive">Inactivos</MenuItem>
                   </Select>
                 </FormControl>
               </CatalogFilterChip>
               <CatalogFilterChip active={selectedCategory !== ''}>
-                <Package size={16} weight="bold" />
-                <FormControl size="small" sx={{ minWidth: 120 }}>
-                  <Select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)} displayEmpty disabled={loadingCategories || categoriesError} sx={{ border: 'none', fontFamily: "'Mona Sans'", '& .MuiOutlinedInput-notchedOutline': { border: 'none' }, '& .MuiSelect-select': { padding: 0, fontSize: '0.875rem', fontWeight: 500, color: '#010326', fontFamily: "'Mona Sans'" } }}>
+                <Package size={16} weight="bold" data-filter-icon />
+                <CaretDown size={14} weight="bold" data-caret-down style={{ opacity: 0.6 }} />
+                <FormControl size="small" sx={{ width: '100%', height: '100%', '& .MuiOutlinedInput-root': { width: '100%', height: '100%' } }}>
+                  <Select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)} displayEmpty disabled={loadingCategories || categoriesError} sx={{ width: '100%', height: '100%', border: 'none', fontFamily: "'Mona Sans'", '& .MuiOutlinedInput-notchedOutline': { border: 'none' }, '& .MuiSelect-select': { padding: 0, fontSize: '0.875rem', fontWeight: 500, color: '#010326', fontFamily: "'Mona Sans'", width: '100%', height: '100%', display: 'flex', alignItems: 'center' }, '& .MuiSelect-icon': { display: 'none' } }}>
                     <MenuItem value="">{loadingCategories ? 'Cargando...' : categoriesError ? 'Error' : 'Categorías'}</MenuItem>
                     {!categoriesError && categories.map(category => (<MenuItem key={category._id} value={category._id}>{category.name}</MenuItem>))}
                   </Select>
                 </FormControl>
               </CatalogFilterChip>
               <CatalogFilterChip active={sortOption !== 'newest'}>
-                <ChartLine size={16} weight="bold" />
-                <FormControl size="small" sx={{ minWidth: 100 }}>
-                  <Select value={sortOption} onChange={(e) => setSortOption(e.target.value)} sx={{ border: 'none', fontFamily: "'Mona Sans'", '& .MuiOutlinedInput-notchedOutline': { border: 'none' }, '& .MuiSelect-select': { padding: 0, fontSize: '0.875rem', fontWeight: 500, color: '#010326', fontFamily: "'Mona Sans'" } }}>
+                <ChartLine size={16} weight="bold" data-filter-icon />
+                <CaretDown size={14} weight="bold" data-caret-down style={{ opacity: 0.6 }} />
+                <FormControl size="small" sx={{ width: '100%', height: '100%', '& .MuiOutlinedInput-root': { width: '100%', height: '100%' } }}>
+                  <Select value={sortOption} onChange={(e) => setSortOption(e.target.value)} sx={{ width: '100%', height: '100%', border: 'none', fontFamily: "'Mona Sans'", '& .MuiOutlinedInput-notchedOutline': { border: 'none' }, '& .MuiSelect-select': { padding: 0, fontSize: '0.875rem', fontWeight: 500, color: '#010326', fontFamily: "'Mona Sans'", width: '100%', height: '100%', display: 'flex', alignItems: 'center' }, '& .MuiSelect-icon': { display: 'none' } }}>
                     <MenuItem value="newest">Más nuevos</MenuItem><MenuItem value="oldest">Más antiguos</MenuItem><MenuItem value="name_asc">A-Z</MenuItem><MenuItem value="name_desc">Z-A</MenuItem><MenuItem value="price_asc">Precio ↑</MenuItem><MenuItem value="price_desc">Precio ↓</MenuItem>
                   </Select>
                 </FormControl>
               </CatalogFilterChip>
               {(searchQuery || selectedFilter !== 'all' || selectedCategory || sortOption !== 'newest') && (
-                <Button onClick={handleClearFilters} startIcon={<Broom size={16} weight="bold" />} sx={{ textTransform: 'none', borderRadius: '8px', fontSize: '0.875rem', fontWeight: 600, color: '#032CA6', backgroundColor: alpha('#032CA6', 0.1), padding: '8px 12px', minWidth: 'auto', fontFamily: "'Mona Sans'", position: 'relative', overflow: 'hidden', '&::before': { content: '""', position: 'absolute', top: 0, left: '-100%', width: '100%', height: '100%', background: 'linear-gradient(90deg, transparent, rgba(3, 44, 166, 0.15), transparent)', transition: 'left 0.5s ease', zIndex: 0 }, '& > *': { position: 'relative', zIndex: 1 }, '&:hover': { backgroundColor: alpha('#032CA6', 0.15), '&::before': { left: '100%' } } }}>Limpiar</Button>
+                <ClearFiltersButton onClick={handleClearFilters} startIcon={<Broom size={16} weight="bold" />}>Limpiar</ClearFiltersButton>
               )}
             </CatalogFiltersSection>
           </CatalogControlsContent>
@@ -901,7 +1170,7 @@ const CatalogManagement = () => {
           <CatalogSectionHeader>
             <CatalogSectionTitle component="div">
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <GridNine size={24} weight="duotone" /><span>Productos</span>
+                <span>Productos</span>
                 <Chip label={`${products.length}${pagination.totalProducts !== products.length ? ` de ${pagination.totalProducts}` : ''}`} size="small" sx={{ background: alpha('#1F64BF', 0.1), color: '#032CA6', fontWeight: 600, ml: 1, fontFamily: "'Mona Sans'" }} />
               </Box>
             </CatalogSectionTitle>

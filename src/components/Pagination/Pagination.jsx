@@ -6,7 +6,7 @@ import { styled } from '@mui/material/styles';
 const StyledPagination = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
-  justifyContent: 'center',
+  justifyContent: 'flex-end',
   gap: theme.spacing(1),
   margin: theme.spacing(2, 0),
 }));
@@ -15,7 +15,8 @@ const PageButton = styled(Button)(({ theme, active }) => ({
   minWidth: '40px',
   height: '40px',
   borderRadius: '12px',
-  backgroundColor: active ? 'linear-gradient(135deg, #1F64BF 0%, #032CA6 100%)' : 'transparent',
+  background: active ? 'linear-gradient(135deg, #1F64BF 0%, #032CA6 100%)' : 'transparent',
+  backgroundColor: active ? undefined : 'transparent',
   color: active ? '#ffffff' : '#6B7280',
   border: active ? 'none' : `1px solid ${alpha('#1F64BF', 0.25)}`,
   fontSize: '14px',
@@ -27,7 +28,8 @@ const PageButton = styled(Button)(({ theme, active }) => ({
   overflow: 'hidden',
   boxShadow: active ? '0 2px 8px rgba(31, 100, 191, 0.2)' : 'none',
   '&:hover': {
-    backgroundColor: active ? 'linear-gradient(135deg, #1E5BA8 0%, #032A9A 100%)' : alpha('#1F64BF', 0.08),
+    background: active ? 'linear-gradient(135deg, #1E5BA8 0%, #032A9A 100%)' : undefined,
+    backgroundColor: active ? undefined : alpha('#1F64BF', 0.08),
     borderColor: active ? 'none' : alpha('#1F64BF', 0.4),
     transform: 'translateY(-1px)',
     boxShadow: active ? '0 4px 12px rgba(31, 100, 191, 0.3)' : '0 2px 6px rgba(1, 3, 38, 0.06)',
@@ -107,22 +109,7 @@ const Pagination = ({
   const endItem = Math.min(currentPage * itemsPerPage, totalItems);
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-      {/* Información de paginación */}
-      <Typography 
-        variant="body2" 
-        sx={{ 
-          color: '#032CA6', 
-          opacity: 0.8, 
-          fontFamily: "'Mona Sans'",
-          fontWeight: 500
-        }}
-      >
-        Mostrando {startItem}-{endItem} de {totalItems} elementos
-      </Typography>
-
-      {/* Controles de paginación */}
-      <StyledPagination>
+    <StyledPagination>
         {/* Botón anterior */}
         <PageButton
           onClick={() => onPageChange(currentPage - 1)}
@@ -168,8 +155,7 @@ const Pagination = ({
         >
           ›
         </PageButton>
-      </StyledPagination>
-    </Box>
+    </StyledPagination>
   );
 };
 
