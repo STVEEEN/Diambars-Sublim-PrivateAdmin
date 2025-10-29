@@ -74,6 +74,49 @@ if (typeof document !== 'undefined') {
   document.head.appendChild(styleSheet);
 }
 
+// Estilos para hacer zoom out y mostrar imagen completa cuando hay una card por fila (550px o menos)
+const productCardImageZoomStyles = `
+@media (max-width: 550px) {
+  .product-card-container .product-image-wrapper {
+    overflow: visible !important;
+    padding: 10px !important;
+    height: auto !important;
+    min-height: 220px !important;
+  }
+  
+  .product-card-container .product-image-wrapper .product-card-image,
+  .product-card-container .product-card-image {
+    object-fit: contain !important;
+    transform: scale(1.15) !important;
+    transform-origin: center center;
+    width: 100% !important;
+    height: auto !important;
+    max-height: 220px !important;
+    filter: blur(0px) !important;
+  }
+  
+  .product-card-container:hover .product-image-wrapper .product-card-image,
+  .product-card-container:hover .product-card-image {
+    transform: scale(1.2) !important;
+    filter: blur(0px) !important;
+  }
+}
+`;
+
+// Inyectar estilos para zoom out de imagen en móvil (al final del head para máxima prioridad)
+if (typeof document !== 'undefined') {
+  const productImageStyleSheet = document.createElement('style');
+  productImageStyleSheet.id = 'catalog-product-image-zoom-styles';
+  if (!document.getElementById('catalog-product-image-zoom-styles')) {
+    productImageStyleSheet.textContent = productCardImageZoomStyles;
+    // Insertar al final del head para que tenga máxima prioridad
+    document.head.appendChild(productImageStyleSheet);
+  } else {
+    // Si ya existe, actualizar el contenido
+    document.getElementById('catalog-product-image-zoom-styles').textContent = productCardImageZoomStyles;
+  }
+}
+
 const CatalogPageContainer = styled(Box)({
 
   minHeight: '100vh', 
@@ -269,11 +312,11 @@ const CatalogStatsGrid = styled(Box)(({ theme }) => ({
   [theme.breakpoints.down('lg')]: { gridTemplateColumns: 'repeat(2, 1fr)', gap: '18px' },
   [theme.breakpoints.down('md')]: { gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' },
   [theme.breakpoints.down('sm')]: { gridTemplateColumns: 'repeat(2, 1fr)', gap: '14px' },
-  [theme.breakpoints.down(480)]: { 
+  [theme.breakpoints.down(550)]: { 
     display: 'flex',
     overflowX: 'auto',
     overflowY: 'hidden',
-    gap: '16px',
+    gap: '0px',
     scrollSnapType: 'x mandatory',
     scrollBehavior: 'smooth',
     WebkitOverflowScrolling: 'touch',
@@ -362,7 +405,7 @@ const CatalogStatCard = styled(CatalogModernCard)(({ theme, variant }) => {
     ...selectedVariant,
     
     // Estilos para carrusel móvil
-    [theme.breakpoints.down(480)]: {
+    [theme.breakpoints.down(550)]: {
       width: '100%',
       minWidth: '100%',
       maxWidth: '100%',
@@ -753,7 +796,7 @@ const CatalogProductsGrid = styled(Box)(({ theme }) => ({
   [theme.breakpoints.down('lg')]: { gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px' },
   [theme.breakpoints.down('md')]: { gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '18px' },
   [theme.breakpoints.down('sm')]: { gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px' },
-  [theme.breakpoints.down(480)]: { gridTemplateColumns: '1fr', gap: '14px' }
+  [theme.breakpoints.down(550)]: { gridTemplateColumns: '1fr', gap: '14px' }
 }));
 
 const CatalogEmptyState = styled(CatalogModernCard)(({ theme }) => ({
@@ -812,7 +855,7 @@ const CatalogStatsDotsContainer = styled(Box)(({ theme }) => ({
   alignItems: 'center',
   gap: '8px',
   marginTop: '16px',
-  [theme.breakpoints.up(480)]: { display: 'none' }
+  [theme.breakpoints.up(550)]: { display: 'none' }
 }));
 
 const CatalogStatsDot = styled(Box)(({ active, theme }) => ({
