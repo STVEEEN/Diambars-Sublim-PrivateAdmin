@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Swal from 'sweetalert2';
 import {
   Box,
@@ -380,20 +380,61 @@ const AddressStatsGrid = styled(Box)(({ theme }) => ({
     gap: '20px',
   },
   [theme.breakpoints.down('lg')]: {
-    gridTemplateColumns: 'repeat(2, 1fr)',
-    gap: '18px',
-  },
-  [theme.breakpoints.down('md')]: {
-    gridTemplateColumns: 'repeat(2, 1fr)',
+    display: 'flex',
+    overflowX: 'auto',
+    overflowY: 'hidden',
     gap: '16px',
+    scrollSnapType: 'x mandatory',
+    scrollBehavior: 'smooth',
+    WebkitOverflowScrolling: 'touch',
+    msOverflowStyle: '-ms-autohiding-scrollbar',
+    gridTemplateColumns: 'none',
+    paddingLeft: '0px',
+    paddingRight: '0px',
+    '&::-webkit-scrollbar': {
+      height: '4px',
+      display: 'none'
+    },
+    '&::-webkit-scrollbar-track': {
+      background: 'transparent'
+    },
+    '&::-webkit-scrollbar-thumb': {
+      background: alpha('#1F64BF', 0.3),
+      borderRadius: '10px'
+    }
   },
-  [theme.breakpoints.down('sm')]: {
-    gridTemplateColumns: 'repeat(2, 1fr)',
-    gap: '14px',
-  },
-  [theme.breakpoints.down(480)]: {
-    gridTemplateColumns: '1fr',
-    gap: '12px',
+  [theme.breakpoints.down(550)]: {
+    display: 'flex',
+    overflowX: 'auto',
+    overflowY: 'hidden',
+    gap: '0px',
+    scrollSnapType: 'x mandatory',
+    scrollBehavior: 'smooth',
+    WebkitOverflowScrolling: 'touch',
+    msOverflowStyle: '-ms-autohiding-scrollbar',
+    paddingLeft: '0px',
+    paddingRight: '0px',
+    '&::before': {
+      content: '""',
+      minWidth: '0px',
+      flexShrink: 0
+    },
+    '&::after': {
+      content: '""',
+      minWidth: '0px',
+      flexShrink: 0
+    },
+    '&::-webkit-scrollbar': {
+      height: '4px',
+      display: 'none'
+    },
+    '&::-webkit-scrollbar-track': {
+      background: 'transparent'
+    },
+    '&::-webkit-scrollbar-thumb': {
+      background: alpha('#1F64BF', 0.3),
+      borderRadius: '10px'
+    }
   }
 }));
 
@@ -454,6 +495,26 @@ const AddressStatCard = styled(AddressModernCard)(({ theme, variant }) => {
     transition: 'all 0.3s cubic-bezier(0.23, 1, 0.320, 1)',
     boxShadow: '0 2px 12px rgba(1, 3, 38, 0.04)',
     ...selectedVariant,
+    
+    // Estilos para carrusel con 2 cards visibles (entre 550px y lg ~1200px)
+    [`@media (max-width: ${theme.breakpoints.values.lg}px) and (min-width: 551px)`]: {
+      width: 'calc(50% - 8px)',
+      minWidth: 'calc(50% - 8px)',
+      maxWidth: 'calc(50% - 8px)',
+      flexShrink: 0,
+      scrollSnapAlign: 'start',
+      scrollSnapStop: 'always'
+    },
+    
+    // Estilos para carrusel con 1 card (550px o menos)
+    [theme.breakpoints.down(550)]: {
+      width: '100%',
+      minWidth: '100%',
+      maxWidth: '100%',
+      flexShrink: 0,
+      scrollSnapAlign: 'start',
+      scrollSnapStop: 'always'
+    },
     
     '&::before': {
       content: '""',
@@ -649,6 +710,24 @@ const AddressStatTrendText = styled(Typography)(({ variant, trend, theme }) => (
   [theme.breakpoints.down('sm')]: {
     fontSize: '0.75rem',
   }
+}));
+
+const AddressStatsDotsContainer = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
+  gap: '8px',
+  marginTop: '16px',
+  [theme.breakpoints.up('lg')]: { display: 'none' }
+}));
+
+const AddressStatsDot = styled(Box)(({ active, theme }) => ({
+  width: active ? '24px' : '8px',
+  height: '8px',
+  borderRadius: '4px',
+  background: active ? '#1F64BF' : alpha('#1F64BF', 0.2),
+  transition: 'all 0.3s ease',
+  cursor: 'pointer'
 }));
 
 const AddressControlsSection = styled(AddressModernCard)(({ theme }) => ({
@@ -1043,6 +1122,8 @@ const AddressManagement = () => {
   const [selectedUser, setSelectedUser] = useState('');
   const [sortOption, setSortOption] = useState('createdAt_desc');
   const [viewMode, setViewMode] = useState('table'); // 'table' | 'map'
+  const [activeStatsIndex, setActiveStatsIndex] = useState(0);
+  const statsGridRef = useRef(null);
 
   // ==================== EFECTOS ====================
   useEffect(() => {
@@ -1098,6 +1179,111 @@ const AddressManagement = () => {
       }
     ];
   }, [getCalculatedStats]);
+
+  // Efecto para manejar el loop infinito sin duplicar elementos (mejor rendimiento)
+  useEffect(() => {
+    const grid = statsGridRef.current;
+    if (!grid || stats.length === 0) return;
+
+    const getCardWidth = () => {
+      const containerWidth = grid.offsetWidth;
+      const windowWidth = window.innerWidth;
+      const isMobile = windowWidth <= 550;
+      
+      if (isMobile) {
+        // Una card por vez (100% del ancho)
+        return containerWidth;
+      } else {
+        // Dos cards por vez (50% del ancho cada una + gap)
+        return (containerWidth + 16) / 2;
+      }
+    };
+    
+    const totalCards = stats.length;
+    
+    let lastScrollLeft = grid.scrollLeft;
+    let isScrolling = false;
+
+    const handleScroll = () => {
+      if (!grid || isScrolling) return;
+      
+      const cardWidth = getCardWidth();
+      const windowWidth = window.innerWidth;
+      const isMobile = windowWidth <= 550;
+      // Cuando hay 2 cards visibles, maxScroll es totalCards - 2 (2 posiciones para 4 cards: 0, 1)
+      // Cuando hay 1 card visible, maxScroll es totalCards - 1 (4 posiciones para 4 cards: 0, 1, 2, 3)
+      const maxIndex = isMobile ? totalCards - 1 : totalCards - 2;
+      const maxScroll = cardWidth * maxIndex;
+      const scrollLeft = grid.scrollLeft;
+      const scrollDelta = scrollLeft - lastScrollLeft;
+      
+      // Detectar si estamos en los bordes y crear el loop infinito sin duplicación
+      if (scrollLeft >= maxScroll - 1 && scrollDelta > 0) {
+        // Llegamos al final avanzando, saltar al inicio instantáneamente
+        isScrolling = true;
+        grid.scrollTo({
+          left: 0,
+          behavior: 'instant'
+        });
+        lastScrollLeft = 0;
+        setTimeout(() => { isScrolling = false; }, 50);
+      } else if (scrollLeft <= 1 && scrollDelta < 0) {
+        // Llegamos al inicio retrocediendo, saltar al final instantáneamente
+        isScrolling = true;
+        grid.scrollTo({
+          left: maxScroll,
+          behavior: 'instant'
+        });
+        lastScrollLeft = maxScroll;
+        setTimeout(() => { isScrolling = false; }, 50);
+      } else {
+        lastScrollLeft = scrollLeft;
+      }
+    };
+
+    // Throttle del scroll para mejor rendimiento
+    let scrollTimeout;
+    const throttledHandleScroll = () => {
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(handleScroll, 50);
+    };
+
+    grid.addEventListener('scroll', throttledHandleScroll);
+
+    return () => {
+      grid.removeEventListener('scroll', throttledHandleScroll);
+      clearTimeout(scrollTimeout);
+    };
+  }, [stats.length]);
+
+  const handleStatsScroll = (e) => {
+    const container = e.target;
+    if (!container || stats.length === 0) return;
+    
+    const containerWidth = container.offsetWidth;
+    const scrollLeft = container.scrollLeft;
+    const totalCards = stats.length;
+    
+    // Detectar si estamos en modo 2 cards (550px < pantalla ≤ 1200px) o 1 card (≤550px)
+    const windowWidth = window.innerWidth;
+    const isMobile = windowWidth <= 550;
+    let cardWidth;
+    let maxIndex;
+    
+    if (isMobile) {
+      // Una card por vez (100% del ancho) - 4 dots (0-3) para 4 cards
+      cardWidth = containerWidth;
+      maxIndex = totalCards - 1; // 3 (para 4 cards)
+    } else {
+      // Dos cards por vez (50% del ancho cada una + gap) - 3 dots (0-2) para 4 cards
+      cardWidth = (containerWidth + 16) / 2; // containerWidth/2 + gap/2
+      maxIndex = totalCards - 2; // 2 (para 4 cards, posiciones: 0-1, 1-2, 2-3)
+    }
+    
+    // Calcular el índice actual basado en el ancho de card
+    const currentIndex = Math.round(scrollLeft / cardWidth);
+    setActiveStatsIndex(Math.max(0, Math.min(currentIndex, maxIndex)));
+  };
 
   const departmentOptions = useMemo(() => {
     const uniqueDepartments = [...new Set(addresses.map(addr => addr.department))];
@@ -1497,7 +1683,7 @@ const AddressManagement = () => {
 
         {/* Estadísticas con hover disminuido */}
         <AddressStatsContainer>
-          <AddressStatsGrid>
+          <AddressStatsGrid ref={statsGridRef} onScroll={handleStatsScroll}>
             {stats.map((stat) => (
               <AddressStatCard key={stat.id} variant={stat.variant}>
                 <AddressStatHeader>
@@ -1522,6 +1708,32 @@ const AddressManagement = () => {
               </AddressStatCard>
             ))}
           </AddressStatsGrid>
+          <AddressStatsDotsContainer>
+            {(() => {
+              const windowWidth = typeof window !== 'undefined' ? window.innerWidth : 1200;
+              const isMobile = windowWidth <= 550;
+              // Si hay 2 cards visibles, mostrar solo totalCards - 1 dots (3 para 4 cards)
+              // Si hay 1 card visible, mostrar totalCards dots (4 para 4 cards)
+              const dotsToShow = isMobile ? stats.length : stats.length - 1;
+              
+              return Array.from({ length: dotsToShow }, (_, index) => (
+                <AddressStatsDot 
+                  key={index} 
+                  active={activeStatsIndex === index} 
+                  onClick={() => {
+                    const grid = statsGridRef.current;
+                    if (grid && grid.scrollTo) {
+                      const containerWidth = grid.offsetWidth;
+                      const windowWidth = window.innerWidth;
+                      const isMobile = windowWidth <= 550;
+                      const cardWidth = isMobile ? containerWidth : (containerWidth + 16) / 2;
+                      grid.scrollTo({ left: index * cardWidth, behavior: 'smooth' });
+                    }
+                  }} 
+                />
+              ));
+            })()}
+          </AddressStatsDotsContainer>
         </AddressStatsContainer>
 
         {/* Controles de búsqueda y filtros - Selects originales */}
